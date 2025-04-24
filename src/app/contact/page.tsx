@@ -1,0 +1,17 @@
+import { Metadata } from "next";
+import ContactPageHeader from "@/components/features/contact/ContactPageHeader";
+import ContactContent from "@/components/features/contact/ContactContent";
+
+export const metadata: Metadata = {
+  title: "İletişim - PadokClub",
+  description: "PadokClub ile iletişime geçin, adres bilgileri, ziyaret saatleri ve iletişim kanalları.",
+};
+
+export default function ContactPage() {
+  return (
+    <div className="container mx-auto px-4 py-0">
+      <ContactPageHeader />
+      <ContactContent />
+    </div>
+  );
+}

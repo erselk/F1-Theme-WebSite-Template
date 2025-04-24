@@ -1,0 +1,140 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// Kullanıcı modeli
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  email         String    @unique
+  passwordHash  String?
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bookings      Booking[]
+  payments      Payment[]
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+// Simülatör modeli
+model Simulator {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  description  String
+  imageUrl     String?
+  isAvailable  Boolean   @default(true)
+  pricePerHour Float
+  features     String[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  bookings     Booking[]
+}
+
+// Geliştirilmiş Etkinlik modeli
+model Event {
+  id          String                 @id @default(auto()) @map("_id") @db.ObjectId
+  slug        String                 @unique
+  bannerImage String?
+  squareImage String?
+  isFeatured  Boolean                @default(false)
+  date        DateTime
+  price       Float
+  category    String
+  location    Json                   // {tr: String, en: String}
+  title       Json                   // {tr: String, en: String}
+  description Json                   // {tr: String, en: String}
+  tickets     Json[]                 // [{id: String, name: {tr: String, en: String}, price: Float, description: {tr: String, en: String}}]
+  rules       Json?                  // {tr: String[], en: String[]}
+  gallery     String[]
+  comments    Json[]                 // [{id: String, userId: String, text: String, createdAt: DateTime}]
+  status      String?                // 'today', 'tomorrow', 'this-week', 'upcoming', 'past'
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  bookings    Booking[]
+}
+
+// Blog modeli
+model Blog {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  slug        String   @unique
+  coverImage  String?
+  author      String
+  isFeatured  Boolean  @default(false)
+  publishDate DateTime
+  title       Json     // {tr: String, en: String}
+  summary     Json     // {tr: String, en: String}
+  content     Json     // {tr: String, en: String}
+  tags        String[]
+  category    String
+  views       Int      @default(0)
+  comments    Json[]   // [{id: String, userId: String, text: String, createdAt: DateTime}]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Rezervasyon modeli
+model Booking {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String        @db.ObjectId
+  user        User          @relation(fields: [userId], references: [id])
+  simulatorId String?       @db.ObjectId
+  simulator   Simulator?    @relation(fields: [simulatorId], references: [id])
+  eventId     String?       @db.ObjectId
+  event       Event?        @relation(fields: [eventId], references: [id])
+  refNumber   String        @unique
+  name        String
+  email       String
+  phone       String?
+  startTime   DateTime
+  endTime     DateTime
+  people      Int           @default(1)
+  status      BookingStatus @default(PENDING)
+  totalPrice  Float
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  payment     Payment?
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+// Ödeme modeli
+model Payment {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId   String        @unique @db.ObjectId
+  booking     Booking       @relation(fields: [bookingId], references: [id])
+  userId      String        @db.ObjectId
+  user        User          @relation(fields: [userId], references: [id])
+  amount      Float
+  currency    String        @default("TRY")
+  status      PaymentStatus
+  provider    String        // "stripe" veya "iyzico"
+  paymentId   String        // Ödeme sağlayıcısından gelen ID
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}

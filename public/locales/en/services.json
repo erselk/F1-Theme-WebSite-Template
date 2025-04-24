@@ -1,0 +1,45 @@
+{
+  "introText": "Padok Club is a multi-level technology, entertainment, and social hub that combines physical and digital experiences, supporting interdisciplinary interaction. Each level is thematically structured and equipped with the most current equipment in its field. Below, you can find detailed descriptions of the services we offer:",
+  
+  "f1": {
+    "title": "F1 Racing Simulation",
+    "description": "Simulation experience crafted at the intersection of realism, speed, and technology.",
+    "detail": "High-precision steering sets and ultra-wide field of view.",
+    "longDescription": "The F1 Racing Simulation area, located at the heart of Padok, is positioned at the intersection of automotive technology, simulation engineering, and e-sports disciplines. It is equipped with high-precision steering sets used in professional racing simulators, hydraulically supported special seats, and multi-screen systems that offer an ultra-wide field of view. These systems provide users with a mechanical response learning and experience opportunity through force feedback and vibration systems that perfectly mimic physical driving dynamics. Thanks to developed software, details such as real track conditions, tire wear, aerodynamic effects, and weather conditions are integrated into the simulation."
+  },
+  
+  "stage": {
+    "title": "Stage & Performance Area",
+    "description": "An interactive space where art, technology, and community meet.",
+    "detail": "DJ performances, acoustic concerts, and interactive performances.",
+    "longDescription": "Padok's event floor is a multifunctional performance area designed with acoustic engineering and stage technologies in mind. It is structured to accommodate many different types of events, such as DJ performances, acoustic concerts, stand-up shows, open mic nights, and interactive performances. The system includes elements that stand out in stage design, such as high-resolution LED light panels, automatically synchronized light systems, multi-channel digital mixer infrastructure, and noise control panels."
+  },
+  
+  "cafe": {
+    "title": "Cafe & Board Games Area",
+    "description": "An intimate and inclusive socializing environment nourished by social game theory.",
+    "detail": "Comfortable seating groups and rich collection of board games.",
+    "longDescription": "Padok's social interaction floor is not just a cafe; it is also an experience area built on game-based learning, cooperation development, and social intelligence interaction. It has the flexibility to accommodate all types of users with comfortable seating groups, table arrangements, and quiet corners. The drinks and snacks served in the cafe section are planned to be usable during both individual work and group activities."
+  },
+  
+  "vr": {
+    "title": "VR (Virtual Reality) Area",
+    "description": "A door opening to a reality-transcending universe: A holistic VR experience.",
+    "detail": "High-resolution VR headsets and haptic glove systems.",
+    "longDescription": "The Virtual Reality area is equipped with experiences that bring together visual, auditory, and spatial perception, making the user feel as if they are physically present in a digital world. The devices used here include high-resolution VR headsets, 6DoF (six degrees of freedom) motion tracking, haptic glove systems, and reactive surface floor platforms. The VR experience is based not only on entertainment but also on psychological interaction, reactive learning, technological awareness, and simulation-based decision making."
+  },
+  
+  "internet": {
+    "title": "Internet Cafe",
+    "description": "Infrastructure optimized for versatile digital productivity and gaming performance.",
+    "detail": "Latest model graphics cards and low-latency monitors.",
+    "longDescription": "The internet cafe section is a hybrid workspace and gaming area designed for both high-hardware demanding games and professional digital work. The area includes systems equipped with the latest model graphics cards, low-latency monitors, mechanical keyboards, and high-resolution headphones. The internet infrastructure is supported by special network solutions that provide low ping and high data transfer."
+  },
+  
+  "meeting": {
+    "title": "Meeting Rooms",
+    "description": "Modular and technology-supported meeting environments that combine functionality with aesthetics.",
+    "detail": "Modular desk systems and wireless presentation systems.",
+    "longDescription": "The meeting rooms offer smart and flexible structures designed in accordance with the requirements of the contemporary business world. The spaces include modular desk systems, wireless presentation systems (supporting BYOD - Bring Your Own Device), high-resolution projection systems, and acoustically insulated wall structures. These spaces, suitable for entrepreneurs, startups, corporations, and academic groups, can be used for both small-scale idea development sessions and large-scale planning meetings."
+  }
+}

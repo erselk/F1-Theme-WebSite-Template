@@ -1,0 +1,250 @@
+/* 24-Hour Analogue Time Picker with Start/End Time CSS */
+.timePickerContainer {
+  font-family: 'Inter', sans-serif;
+  margin: 20px auto;
+  width: fit-content; /* İçeriği kadar genişlik */
+}
+
+.timePickerLayout {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
+}
+
+.clockContainer {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background-color: var(--background-color, #f9f9f9);
+  border: 2px solid var(--border-color, #ddd);
+  flex-shrink: 0;
+}
+
+.clockCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--f1-red, #E10600);
+  transform: translate(-50%, -50%);
+  z-index: 3;
+}
+
+.clockCircles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.innerCircle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 106px;
+  height: 106px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px dashed var(--circle-border-color, #ddd);
+  z-index: 1;
+}
+
+.outerCircle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 160px;
+  height: 160px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px dashed var(--circle-border-color, #ddd);
+  z-index: 1;
+}
+
+/* Fare imlecine yönelen çizgi */
+.cursorPointer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 2px; /* Çizgi kalınlığı */
+  background-color: var(--f1-red, #E10600);
+  transform-origin: left center; /* Sol taraftan dönüş yapacak şekilde */
+  z-index: 4;
+  border-radius: 2px;
+  pointer-events: none; /* Çizginin tıklamaları engellemesini önler */
+}
+
+.hourNumber {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 20px;
+  font-weight: bold;
+  color: var(--hour-number-color, #333);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  z-index: 1;
+  font-size: 11px;
+}
+
+.hourNumber:not(.disabled):hover {
+  background-color: var(--hour-hover-bg, rgba(225, 6, 0, 0.2));
+}
+
+.hourNumber.active {
+  background-color: var(--f1-red, #E10600);
+  color: white;
+}
+
+.hourNumber.disabled {
+  color: var(--hour-disabled-color, #999);
+  cursor: not-allowed;
+}
+
+/* Controls container */
+.controlsContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 10px;
+}
+
+.timeTypeSelector {
+  width: 100%;
+  display: flex;
+  flex-direction: column; /* Butonlar alt alta */
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 12px; /* Biraz azaltıldı */
+}
+
+.timeTypeButton {
+  padding: 6px 12px; /* Buton padding küçültüldü (8px 16px'den) */
+  border: 1px solid var(--border-color, #ddd);
+  background-color: var(--background-color, #f9f9f9);
+  cursor: pointer;
+  width: 100px; /* Buton genişliği küçültüldü (120px'den) */
+  text-align: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.timeTypeButton.active {
+  background-color: var(--f1-red, #E10600);
+  border-color: var(--f1-red, #E10600);
+  color: white;
+}
+
+.timeTypeLabel {
+  font-weight: 500;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.timeValue {
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* Fiyat gösterimi */
+.priceContainer {
+  text-align: left;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.priceLabel {
+  font-size: 13px;
+  color: var(--secondary-text-color, #666);
+}
+
+.priceValue {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--f1-red, #E10600);
+}
+
+/* Dark mode support */
+:global(.dark) .timeTypeButton {
+  --background-color: #333;
+  --border-color: #444;
+  color: #f0f0f0;
+}
+
+:global(.dark) .clockContainer {
+  --background-color: #222;
+  --border-color: #444;
+}
+
+:global(.dark) .innerCircle,
+:global(.dark) .outerCircle {
+  --circle-border-color: #444;
+}
+
+:global(.dark) .hourNumber {
+  --hour-number-color: #f0f0f0;
+}
+
+:global(.dark) .hourNumber.disabled {
+  --hour-disabled-color: #666;
+}
+
+:global(.dark) .timeTypeButton.active {
+  background-color: var(--f1-red-bright, #FF0000);
+  border-color: var(--f1-red-bright, #FF0000);
+}
+
+:global(.dark) .hourNumber.active {
+  background-color: var(--f1-red-bright, #FF0000);
+  color: white;
+}
+
+:global(.dark) .cursorPointer {
+  background-color: var(--f1-red-bright, #FF0000);
+}
+
+:global(.dark) .clockCenter {
+  background-color: var(--f1-red-bright, #FF0000);
+}
+
+:global(.dark) .hourNumber:not(.disabled):hover {
+  --hour-hover-bg: rgba(255, 0, 0, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .timePickerLayout {
+    flex-direction: column;
+  }
+
+  .clockContainer {
+    margin-bottom: 20px;
+  }
+
+  .controlsContainer {
+    padding: 10px;
+    width: 100%;
+  }
+
+  .timeTypeSelector {
+    flex-direction: column; /* Butonlar alt alta */
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "pageTitle": "Our Services",
+  "pageDescription": "Explore our multi-level technology, entertainment, and social center that blends physical and digital experiences.",
+  "introText": "Padok Club is a multi-level technology, entertainment, and social center that combines physical and digital experiences, supporting interdisciplinary interaction. Each level is thematically structured and equipped with state-of-the-art equipment in its field. Below, you can find detailed descriptions of the services we offer:",
+  "f1": {
+    "title": "F1 Racing Simulation",
+    "description": "A simulation experience designed at the intersection of realism, speed, and technology.",
+    "detail": "Located at the heart of Padok, the F1 Racing Simulation area is positioned at the intersection of automotive technology, simulation engineering, and esports disciplines. It is equipped with high-precision steering sets used in professional racing simulators, hydraulically assisted special seats, and multiple screen systems offering ultra-wide viewing angles.\n\nThese systems provide the user with learning and experience opportunities through mechanical response, with force feedback and vibration systems that precisely mimic physical driving dynamics. Through developed software, details such as actual track conditions, tire wear, aerodynamic effects, and weather conditions are integrated into the simulation.\n\nSpecially designed for F1 enthusiasts, amateur drivers, and technology enthusiasts, this floor is kept continuously active with individual driving sessions, multiplayer competitive events, and league-format tournaments. Additionally, training-oriented sessions are also offered for users who want to increase driving awareness at a young age with simulation-based learning techniques."
+  },
+  "stage": {
+    "title": "Stage and Performance Area",
+    "description": "An interactive space where art, technology, and community converge.",
+    "detail": "Padok's event floor is a multifunctional performance area designed with acoustic engineering and stage technologies in mind. It is configured to accommodate many different types of events such as DJ performances, acoustic concerts, stand-up shows, open mic nights, and interactive performances.\n\nThe system includes elements that stand out in stage design, such as high-resolution LED light panels, automated synchronized lighting systems, multi-channel digital mixer infrastructure, and noise control panels. Participants are not just spectators but become part of the experience with interactive elements that can engage with the event.\n\nIn addition, this area can also be used with learning-based content such as training sessions, seminars, or workshops on music technologies."
+  },
+  "cafe": {
+    "title": "Cafe & Board Games Area",
+    "description": "An intimate and inclusive social environment nourished by social game theory.",
+    "detail": "Padok's social interaction floor is not just a cafe; it is also an experience area built on game-based learning, collaboration development, and social intelligence interaction. It has the flexibility to accommodate all types of users with comfortable seating groups, table arrangements, and quiet corners.\n\nThe beverages and snacks served in the cafe section are planned to be usable during both individual work and group activities. In the board games area, multidimensional thinking and social interaction are supported with strategy-based or story-based game options as well as classic and modern board games.\n\nThis area, built on group dynamics, also allows for the practice of teamwork, decision-making, and empathy development skills. This way, users not only have fun but also develop cognitively."
+  },
+  "vr": {
+    "title": "VR (Virtual Reality) Area",
+    "description": "A door to a universe beyond reality: A holistic VR experience.",
+    "detail": "The Virtual Reality area is equipped with experiences that bring together visual, auditory, and spatial perception, making the user feel physically present in a digital world. The devices used here include high-resolution VR headsets, 6DoF (six degrees of freedom) motion tracking, haptic glove systems, and reactive surface floor platforms.\n\nThe VR experience is built not only on entertainment but also on psychological interaction, reactive learning, technological awareness, and simulation-based decision-making. Apart from games, architectural tours, virtual museums, educational scenarios, or therapeutic VR applications are also among the potential uses of this area.\n\nPadok's VR area offers content enriched with both individual experiences and simultaneous multiplayer applications."
+  },
+  "internet": {
+    "title": "Internet Cafe",
+    "description": "Infrastructure optimized for versatile digital productivity and gaming performance.",
+    "detail": "The internet cafe section is a hybrid work and play area designed for both high-hardware-demanding games and professional digital work. The area includes systems equipped with state-of-the-art graphics cards, low-latency monitors, mechanical keyboards, and high-resolution headphones.\n\nThe internet infrastructure is supported by special network solutions that provide low ping and high data transfer. This ensures lag-free experience in online games while also meeting the needs of professional users such as remote work, cloud computing, rendering, and network data transfer.\n\nThe area is divided to offer sessions specifically for both individual users and small groups. In addition to daily use, it can also host events such as tournaments, mini LAN parties, or hackathons."
+  },
+  "meeting": {
+    "title": "Meeting Rooms",
+    "description": "Modular and technology-supported meeting environments that combine functionality with aesthetics.",
+    "detail": "Meeting rooms offer smart and flexible structures designed in accordance with the requirements of the contemporary business world. The areas include modular desk systems, wireless presentation systems (BYOD - Bring Your Own Device supported), high-resolution projection systems, and acoustically insulated wall structures.\n\nSuitable for entrepreneurs, startups, corporations, and academic groups, these areas can be used for both small-scale idea development sessions and large-scale planning meetings. Hourly, daily, or long-term usage is available through the reservation system.\n\nThe rooms also provide additional amenities such as technical support, presentation equipment, microphone and camera systems for online connections, high-speed internet, and catering services."
+  },
+  "showMore": "Show More",
+  "showLess": "Show Less"
+}

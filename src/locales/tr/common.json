@@ -1,0 +1,20 @@
+{
+  "navigation": {
+    "home": "Ana Sayfa",
+    "about": "Hakkımızda",
+    "services": "Hizmetlerimiz",
+    "events": "Etkinlikler",
+    "contact": "İletişim",
+    "book": "Rezervasyon Yap"
+  },
+  "hero": {
+    "title": "F1 Deneyimini Simülatörlerle Yaşayın",
+    "subtitle": "Profesyonel simülatörlerle gerçek F1 pilotları gibi yarışın",
+    "cta": "Hemen Rezervasyon Yap"
+  },
+  "footer": {
+    "rights": "Tüm hakları saklıdır",
+    "privacy": "Gizlilik Politikası",
+    "terms": "Kullanım Koşulları"
+  }
+}

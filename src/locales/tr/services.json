@@ -1,0 +1,37 @@
+{
+  "pageTitle": "Hizmetlerimiz",
+  "pageDescription": "Fiziksel ve dijital deneyimleri birleştiren çok katlı teknoloji, eğlence ve sosyalleşme merkezimizi keşfedin.",
+  "introText": "Padok Club, fiziksel ve dijital deneyimleri birleştiren, disiplinler arası etkileşimi destekleyen çok katlı bir teknoloji, eğlence ve sosyalleşme merkezidir. Her kat, kendi içerisinde tematik olarak yapılandırılmış ve alanında en güncel donanımlar ile donatılmıştır. Aşağıda, sunduğumuz hizmetlerin detaylı açıklamalarını bulabilirsiniz:",
+  "f1": {
+    "title": "F1 Yarış Simülasyonu",
+    "description": "Gerçekçilik, hız ve teknoloji üçgeninde kurgulanmış simülasyon deneyimi.",
+    "detail": "Padok'un merkezinde yer alan F1 Yarış Simülasyon alanı, otomotiv teknolojisi, simülasyon mühendisliği ve e-spor disiplinlerinin kesişiminde konumlanır. Profesyonel yarış simülatörlerinde kullanılan yüksek hassasiyetli direksiyon setleri, hidrolik destekli özel koltuklar ve ultra geniş görüş açısı sunan çoklu ekran sistemleriyle donatılmıştır.\n\nBu sistemler, fiziksel sürüş dinamiklerini birebir taklit eden kuvvet geri bildirimi (force feedback) ve titreşim sistemleriyle kullanıcıya mekanik tepki üzerinden öğrenme ve deneyimleme imkânı sunar. Geliştirilen yazılımlar sayesinde gerçek pist koşulları, lastik aşınmaları, aerodinamik etkiler ve hava koşulları gibi detaylar simülasyona entegre edilmiştir.\n\nF1 tutkunları, amatör sürücüler ve teknoloji meraklıları için özel olarak planlanan bu kat; bireysel sürüş seansları, çok oyunculu rekabetçi etkinlikler ve lig formatında turnuvalar ile sürekli aktif tutulmaktadır. Ayrıca simülasyon tabanlı öğrenme teknikleriyle genç yaşta sürüş farkındalığını artırmak isteyen kullanıcılar için eğitim odaklı oturumlar da sunulmaktadır."
+  },
+  "stage": {
+    "title": "Sahne ve Performans Alanı",
+    "description": "Sanatın, teknolojinin ve topluluğun buluştuğu etkileşimli alan.",
+    "detail": "Padok'un etkinlik katı, akustik mühendislik ve sahne teknolojileri dikkate alınarak tasarlanmış çok işlevli bir performans alanıdır. DJ performansları, akustik konserler, stand-up şovları, açık mikrofon geceleri ve interaktif performanslar gibi birçok farklı etkinlik türünü barındıracak şekilde yapılandırılmıştır.\n\nSistem, yüksek çözünürlüklü LED ışık panelleri, otomatik senkronize ışık sistemleri, çok kanallı dijital mikser altyapısı ve gürültü kontrol panelleri gibi sahne tasarımında ön plana çıkan unsurları içerir. Katılımcılar sadece izleyici değil, aynı zamanda etkinliğe dahil olabilecek interaktif unsurlarla deneyimin bir parçası haline gelir.\n\nAyrıca bu alan, müzik teknolojileri üzerine eğitimler, seminerler veya workshop'lar gibi öğrenme temelli içeriklerle de kullanılabilmektedir."
+  },
+  "cafe": {
+    "title": "Kafe & Kutu Oyunları Alanı",
+    "description": "Sosyal oyun teorisiyle beslenen samimi ve kapsayıcı bir sosyalleşme ortamı.",
+    "detail": "Padok'un sosyal etkileşim katı, yalnızca bir kafe değil; aynı zamanda oyun temelli öğrenme, iş birliği geliştirme ve sosyal zekâ etkileşimi üzerine kurulmuş bir deneyim alanıdır. Rahat oturma grupları, masa düzenleri ve sessiz köşelerle her türden kullanıcıyı ağırlayabilecek esnekliğe sahiptir.\n\nKafe bölümünde servis edilen içecekler ve atıştırmalıklar, hem bireysel çalışma hem de grup aktiviteleri sırasında kullanılabilir şekilde planlanmıştır. Kutu oyunları alanında ise klasik ve modern masa oyunlarının yanında, stratejiye dayalı veya hikâye tabanlı oyun seçenekleriyle çok boyutlu düşünme ve sosyal etkileşim desteklenir.\n\nGrup dinamikleri üzerine kurulu bu alan, takım çalışması, karar verme ve empati geliştirme becerilerinin pratik edilmesine de olanak tanır. Bu sayede sadece eğlenmekle kalmaz, bilişsel olarak da gelişim sağlanır."
+  },
+  "vr": {
+    "title": "VR (Sanal Gerçeklik) Alanı",
+    "description": "Gerçeklik ötesi bir evrene açılan kapı: Bütünsel VR deneyimi.",
+    "detail": "Sanal Gerçeklik alanı, görsel, işitsel ve mekansal algıyı bir araya getirerek kullanıcıyı dijital bir dünyada fiziksel olarak varmış gibi hissettiren deneyimlerle donatılmıştır. Burada kullanılan cihazlar arasında yüksek çözünürlüklü VR başlıkları, 6DoF (six degrees of freedom) hareket takibi, haptic eldiven sistemleri ve reaktif yüzeyli zemin platformları yer almaktadır.\n\nVR deneyimi, yalnızca eğlence değil aynı zamanda psikolojik etkileşim, tepkisel öğrenme, teknolojik farkındalık ve simülasyon temelli karar alma üzerine kuruludur. Oyunlardan bağımsız olarak mimari gezintiler, sanal müzeler, eğitim senaryoları veya terapötik VR uygulamaları da bu alanın potansiyel kullanım alanları arasındadır.\n\nPadok'un VR alanı, hem bireysel deneyimler hem de eş zamanlı çok oyunculu uygulamalarla zenginleştirilmiş içerikler sunar."
+  },
+  "internet": {
+    "title": "İnternet Kafe",
+    "description": "Çok yönlü dijital üretkenlik ve oyun performansı için optimize edilmiş altyapı.",
+    "detail": "İnternet kafe bölümü, hem yüksek donanım gerektiren oyunlar hem de profesyonel dijital işler için tasarlanmış hibrit bir çalışma ve oyun alanıdır. Alan içerisinde son model ekran kartları, düşük gecikmeli monitörler, mekanik klavyeler ve yüksek çözünürlüklü kulaklıklar ile donatılmış sistemler bulunmaktadır.\n\nİnternet altyapısı, düşük ping ve yüksek veri transferi sağlayan özel ağ çözümleri ile desteklenmiştir. Bu sayede çevrimiçi oyunlarda gecikmesiz deneyim sağlanırken, profesyonel kullanıcılar için de remote çalışma, bulut bilişim, render alma ve ağ üzerinden veri aktarımı gibi ihtiyaçlar karşılanabilir.\n\nAlan, hem bireysel kullanıcıya hem de küçük gruplara özel oturumlar sunacak şekilde bölümlendirilmiştir. Günlük kullanımın yanı sıra turnuvalar, mini LAN partileri ya da hackathon gibi etkinliklere de ev sahipliği yapabilir."
+  },
+  "meeting": {
+    "title": "Toplantı Salonları",
+    "description": "İşlevselliği estetikle birleştiren, modüler ve teknoloji destekli toplantı ortamları.",
+    "detail": "Toplantı salonları, çağdaş iş dünyasının gereksinimlerine uygun olarak tasarlanmış, akıllı ve esnek yapılar sunar. Alanlarda modüler masa sistemleri, kablosuz sunum sistemleri (BYOD – Bring Your Own Device destekli), yüksek çözünürlüklü projeksiyon sistemleri ve akustik yalıtımlı duvar yapıları yer alır.\n\nGirişimciler, startuplar, kurumlar ve akademik gruplar için uygun olan bu alanlar, hem küçük çaplı fikir geliştirme oturumları hem de büyük ölçekli planlama toplantıları için kullanılabilir. Rezervasyon sistemi üzerinden saatlik, günlük ya da uzun vadeli kullanım imkânı sunulmaktadır.\n\nSalonlarda ayrıca teknik destek, sunum ekipmanları, çevrim içi bağlantı için mikrofon ve kamera sistemleri, hızlı internet ve ikram hizmetleri gibi yan olanaklar da sağlanır."
+  },
+  "showMore": "Daha Fazla Göster",
+  "showLess": "Daha Az Göster"
+}
