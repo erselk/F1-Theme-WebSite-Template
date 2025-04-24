@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
-import VenueCard from "./VenueCard";
 import ReservationForm from "./ReservationForm";
 import jsPDF from 'jspdf';
 import { createEvents } from 'ics';
@@ -73,7 +72,8 @@ const venues = [
   },
 ];
 
-export default function BookingContent() {
+// SearchParams hook'unu kullanan bileşen
+const BookingContentWithParams: React.FC = () => {
   const { language } = useThemeLanguage();
   const [selectedVenue, setSelectedVenue] = useState<string | null>(null);
   const [isFormSubmitted, setIsFormSubmitted] = useState(false);
@@ -92,33 +92,6 @@ export default function BookingContent() {
     endTime: ''
   });
 
-  useEffect(() => {
-    // If form is submitted, get reservation data from localStorage
-    if (isFormSubmitted) {
-      const ref = localStorage.getItem('reservation_ref') || Math.random().toString(36).substring(2, 10).toUpperCase();
-      setReservationData({
-        ref,
-        name: localStorage.getItem('reservation_name') || 'John Doe',
-        venue: localStorage.getItem('reservation_venue') || 'F1 Simulator',
-        date: localStorage.getItem('reservation_date') || '21 Nisan 2025',
-        time: localStorage.getItem('reservation_time') || '14:00 - 16:00',
-        people: localStorage.getItem('reservation_people') || '2',
-        price: localStorage.getItem('reservation_price') || '200 TL',
-        phone: localStorage.getItem('reservation_phone') || '',
-        dateRaw: localStorage.getItem('reservation_date_raw') || '2025-04-21',
-        startTime: localStorage.getItem('reservation_startTime') || '14:00',
-        endTime: localStorage.getItem('reservation_endTime') || '16:00'
-      });
-    }
-  }, [isFormSubmitted]);
-
-  // Format venues with the correct language
-  const localizedVenues = venues.map(venue => ({
-    ...venue,
-    title: venue.title[language as 'tr' | 'en'],
-    description: venue.description[language as 'tr' | 'en']
-  }));
-
   // Check URL parameter to pre-select venue on initial load
   useEffect(() => {
     const typeParam = searchParams.get('type');
@@ -127,9 +100,12 @@ export default function BookingContent() {
     }
   }, [searchParams]);
 
-  const handleVenueSelect = (venueId: string) => {
-    setSelectedVenue(venueId);
-  };
+  // Format venues with the correct language
+  const localizedVenues = venues.map(venue => ({
+    ...venue,
+    title: venue.title[language as 'tr' | 'en'],
+    description: venue.description[language as 'tr' | 'en']
+  }));
 
   const handleFormSubmit = () => {
     setIsFormSubmitted(true);
@@ -268,5 +244,32 @@ export default function BookingContent() {
         </section>
       )}
     </div>
+  );
+};
+
+// Loading state component
+const BookingLoadingState: React.FC = () => {
+  return (
+    <div className="mb-16">
+      <div className="animate-pulse space-y-6">
+        <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded w-1/4 mx-auto"></div>
+        <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-2/3 mx-auto"></div>
+        <div className="space-y-4">
+          <div className="h-20 bg-gray-300 dark:bg-gray-700 rounded"></div>
+          <div className="h-20 bg-gray-300 dark:bg-gray-700 rounded"></div>
+          <div className="h-20 bg-gray-300 dark:bg-gray-700 rounded"></div>
+        </div>
+        <div className="h-40 bg-gray-300 dark:bg-gray-700 rounded"></div>
+      </div>
+    </div>
+  );
+};
+
+// Main component with Suspense
+export default function BookingContent() {
+  return (
+    <Suspense fallback={<BookingLoadingState />}>
+      <BookingContentWithParams />
+    </Suspense>
   );
 }

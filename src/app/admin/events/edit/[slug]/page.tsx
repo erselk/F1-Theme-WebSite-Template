@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import EventForm from '@/components/admin/EventForm';
 import { Event } from '@/data/events';
 
+// Client component'ler için params tipini böyle tanımlamalıyız
 export default function EditEventPage({ params }: { params: { slug: string } }) {
   const router = useRouter();
   const { slug } = params;
@@ -156,7 +157,7 @@ export default function EditEventPage({ params }: { params: { slug: string } }) 
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Etkinliği Düzenle</h1>
-        <p className="text-medium-grey">"{event.title.tr}" etkinliğini düzenlemek için formu kullanın.</p>
+        <p className="text-medium-grey">&quot;{event.title.tr}&quot; etkinliğini düzenlemek için formu kullanın.</p>
       </div>
       
       {error && (

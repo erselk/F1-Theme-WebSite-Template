@@ -3,8 +3,12 @@ import { notFound } from 'next/navigation';
 import { getBlogBySlug, getBlogs } from '@/data/blogs';
 import BlogDetail from '@/components/features/blog/BlogDetail';
 
+type Props = {
+  params: { slug: string }
+}
+
 // Generate metadata for each blog page
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const blog = getBlogBySlug(params.slug);
   
   if (!blog) {
@@ -33,7 +37,7 @@ export async function generateStaticParams() {
   }));
 }
 
-export default function BlogPostPage({ params }: { params: { slug: string } }) {
+export default function BlogPostPage({ params }: Props) {
   const blog = getBlogBySlug(params.slug);
   
   if (!blog) {

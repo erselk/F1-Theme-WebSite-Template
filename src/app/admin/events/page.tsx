@@ -192,7 +192,7 @@ export default function EventsListPage() {
             <line x1="3" y1="10" x2="21" y2="10"></line>
           </svg>
           <h3 className="text-lg font-medium mb-2">Henüz etkinlik bulunmuyor</h3>
-          <p className="text-medium-grey mb-4">İlk etkinliğinizi eklemek için "Yeni Etkinlik Ekle" butonuna tıklayın.</p>
+          <p className="text-medium-grey mb-4">İlk etkinliğinizi eklemek için &quot;Yeni Etkinlik Ekle&quot; butonuna tıklayın.</p>
           <Link 
             href="/admin/events/add" 
             className="px-4 py-2 bg-electric-blue text-white rounded-md hover:bg-electric-blue-dark transition-colors"

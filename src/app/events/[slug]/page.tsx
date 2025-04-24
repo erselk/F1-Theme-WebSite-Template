@@ -8,12 +8,6 @@ import { LanguageType } from '@/lib/ThemeLanguageContext';
 import { headers } from 'next/headers';
 import { CommentForm } from './components/comment-form';
 
-interface EventDetailPageProps {
-  params: {
-    slug: string;
-  };
-}
-
 // Server-side locale detection function
 function getLocaleFromHeaders(): LanguageType {
   const headersList = headers();
@@ -23,7 +17,11 @@ function getLocaleFromHeaders(): LanguageType {
   return acceptLanguage.includes('tr') ? 'tr' : 'en';
 }
 
-export async function generateMetadata({ params }: EventDetailPageProps): Promise<Metadata> {
+type Props = {
+  params: { slug: string }
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const event = await getEventBySlug(params.slug);
 
   if (!event) {
@@ -38,7 +36,7 @@ export async function generateMetadata({ params }: EventDetailPageProps): Promis
   };
 }
 
-export default async function EventDetailPage({ params }: EventDetailPageProps) {
+export default async function EventDetailPage({ params }: Props) {
   const event = await getEventBySlug(params.slug);
   const locale = getLocaleFromHeaders();
 

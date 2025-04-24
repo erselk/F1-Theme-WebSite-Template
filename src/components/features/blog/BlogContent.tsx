@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
 import { getBlogs } from "@/data/blogs";
 import { useSearchParams } from "next/navigation";
 
-const BlogContent: React.FC = () => {
+// SearchParams hook'unu kullanan bir bileşen oluşturarak Suspense ile sarmalayacağız
+const BlogContentWithSearch: React.FC = () => {
   const { language, isDark } = useThemeLanguage();
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [activeAuthor, setActiveAuthor] = useState<string | null>(null);
@@ -26,7 +27,7 @@ const BlogContent: React.FC = () => {
       setActiveAuthor(authorParam);
     }
   }, [searchParams]);
-  
+
   // Categories
   const categories = [
     { id: "all", name: { tr: "Tümü", en: "All" } },
@@ -194,6 +195,54 @@ const BlogContent: React.FC = () => {
           ))}
         </div>
       )}
+    </div>
+  );
+};
+
+// Suspense ile sarmalıyoruz
+const BlogContent: React.FC = () => {
+  return (
+    <Suspense fallback={<BlogLoadingState />}>
+      <BlogContentWithSearch />
+    </Suspense>
+  );
+};
+
+// Suspense fallback için loading state bileşeni
+const BlogLoadingState: React.FC = () => {
+  const { isDark } = useThemeLanguage();
+  
+  return (
+    <div className="mb-16 px-4 md:px-8 lg:px-12">
+      <div className="flex flex-wrap gap-3 mb-8 justify-center">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div 
+            key={i} 
+            className={`px-4 py-2 rounded-full animate-pulse ${
+              isDark ? 'bg-graphite' : 'bg-very-light-grey'
+            }`}
+            style={{ width: `${60 + i * 10}px` }}
+          />
+        ))}
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        {Array(8).fill(0).map((_, i) => (
+          <div key={i} className="animate-pulse">
+            <div className="aspect-video rounded-lg mb-4 bg-gray-300 dark:bg-graphite" />
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-300 dark:bg-graphite rounded w-3/4" />
+              <div className="h-6 bg-gray-300 dark:bg-graphite rounded w-full" />
+              <div className="h-4 bg-gray-300 dark:bg-graphite rounded w-full" />
+              <div className="h-4 bg-gray-300 dark:bg-graphite rounded w-2/3" />
+              <div className="pt-2 flex items-center">
+                <div className="rounded-full bg-gray-300 dark:bg-graphite h-8 w-8 mr-3" />
+                <div className="h-4 bg-gray-300 dark:bg-graphite rounded w-20" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
