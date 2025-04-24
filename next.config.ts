@@ -9,12 +9,11 @@ const nextConfig: NextConfig = {
     domains: ["images.unsplash.com", "via.placeholder.com"],
     unoptimized: true,  // Telefondan erişimde resim optimizasyon hatalarını önlemek için
   },
-  i18n: {
-    locales: ["tr", "en"],
-    defaultLocale: "tr",
-    localeDetection: true,
-  },
+  // i18n artık App Router'da farklı şekilde yapılandırılıyor
+  // middleware.ts dosyasında dil yönlendirmesi yapılmalı
   trailingSlash: false,
+  // Netlify için output yapılandırması
+  output: 'standalone',
 };
 
 export default nextConfig;
