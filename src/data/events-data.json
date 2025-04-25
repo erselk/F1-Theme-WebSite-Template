@@ -1,0 +1,68 @@
+[
+  {
+    "id": "1",
+    "slug": "istanbul-grand-prix-2025",
+    "bannerImage": "/images/events/banner/suan.jpg",
+    "squareImage": "/images/events/square/suan.jpg",
+    "price": 1500,
+    "isFeatured": true,
+    "date": "2025-04-22T10:00:00.000Z",
+    "location": {
+      "tr": "İstanbul Park Pisti, İstanbul",
+      "en": "Istanbul Park Circuit, Istanbul"
+    },
+    "title": {
+      "tr": "İstanbul Grand Prix 2025",
+      "en": "Istanbul Grand Prix 2025"
+    },
+    "description": {
+      "tr": "Türkiye'nin en büyük yarış etkinliğine katılın. Hız, heyecan ve rekabet dolu bir gün sizi bekliyor!",
+      "en": "Join Turkey's biggest racing event. A day full of speed, excitement, and competition awaits you!"
+    },
+    "category": "race"
+  },
+  {
+    "id": "2",
+    "slug": "f1-simulation-day",
+    "bannerImage": "/images/events/banner/suan.jpg",
+    "squareImage": "/images/events/square/suan.jpg",
+    "price": 750,
+    "isFeatured": true,
+    "date": "2025-04-23T14:30:00.000Z",
+    "location": {
+      "tr": "Padok Simülasyon Merkezi, Ankara",
+      "en": "Padok Simulation Center, Ankara"
+    },
+    "title": {
+      "tr": "F1 Simülasyon Günü",
+      "en": "F1 Simulation Day"
+    },
+    "description": {
+      "tr": "Gerçeğe en yakın F1 simülasyonu deneyimi! Profesyonel pilotlarla beraber, gerçek yarış pisti deneyimini yaşayın.",
+      "en": "The most realistic F1 simulation experience! Experience real racing tracks with professional drivers."
+    },
+    "category": "workshop"
+  },
+  {
+    "id": "3",
+    "slug": "motorsport-photography-workshop",
+    "bannerImage": "/images/events/banner/suan.jpg",
+    "squareImage": "/images/events/square/suan.jpg",
+    "price": 500,
+    "isFeatured": false,
+    "date": "2025-04-24T09:00:00.000Z",
+    "location": {
+      "tr": "Fotoğrafçılık Akademisi, İstanbul",
+      "en": "Photography Academy, Istanbul"
+    },
+    "title": {
+      "tr": "Motorsport Fotoğrafçılık Atölyesi",
+      "en": "Motorsport Photography Workshop"
+    },
+    "description": {
+      "tr": "Yarış pistlerindeki en iyi anları yakalamak için profesyonel fotoğrafçılık tekniklerini öğrenin.",
+      "en": "Learn professional photography techniques to capture the best moments on racing tracks."
+    },
+    "category": "workshop"
+  }
+]

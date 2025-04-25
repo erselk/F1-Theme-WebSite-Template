@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/mongodb';
-import Event from '@/models/Event';
-import { getEventStatus } from '@/types';
+import Blog from '@/models/Blog';
 
 export async function GET(
   request: Request,
@@ -12,35 +11,31 @@ export async function GET(
     
     if (!slug) {
       return NextResponse.json({ 
-        message: 'Etkinlik slug parametresi eksik', 
+        message: 'Blog slug parametresi eksik', 
         success: false 
       }, { status: 400 });
     }
 
     await connectToDatabase();
     
-    // Slug'a göre etkinlik getir
-    const event = await Event.findOne({ slug });
+    // Slug'a göre blog getir
+    const blog = await Blog.findOne({ slug });
     
-    if (!event) {
+    if (!blog) {
       return NextResponse.json({ 
-        message: 'Etkinlik bulunamadı', 
+        message: 'Blog bulunamadı', 
         success: false 
       }, { status: 404 });
     }
     
-    // Etkinlik durumunu hesapla
-    const status = getEventStatus(event.date);
-    const eventWithStatus = { ...event.toObject(), status };
-    
     return NextResponse.json({ 
-      event: eventWithStatus,
+      blog,
       success: true 
     });
   } catch (error) {
-    console.error('Etkinlik verisi getirme hatası:', error);
+    console.error('Blog verisi getirme hatası:', error);
     return NextResponse.json({ 
-      message: 'Etkinlik getirilirken bir hata oluştu', 
+      message: 'Blog getirilirken bir hata oluştu', 
       error, 
       success: false 
     }, { status: 500 });

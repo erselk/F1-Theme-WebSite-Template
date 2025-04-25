@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getBlogBySlug, getBlogs } from '@/data/blogs';
+import { getBlogBySlug, getAllBlogs } from '@/services/mongo-service';
 import BlogDetail from '@/components/features/blog/BlogDetail';
 
 type Props = {
@@ -9,7 +9,7 @@ type Props = {
 
 // Generate metadata for each blog page
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const blog = getBlogBySlug(params.slug);
+  const blog = await getBlogBySlug(params.slug);
   
   if (!blog) {
     return {
@@ -30,15 +30,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 // Generate static paths for all blogs
 export async function generateStaticParams() {
-  const blogs = getBlogs();
+  const blogs = await getAllBlogs();
   
   return blogs.map((blog) => ({
     slug: blog.slug,
   }));
 }
 
-export default function BlogPostPage({ params }: Props) {
-  const blog = getBlogBySlug(params.slug);
+export default async function BlogPostPage({ params }: Props) {
+  const blog = await getBlogBySlug(params.slug);
   
   if (!blog) {
     notFound();

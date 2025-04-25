@@ -2,7 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { v4 as uuidv4 } from 'uuid';
-import { Event, getEventBySlug } from '@/data/events';
+import { Event } from '@/types';
+import { getEventBySlug } from '@/services/mongo-service';
 
 export interface CommentFormData {
   name: string;

@@ -3,39 +3,39 @@
 
 :root {
   /* Light Theme Colors */
-  --f1-red: #E10600;
+  --f1-red: #FF1E1E;
   --white: #FFFFFF;
-  --light-grey: #F5F5F5;
-  --very-light-grey: #FAFAFA;
-  --dark-grey: #333333;
-  --medium-grey: #666666;
-  --light-text-grey: #999999;
-  --race-blue: #0090D0;
-  --race-green: #00A14B;
-  --metallic-silver: #C0C0C0;
-  --shadow-color: rgba(0, 0, 0, 0.1);
+  --light-grey: #F2F2F2;
+  --very-light-grey: #FCFCFC;
+  --dark-grey: #222222;
+  --medium-grey: #4D4D4D;
+  --light-text-grey: #7A7A7A;
+  --race-blue: #00AFFF;
+  --race-green: #00C75A;
+  --metallic-silver: #D4D4D4;
+  --shadow-color: rgba(0, 0, 0, 0.15);
   
   /* Base theme variables */
   --background: var(--white);
   --foreground: var(--dark-grey);
   --primary: var(--f1-red);
-  --primary-hover: #c9050a;
+  --primary-hover: #E01A1A;
 }
 
 .dark {
   /* Dark Theme Colors */
-  --f1-red-bright: #FF0000;
-  --very-dark-grey: #121212;
-  --dark-grey: #1E1E1E;
-  --graphite: #262626;
+  --f1-red-bright: #FF2B2B;
+  --very-dark-grey: #0E0E0E;
+  --dark-grey: #1A1A1A;
+  --graphite: #2B2B2B;
   --white: #FFFFFF;
-  --light-grey: #E0E0E0;
-  --silver: #B0B0B0;
-  --electric-blue: #00B2FF;
-  --neon-green: #00D766;
-  --carbon-grey: #3A3A3A;
-  --neon-red: #FF3333;
-  --shadow-color: rgba(0, 0, 0, 0.25);
+  --light-grey: #CCCCCC;
+  --silver: #D0D0D0;
+  --electric-blue: #00CCFF;
+  --neon-green: #00FF7F;
+  --carbon-grey: #444444;
+  --neon-red: #FF4D4D;
+  --shadow-color: rgba(0, 0, 0, 0.35);
   
   /* Base theme variables */
   --background: var(--dark-grey);

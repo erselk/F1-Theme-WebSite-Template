@@ -5,17 +5,22 @@ import { EventCard } from './EventCard';
 import { EventFilter, EventFilters } from './EventFilter';
 import { EventBanner } from './EventBanner';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
-import { getFeaturedEvents, getSortedEvents, Event, getEventStatus } from '@/data/events';
+import { Event, getEventStatus } from '@/types';
+import { getAllEvents, getFeaturedEvents, getSortedEvents } from '@/services/mongo-service';
 
 export function EventList() {
   const { language } = useThemeLanguage();
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [allEvents, setAllEvents] = useState<Event[]>([]);
   const [featuredEvents, setFeaturedEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Etkinliklerin durumlarını güncelleyen fonksiyon
+  // MongoDB'den etkinlikleri çek ve durumlarını güncelle
   const updateEventStatuses = async () => {
     try {
+      setIsLoading(true);
+      
+      // MongoDB'den tüm etkinlikleri çek
       const sortedEvents = await getSortedEvents();
 
       // Dinamik olarak her etkinliğin durumunu güncelle (saat bazlı)
@@ -26,8 +31,8 @@ export function EventList() {
 
       setAllEvents(updatedEvents);
       
-      // Featured events için de güncelle
-      const featured = updatedEvents.filter(event => event.isFeatured).slice(0, 10);
+      // Featured events için de çek ve güncelle
+      const featured = await getFeaturedEvents();
       setFeaturedEvents(featured);
       
       setFilteredEvents(prevFiltered => {
@@ -39,6 +44,8 @@ export function EventList() {
       });
     } catch (error) {
       console.error("Error updating event statuses:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -79,6 +86,10 @@ export function EventList() {
     setFilteredEvents(result);
   };
 
+  if (isLoading) {
+    return <EventListSkeleton />;
+  }
+
   return (
     <div className="space-y-8 px-4 md:px-8 lg:px-12">
       {/* Featured Events Banner */}
@@ -106,6 +117,35 @@ export function EventList() {
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+// Yükleme durumu için iskelet bileşeni
+function EventListSkeleton() {
+  return (
+    <div className="space-y-8 px-4 md:px-8 lg:px-12">
+      {/* Banner Loading Skeleton */}
+      <div className="w-full h-64 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse" />
+      
+      {/* Filter Loading Skeleton */}
+      <div className="flex flex-wrap gap-2">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="h-10 w-32 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse" />
+        ))}
+      </div>
+      
+      {/* Events Grid Loading Skeleton */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+        {Array(12).fill(0).map((_, i) => (
+          <div key={i} className="flex flex-col space-y-3 animate-pulse">
+            <div className="h-40 bg-gray-200 dark:bg-gray-800 rounded-lg" />
+            <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4" />
+            <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded" />
+            <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-1/2" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

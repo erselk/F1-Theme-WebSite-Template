@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
-import { Event, getSortedEvents } from "@/data/events";
-import { BlogPost, getBlogs } from "@/data/blogs";
+import { Event, BlogPost } from "@/types";
+import { getSortedEvents, getAllBlogs } from "@/services/mongo-service";
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
 
 export default function Home() {
@@ -49,7 +49,7 @@ export default function Home() {
     // Get latest 3 blogs
     const fetchBlogs = async () => {
       try {
-        const blogsData = getBlogs();
+        const blogsData = await getAllBlogs();
         // Sort blogs by date (newest first) and take first 3
         const sortedBlogs = blogsData.sort((a, b) => {
           return new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime();

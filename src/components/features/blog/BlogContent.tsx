@@ -4,8 +4,9 @@ import React, { useState, useMemo, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
-import { getBlogs } from "@/data/blogs";
 import { useSearchParams } from "next/navigation";
+import { getAllBlogs } from "@/services/mongo-service";
+import { BlogPost } from "@/types";
 
 // SearchParams hook'unu kullanan bir bileşen oluşturarak Suspense ile sarmalayacağız
 const BlogContentWithSearch: React.FC = () => {
@@ -13,7 +14,25 @@ const BlogContentWithSearch: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [activeAuthor, setActiveAuthor] = useState<string | null>(null);
   const searchParams = useSearchParams();
-  const blogs = getBlogs();
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  
+  // MongoDB'den blog verilerini çek
+  useEffect(() => {
+    async function fetchBlogs() {
+      try {
+        setLoading(true);
+        const fetchedBlogs = await getAllBlogs();
+        setBlogs(fetchedBlogs);
+      } catch (error) {
+        console.error("Blog verilerini getirme hatası:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchBlogs();
+  }, []);
   
   // Set active filters from URL query parameters if present
   useEffect(() => {
@@ -68,6 +87,11 @@ const BlogContentWithSearch: React.FC = () => {
   const clearAuthorFilter = () => {
     setActiveAuthor(null);
   };
+
+  // Eğer yükleme devam ediyorsa, yükleme durumu göster
+  if (loading) {
+    return <BlogLoadingState />;
+  }
 
   return (
     <div className="mb-16 px-4 md:px-8 lg:px-12">
@@ -199,16 +223,12 @@ const BlogContentWithSearch: React.FC = () => {
   );
 };
 
-// Suspense ile sarmalıyoruz
+// Ana bileşen
 const BlogContent: React.FC = () => {
-  return (
-    <Suspense fallback={<BlogLoadingState />}>
-      <BlogContentWithSearch />
-    </Suspense>
-  );
+  return <BlogContentWithSearch />;
 };
 
-// Suspense fallback için loading state bileşeni
+// Loading state bileşeni
 const BlogLoadingState: React.FC = () => {
   const { isDark } = useThemeLanguage();
   
