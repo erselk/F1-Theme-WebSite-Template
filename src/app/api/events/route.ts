@@ -5,24 +5,10 @@ import { getEventStatus } from '@/types';
 
 export async function GET() {
   try {
-    console.log('API: /api/events çağrısı alındı');
-    
-    try {
-      await connectToDatabase();
-      console.log('API: MongoDB bağlantısı başarılı');
-    } catch (dbError) {
-      console.error('API: MongoDB bağlantı hatası:', dbError);
-      return NextResponse.json({ 
-        message: 'Veritabanı bağlantısı başarısız oldu', 
-        error: dbError instanceof Error ? dbError.message : String(dbError),
-        success: false 
-      }, { status: 500 });
-    }
+    await connectToDatabase();
     
     // Tüm etkinlikleri getir
-    console.log('API: Etkinlik verileri sorgulanıyor...');
     const events = await Event.find({});
-    console.log(`API: ${events.length} etkinlik girdisi bulundu`);
     
     // Etkinlik durumlarını hesapla
     const eventsWithStatus = events.map(event => {
@@ -38,7 +24,7 @@ export async function GET() {
     console.error('Etkinlik verilerini getirme hatası:', error);
     return NextResponse.json({ 
       message: 'Etkinlikler getirilirken bir hata oluştu', 
-      error: error instanceof Error ? error.message : String(error),
+      error, 
       success: false 
     }, { status: 500 });
   }
