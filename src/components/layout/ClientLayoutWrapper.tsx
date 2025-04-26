@@ -19,7 +19,9 @@ const ClientLayoutWrapper = ({ children }: ClientLayoutWrapperProps) => {
       {!isAdminPage && <BackgroundAnimation />}
       {!isAdminPage && <Header />}
       <main className={!isAdminPage ? "flex-grow pt-[128px]" : "flex-grow"}>
-        {children}
+        <div className="container mx-auto px-8 md:px-16 lg:px-24">
+          {children}
+        </div>
       </main>
       {!isAdminPage && <Footer />}
     </>

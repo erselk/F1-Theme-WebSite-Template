@@ -5,7 +5,7 @@ import { Event } from '@/types';
 import Link from 'next/link';
 import { ReservationTimer } from './ReservationTimer';
 import { SeatSelector } from './SeatSelector';
-import { LanguageType } from '@/lib/ThemeLanguageContext';
+import { LanguageType, useThemeLanguage } from '@/lib/ThemeLanguageContext';
 import Image from 'next/image';
 
 interface TicketSidebarProps {
@@ -23,10 +23,55 @@ interface TicketType {
   variant?: 'standard' | 'premium' | 'vip';
 }
 
-export function TicketSidebar({ event, locale }: TicketSidebarProps) {
+export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarProps) {
+  const { language, isDark } = useThemeLanguage(); // Use context to get real-time language and theme
+  const locale = language; // Use the language from context for dynamic changes
+  
+  // State for tracking sticky behavior
+  const [isSticky, setIsSticky] = useState<boolean>(false);
+  
+  // Effect for handling scroll behavior
+  useEffect(() => {
+    const handleScroll = () => {
+      // Get the distance from the top of the document
+      const scrollPosition = window.scrollY;
+      // Adjust this threshold value based on when you want the sidebar to become sticky
+      const threshold = 300; // Adjust this value as needed
+      
+      if (scrollPosition > threshold) {
+        setIsSticky(true);
+      } else {
+        setIsSticky(false);
+      }
+    };
+    
+    // Add scroll event listener
+    window.addEventListener('scroll', handleScroll);
+    
+    // Clean up event listener on component unmount
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+  
+  // Theme-dependent color classes
+  const bgColorClass = isDark ? 'bg-graphite' : 'bg-white';
+  const borderColorClass = isDark ? 'border-carbon-grey' : 'border-gray-200';
+  const headingColorClass = isDark ? 'text-white' : 'text-very-dark-grey';
+  const textColorClass = isDark ? 'text-light-grey' : 'text-slate-700';
+  const inputBgClass = isDark ? 'bg-dark-grey' : 'bg-gray-50';
+  const inputBorderClass = isDark ? 'border-carbon-grey' : 'border-gray-200';
+  const buttonBgClass = isDark ? 'bg-carbon-grey' : 'bg-gray-200';
+  const buttonTextClass = isDark ? 'text-silver' : 'text-gray-700';
+  const cardBgClass = isDark ? 'bg-dark-grey' : 'bg-gray-50';
+  const progressBgClass = isDark ? 'bg-carbon-grey' : 'bg-gray-300';
+  
   // Step of the checkout process
   // 1: Select tickets, 2: Add details, 3: Payment, 4: Confirmation
   const [currentStep, setCurrentStep] = useState<number>(1);
+  
+  // New state for tracking if user wants to iterate again
+  const [showIterateOption, setShowIterateOption] = useState<boolean>(false);
   
   // Sample ticket types (in real app, this would come from the backend)
   const [ticketTypes, setTicketTypes] = useState<TicketType[]>([
@@ -58,6 +103,25 @@ export function TicketSidebar({ event, locale }: TicketSidebarProps) {
     }
   ]);
   
+  // Update ticket names when language changes
+  useEffect(() => {
+    setTicketTypes(prev => prev.map(ticket => ({
+      ...ticket,
+      name: locale === 'tr' 
+        ? ticket.id === 'standard' ? 'Standart Bilet' 
+          : ticket.id === 'premium' ? 'Premium Bilet' 
+          : 'VIP Bilet'
+        : ticket.id === 'standard' ? 'Standard Ticket'
+          : ticket.id === 'premium' ? 'Premium Ticket'
+          : 'VIP Ticket',
+      description: ticket.id === 'premium' 
+        ? (locale === 'tr' ? 'Özel alan erişimi dahil' : 'Includes special area access')
+        : ticket.id === 'vip' 
+          ? (locale === 'tr' ? 'Sınırsız ikramlar ve özel alan erişimi' : 'Unlimited refreshments and special area access')
+          : undefined
+    })))
+  }, [locale]);
+  
   // Selected ticket quantities
   const [selectedTickets, setSelectedTickets] = useState<{
     id: string;
@@ -67,6 +131,20 @@ export function TicketSidebar({ event, locale }: TicketSidebarProps) {
     variant?: string;
   }[]>([]);
   
+  // Automatically update selected ticket names when language changes
+  useEffect(() => {
+    if (selectedTickets.length > 0) {
+      setSelectedTickets(prev => prev.map(ticket => {
+        // Find the corresponding ticket type to get the updated name
+        const updatedTicketType = ticketTypes.find(t => t.id === ticket.id);
+        return {
+          ...ticket,
+          name: updatedTicketType?.name || ticket.name
+        };
+      }));
+    }
+  }, [locale, ticketTypes]);
+  
   // Reservation details
   const [reservationStartTime, setReservationStartTime] = useState<Date | null>(null);
   const [reservationDuration] = useState<number>(10); // minutes
@@ -75,14 +153,6 @@ export function TicketSidebar({ event, locale }: TicketSidebarProps) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  
-  // Payment details
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardName, setCardName] = useState('');
-  const [expiryMonth, setExpiryMonth] = useState('');
-  const [expiryYear, setExpiryYear] = useState('');
-  const [cvc, setCvc] = useState('');
-  const [cardType, setCardType] = useState('');
   
   // Terms acceptance
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -105,9 +175,7 @@ export function TicketSidebar({ event, locale }: TicketSidebarProps) {
       case 1:
         return selectedTickets.some(ticket => ticket.quantity > 0);
       case 2:
-        return fullName && email && phone;
-      case 3:
-        return cardNumber && cardName && expiryMonth && expiryYear && cvc && acceptTerms;
+        return fullName && email && phone && acceptTerms;
       default:
         return false;
     }
@@ -173,54 +241,6 @@ export function TicketSidebar({ event, locale }: TicketSidebarProps) {
     }
   };
   
-  // Handle card type detection based on first digits
-  const detectCardType = (number: string) => {
-    const cleanNumber = number.replace(/\s+/g, '');
-    
-    if (/^4/.test(cleanNumber)) {
-      return 'visa';
-    } else if (/^5[1-5]/.test(cleanNumber)) {
-      return 'mastercard';
-    } else if (/^3[47]/.test(cleanNumber)) {
-      return 'amex';
-    } else if (/^6(?:011|5)/.test(cleanNumber)) {
-      return 'discover';
-    }
-    
-    return '';
-  };
-  
-  // Format card number with spaces
-  const formatCardNumber = (value: string) => {
-    if (!value) return '';
-    
-    const cleanValue = value.replace(/\s+/g, '').replace(/[^0-9]/g, '');
-    const cardType = detectCardType(cleanValue);
-    setCardType(cardType);
-    
-    if (cardType === 'amex') {
-      // Format: XXXX XXXXXX XXXXX
-      const parts = [];
-      if (cleanValue.length > 0) parts.push(cleanValue.slice(0, 4));
-      if (cleanValue.length > 4) parts.push(cleanValue.slice(4, 10));
-      if (cleanValue.length > 10) parts.push(cleanValue.slice(10, 15));
-      return parts.join(' ');
-    } else {
-      // Format: XXXX XXXX XXXX XXXX
-      const parts = [];
-      for (let i = 0; i < cleanValue.length; i += 4) {
-        parts.push(cleanValue.slice(i, i + 4));
-      }
-      return parts.join(' ');
-    }
-  };
-  
-  // Handle card number change
-  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCardNumber(e.target.value);
-    setCardNumber(formatted);
-  };
-  
   // Start timer when moving to step 2
   useEffect(() => {
     if (currentStep === 2 && !reservationStartTime) {
@@ -242,63 +262,44 @@ export function TicketSidebar({ event, locale }: TicketSidebarProps) {
     }
   };
   
-  // Submit payment using Iyzico
-  const submitPayment = async () => {
-    setIsProcessing(true);
-    
-    try {
-      // In a real implementation, this would call your backend API
-      // which would then interact with Iyzico's APIs
-      
-      // Mock API call with success
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // This is where you'd actually call the Iyzico payment API
-      // using the sandbox credentials
-      /*
-      const response = await fetch('/api/process-payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          cardNumber: cardNumber.replace(/\s+/g, ''),
-          cardHolderName: cardName,
-          expiryMonth,
-          expiryYear,
-          cvc,
-          amount: totalPrice,
-          currency: 'TRY',
-          eventId: event.id,
-          tickets: selectedTickets,
-          customer: {
-            name: fullName,
-            email,
-            phone
-          }
-        })
-      });
-      
-      const data = await response.json();
-      */
-      
-      // Move to confirmation step
-      setCurrentStep(4);
-    } catch (error) {
-      console.error('Payment error:', error);
-      
-      setFormErrors({
-        ...formErrors,
-        payment: locale === 'tr' 
-          ? 'Ödeme işlemi sırasında bir hata oluştu. Lütfen tekrar deneyin.'
-          : 'An error occurred during payment processing. Please try again.'
-      });
-    } finally {
-      setIsProcessing(false);
+  // Handle PDF ticket download
+  const handleDownloadTicket = () => {
+    // This would generate and download a PDF ticket in a real implementation
+    alert(locale === 'tr' 
+      ? 'Bilet PDF dosyası indiriliyor...' 
+      : 'Downloading ticket PDF...'
+    );
+  };
+
+  // Handle add to calendar
+  const handleAddToCalendar = () => {
+    // This would create a calendar event in a real implementation
+    alert(locale === 'tr' 
+      ? 'Etkinlik takviminize ekleniyor...' 
+      : 'Adding event to your calendar...'
+    );
+  };
+  
+  // New function to handle iteration
+  const handleIteration = (iterate: boolean) => {
+    if (iterate) {
+      // Reset the form and go back to step 1
+      setCurrentStep(1);
+      setSelectedTickets([]);
+      setFullName('');
+      setEmail('');
+      setPhone('');
+      setAcceptTerms(false);
+      setFormErrors({});
+      setReservationStartTime(null);
+      setShowIterateOption(false);
+    } else {
+      // Just hide the iterate option
+      setShowIterateOption(false);
     }
   };
   
-  // Handle form submission
+  // Modify to skip step 3 (payment details) and go directly to payment
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -306,447 +307,120 @@ export function TicketSidebar({ event, locale }: TicketSidebarProps) {
       return;
     }
     
-    if (currentStep < 3) {
-      // Move to next step
-      setCurrentStep(currentStep + 1);
-    } else if (currentStep === 3) {
-      // Process payment
-      submitPayment();
+    if (currentStep === 1) {
+      // Move to personal details step
+      setCurrentStep(2);
+    } else if (currentStep === 2) {
+      // Process payment directly with iyzico
+      redirectToIyzicoPayment();
+    }
+  };
+
+  // New function to redirect to iyzico payment
+  const redirectToIyzicoPayment = async () => {
+    setIsProcessing(true);
+    
+    try {
+      // In a real implementation, this would call your backend API to create a payment session
+      // Mock a successful API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // This is where you'd redirect to iyzico or show their embedded payment form
+      alert(locale === 'tr' 
+        ? 'Bu işlem normalde sizi iyzico güvenli ödeme sayfasına yönlendirecektir.' 
+        : 'This would normally redirect you to the iyzico secure payment page.' 
+      );
+      
+      // For demo purposes, simulate successful payment
+      setCurrentStep(4); // Success step
+      setShowIterateOption(true); // Show the iterate option after successful payment
+    } catch (error) {
+      console.error('Payment redirect error:', error);
+      setFormErrors({
+        ...formErrors,
+        payment: locale === 'tr' 
+          ? 'Ödeme yönlendirmesi sırasında bir hata oluştu. Lütfen tekrar deneyin.'
+          : 'An error occurred during payment redirection. Please try again.'
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const getContinueButtonClass = () => {
+    if (!isStepComplete()) {
+      return `${buttonBgClass} ${buttonTextClass} cursor-not-allowed opacity-70`;
+    } else {
+      return isDark 
+        ? 'bg-[#FF0000] hover:bg-[#FF3333] text-white' 
+        : 'bg-[#E10600] hover:bg-[#E10600]/90 text-white';
     }
   };
   
-  // Render different content based on current step
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <div className="step-select-tickets space-y-4">
-            <h3 className="text-xl font-bold text-white">
-              {locale === 'tr' ? 'Bilet Seçin' : 'Select Tickets'}
-            </h3>
-            
-            {ticketTypes.map((ticket) => (
-              <div 
-                key={ticket.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-dark-grey rounded-lg border border-carbon-grey"
-              >
-                <div className="mb-3 sm:mb-0">
-                  <h4 className="font-bold text-white">{ticket.name}</h4>
-                  {ticket.description && (
-                    <p className="text-sm text-silver">{ticket.description}</p>
-                  )}
-                  <p className="text-electric-blue font-bold mt-1">
-                    {locale === 'tr' 
-                      ? `${ticket.price} ₺`
-                      : `${ticket.price} TRY`
-                    }
-                  </p>
-                </div>
-                
-                <div className="flex items-center space-x-3">
-                  <button 
-                    type="button" 
-                    className="w-8 h-8 rounded-full bg-carbon-grey text-white hover:bg-neon-red flex items-center justify-center transition-colors"
-                    onClick={() => updateTicketQuantity(ticket.id, 'decrease')}
-                    aria-label={locale === 'tr' ? 'Azalt' : 'Decrease'}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  
-                  <span className="min-w-6 text-center text-white">
-                    {selectedTickets.find(t => t.id === ticket.id)?.quantity || 0}
-                  </span>
-                  
-                  <button 
-                    type="button" 
-                    className="w-8 h-8 rounded-full bg-carbon-grey text-white hover:bg-electric-blue flex items-center justify-center transition-colors"
-                    onClick={() => updateTicketQuantity(ticket.id, 'increase')}
-                    aria-label={locale === 'tr' ? 'Arttır' : 'Increase'}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            ))}
-            
-            {Object.keys(formErrors).length > 0 && (
-              <div className="text-neon-red text-sm mt-2">
-                {Object.values(formErrors).map((error, index) => (
-                  <p key={index}>{error}</p>
-                ))}
-              </div>
-            )}
-            
-            <div className="mt-6">
-              <p className="text-sm text-silver mb-1">
-                {locale === 'tr' ? 'Not:' : 'Note:'}
-              </p>
-              <p className="text-xs text-silver">
-                {locale === 'tr' 
-                  ? 'Seçilen biletler 10 dakika boyunca rezerve edilir. Bu süre içinde satın alınmazlarsa otomatik olarak iptal edilecektir.'
-                  : 'Selected tickets are reserved for 10 minutes. If not purchased within this time, they will be automatically canceled.'
-                }
-              </p>
-            </div>
-          </div>
-        );
-        
-      case 2:
-        return (
-          <div className="step-details space-y-4">
-            <h3 className="text-xl font-bold text-white">
-              {locale === 'tr' ? 'Kişisel Bilgiler' : 'Personal Details'}
-            </h3>
-            
-            {reservationStartTime && (
-              <ReservationTimer 
-                startTime={reservationStartTime} 
-                duration={reservationDuration} 
-                onExpire={handleReservationExpire}
-                locale={locale}
-                className="text-sm text-neon-red bg-neon-red/10 p-2 rounded-md flex items-center mb-4"
-              />
-            )}
-            
-            <div className="space-y-3">
-              <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-silver mb-1">
-                  {locale === 'tr' ? 'Ad Soyad' : 'Full Name'}
-                </label>
-                <input
-                  type="text"
-                  id="fullName"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-3 py-2 bg-dark-grey border border-carbon-grey rounded-md focus:outline-none focus:border-electric-blue text-white"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-silver mb-1">
-                  {locale === 'tr' ? 'E-posta' : 'Email'}
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 bg-dark-grey border border-carbon-grey rounded-md focus:outline-none focus:border-electric-blue text-white"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-silver mb-1">
-                  {locale === 'tr' ? 'Telefon' : 'Phone'}
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-3 py-2 bg-dark-grey border border-carbon-grey rounded-md focus:outline-none focus:border-electric-blue text-white"
-                  required
-                />
-              </div>
-            </div>
-            
-            {/* Seat selection if required */}
-            {requiresSeatSelection && (
-              <div className="mt-6">
-                <h4 className="font-medium text-white mb-2">
-                  {locale === 'tr' ? 'Koltuk Seçimi' : 'Seat Selection'}
-                </h4>
-                
-                <SeatSelector 
-                  event={event} 
-                  selectedTickets={selectedTickets} 
-                  locale={locale}
-                />
-              </div>
-            )}
-          </div>
-        );
-        
-      case 3:
-        return (
-          <div className="step-payment space-y-4">
-            <h3 className="text-xl font-bold text-white">
-              {locale === 'tr' ? 'Ödeme Bilgileri' : 'Payment Details'}
-            </h3>
-            
-            {reservationStartTime && (
-              <ReservationTimer 
-                startTime={reservationStartTime} 
-                duration={reservationDuration} 
-                onExpire={handleReservationExpire}
-                locale={locale}
-                className="text-sm text-neon-red bg-neon-red/10 p-2 rounded-md flex items-center mb-4"
-              />
-            )}
-            
-            <div className="space-y-3">
-              <div>
-                <label htmlFor="cardName" className="block text-sm font-medium text-silver mb-1">
-                  {locale === 'tr' ? 'Kart Üzerindeki İsim' : 'Name on Card'}
-                </label>
-                <input
-                  type="text"
-                  id="cardName"
-                  value={cardName}
-                  onChange={(e) => setCardName(e.target.value)}
-                  className="w-full px-3 py-2 bg-dark-grey border border-carbon-grey rounded-md focus:outline-none focus:border-electric-blue text-white"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="cardNumber" className="block text-sm font-medium text-silver mb-1">
-                  {locale === 'tr' ? 'Kart Numarası' : 'Card Number'}
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    id="cardNumber"
-                    value={cardNumber}
-                    onChange={handleCardNumberChange}
-                    className="w-full px-3 py-2 bg-dark-grey border border-carbon-grey rounded-md focus:outline-none focus:border-electric-blue text-white pr-10"
-                    maxLength={19}
-                    required
-                    placeholder="XXXX XXXX XXXX XXXX"
-                  />
-                  {cardType && (
-                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                      <Image 
-                        src={`/images/payment/${cardType}.svg`} 
-                        alt={cardType} 
-                        width={32} 
-                        height={20} 
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="expiryDate" className="block text-sm font-medium text-silver mb-1">
-                    {locale === 'tr' ? 'Son Kullanma Tarihi' : 'Expiry Date'}
-                  </label>
-                  <div className="flex space-x-2">
-                    <select
-                      id="expiryMonth"
-                      value={expiryMonth}
-                      onChange={(e) => setExpiryMonth(e.target.value)}
-                      className="w-full px-3 py-2 bg-dark-grey border border-carbon-grey rounded-md focus:outline-none focus:border-electric-blue text-white"
-                      required
-                    >
-                      <option value="">{locale === 'tr' ? 'Ay' : 'Month'}</option>
-                      {Array.from({length: 12}, (_, i) => {
-                        const month = (i + 1).toString().padStart(2, '0');
-                        return (
-                          <option key={month} value={month}>
-                            {month}
-                          </option>
-                        );
-                      })}
-                    </select>
-                    
-                    <select
-                      id="expiryYear"
-                      value={expiryYear}
-                      onChange={(e) => setExpiryYear(e.target.value)}
-                      className="w-full px-3 py-2 bg-dark-grey border border-carbon-grey rounded-md focus:outline-none focus:border-electric-blue text-white"
-                      required
-                    >
-                      <option value="">{locale === 'tr' ? 'Yıl' : 'Year'}</option>
-                      {Array.from({length: 10}, (_, i) => {
-                        const year = (new Date().getFullYear() + i).toString();
-                        return (
-                          <option key={year} value={year.slice(-2)}>
-                            {year}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-                </div>
-                
-                <div>
-                  <label htmlFor="cvc" className="block text-sm font-medium text-silver mb-1">
-                    {locale === 'tr' ? 'Güvenlik Kodu' : 'Security Code'}
-                  </label>
-                  <input
-                    type="text"
-                    id="cvc"
-                    value={cvc}
-                    onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                    className="w-full px-3 py-2 bg-dark-grey border border-carbon-grey rounded-md focus:outline-none focus:border-electric-blue text-white"
-                    maxLength={4}
-                    required
-                    placeholder={cardType === 'amex' ? 'XXXX' : 'XXX'}
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="text-center mt-6">
-              <img 
-                src="/images/iyzico-logo.png" 
-                alt="iyzico" 
-                className="h-4 mx-auto mb-1"
-              />
-              <p className="text-xs text-silver">
-                {locale === 'tr' 
-                  ? 'Ödeme işleminiz iyzico tarafından güvenle gerçekleştirilmektedir.' 
-                  : 'Your payment is securely processed by iyzico.'
-                }
-              </p>
-            </div>
-            
-            <div className="flex items-start mt-4">
-              <input
-                type="checkbox"
-                id="acceptTerms"
-                checked={acceptTerms}
-                onChange={(e) => setAcceptTerms(e.target.checked)}
-                className="mt-1 mr-2"
-                required
-              />
-              <label htmlFor="acceptTerms" className="text-sm text-silver">
-                {locale === 'tr'
-                  ? 'Ödeme yaparak, satın alma koşullarını ve gizlilik politikasını kabul etmiş oluyorum.'
-                  : 'By making payment, I agree to the purchase terms and privacy policy.'
-                }
-              </label>
-            </div>
-            
-            {formErrors.payment && (
-              <div className="bg-neon-red/10 border border-neon-red text-neon-red p-3 rounded-md text-sm mt-4">
-                {formErrors.payment}
-              </div>
-            )}
-          </div>
-        );
-        
-      case 4:
-        return (
-          <div className="step-confirmation text-center space-y-6">
-            <div className="w-20 h-20 rounded-full bg-neon-green/20 flex items-center justify-center mx-auto">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-neon-green" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-            </div>
-            
-            <h3 className="text-2xl font-bold text-white">
-              {locale === 'tr' ? 'Ödeme Başarılı!' : 'Payment Successful!'}
-            </h3>
-            
-            <p className="text-light-grey">
-              {locale === 'tr' 
-                ? 'Biletleriniz e-posta adresinize gönderildi.' 
-                : 'Your tickets have been sent to your email address.'
-              }
-            </p>
-            
-            <div className="p-4 bg-dark-grey rounded-lg">
-              <h4 className="font-bold text-white mb-2">
-                {locale === 'tr' ? 'Sipariş Özeti' : 'Order Summary'}
-              </h4>
-              
-              <div className="space-y-2">
-                {selectedTickets.map((ticket) => (
-                  <div key={ticket.id} className="flex justify-between text-silver">
-                    <span>{`${ticket.quantity}x ${ticket.name}`}</span>
-                    <span>
-                      {locale === 'tr' 
-                        ? `${ticket.price * ticket.quantity} ₺`
-                        : `${ticket.price * ticket.quantity} TRY`
-                      }
-                    </span>
-                  </div>
-                ))}
-                
-                <div className="border-t border-carbon-grey pt-2 flex justify-between font-bold text-white">
-                  <span>{locale === 'tr' ? 'Toplam' : 'Total'}</span>
-                  <span>
-                    {locale === 'tr' 
-                      ? `${totalPrice} ₺`
-                      : `${totalPrice} TRY`
-                    }
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <Link href="/account/tickets" className="inline-block mt-4 px-6 py-2 bg-electric-blue text-white rounded-md hover:bg-electric-blue/90 transition-colors">
-              {locale === 'tr' ? 'Biletlerimi Görüntüle' : 'View My Tickets'}
-            </Link>
-          </div>
-        );
+  const getPaymentButtonClass = () => {
+    if (!isStepComplete() || (currentStep === 2 && !acceptTerms)) {
+      return `${buttonBgClass} ${buttonTextClass} cursor-not-allowed opacity-70`;
+    } else {
+      return 'bg-[#E10600] hover:bg-[#FF0000] text-white dark:bg-[#FF0000] dark:hover:bg-[#FF3333]';
     }
   };
 
   return (
-    <div className="sticky top-20 bg-graphite rounded-lg border border-carbon-grey p-5 shadow-lg">
+    <div 
+      className={`rounded-lg border ${borderColorClass} p-4 shadow-lg ${bgColorClass} flex flex-col h-auto overflow-hidden
+        ${isSticky ? 'lg:sticky lg:top-24 transition-all duration-300' : ''}`}
+    >
       {/* Progress Steps */}
       {currentStep < 4 && (
-        <div className="mb-6">
-          <div className="flex justify-between items-center">
-            {[1, 2, 3].map((step) => (
+        <div className="mb-3">
+          <div className="flex justify-between items-center relative">
+            {/* Show only 2 steps now - Tickets and Personal Details */}
+            {[1, 2].map((step) => (
               <div 
                 key={step}
-                className="flex flex-col items-center"
+                className="flex flex-col items-center relative z-10"
               >
                 <div 
-                  className={`w-8 h-8 rounded-full flex items-center justify-center border-2 text-sm 
+                  className={`w-6 h-6 rounded-full flex items-center justify-center border-2 text-xs 
                     ${currentStep === step 
                       ? 'border-electric-blue bg-electric-blue/20 text-electric-blue' 
                       : currentStep > step 
                         ? 'border-neon-green bg-neon-green/20 text-neon-green'
-                        : 'border-carbon-grey bg-dark-grey text-silver'}`}
+                        : isDark 
+                          ? 'border-carbon-grey bg-dark-grey text-silver'
+                          : 'border-gray-300 bg-gray-100 text-gray-500'}`}
                 >
                   {currentStep > step ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   ) : (
                     step
                   )}
                 </div>
-                <span className="text-xs mt-1 text-silver">
+                <span className={`text-[10px] mt-0.5 ${textColorClass}`}>
                   {step === 1 ? (locale === 'tr' ? 'Biletler' : 'Tickets') : 
-                   step === 2 ? (locale === 'tr' ? 'Detaylar' : 'Details') : 
-                   (locale === 'tr' ? 'Ödeme' : 'Payment')}
+                   (locale === 'tr' ? 'Bilgiler' : 'Details')}
                 </span>
               </div>
             ))}
             
-            {/* Progress line */}
-            <div className="absolute left-0 right-0 top-4 w-full h-0.5 px-10 flex">
+            {/* Progress line - Improved visibility in both light and dark mode */}
+            <div className="absolute left-0 right-0 w-full">
               <div 
-                className="h-full bg-carbon-grey w-1/3 mx-5"
-                style={{ backgroundColor: currentStep >= 2 ? 'var(--neon-green)' : 'var(--carbon-grey)' }}
-              ></div>
-              <div 
-                className="h-full bg-carbon-grey w-1/3 mx-5"
-                style={{ backgroundColor: currentStep >= 3 ? 'var(--neon-green)' : 'var(--carbon-grey)' }}
-              ></div>
+                className={`h-0.5 absolute top-3 left-[25%] right-[25%] w-1/2 ${currentStep >= 2 ? 'bg-neon-green' : isDark ? 'bg-carbon-grey' : 'bg-gray-300'}`}
+                style={{zIndex: 0}}
+              />
             </div>
           </div>
         </div>
       )}
       
       {/* Event header info */}
-      <div className="mb-6 border-b border-carbon-grey pb-4">
-        <h2 className="text-2xl font-bold text-white">{event.title[locale]}</h2>
-        <p className="text-silver flex items-center mt-1">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+      <div className={`mb-2 border-b ${borderColorClass} pb-2`}>
+        <h2 className={`text-lg font-bold ${headingColorClass}`}>{event.title[locale]}</h2>
+        <p className={`${textColorClass} text-xs flex items-center mt-0.5`}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1 text-neon-red" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
           </svg>
           {new Date(event.date).toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-US', {
@@ -757,91 +431,361 @@ export function TicketSidebar({ event, locale }: TicketSidebarProps) {
             minute: '2-digit'
           })}
         </p>
-        <p className="text-silver flex items-center mt-1">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+        <p className={`${textColorClass} text-xs flex items-center mt-0.5`}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1 text-electric-blue" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
           </svg>
           {event.location[locale]}
         </p>
       </div>
       
-      <form onSubmit={handleSubmit}>
-        <div className="min-h-64">
-          {renderStepContent()}
+      <form onSubmit={handleSubmit} className="flex flex-col h-auto">
+        <div className="flex-grow">
+          {currentStep === 1 && (
+            <div className="step-select-tickets space-y-4">
+              {/* Heading renk düzeltmesi */}
+              <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-very-dark-grey'}`}>
+                {locale === 'tr' ? 'Bilet Seçin' : 'Select Tickets'}
+              </h3>
+              
+              {ticketTypes.map((ticket) => (
+                <div 
+                  key={ticket.id}
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 ${cardBgClass} rounded-lg border ${borderColorClass}`}
+                >
+                  <div className="mb-2 sm:mb-0">
+                    <h4 className={`font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'} text-sm`}>{ticket.name}</h4>
+                    {ticket.description && (
+                      <p className={`text-xs ${textColorClass}`}>{ticket.description}</p>
+                    )}
+                    <p className="text-electric-blue font-bold mt-1 text-sm flex items-center">
+                      {ticket.price} <span className="ml-1">₺</span>
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3">
+                    <button 
+                      type="button" 
+                      className={`w-7 h-7 rounded-full ${buttonBgClass} ${headingColorClass} hover:bg-neon-red hover:text-white flex items-center justify-center transition-colors`}
+                      onClick={() => updateTicketQuantity(ticket.id, 'decrease')}
+                      aria-label={locale === 'tr' ? 'Azalt' : 'Decrease'}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    
+                    <span className={`min-w-6 text-center ${isDark ? 'text-gray-100' : 'text-gray-900'} text-sm`}>
+                      {selectedTickets.find(t => t.id === ticket.id)?.quantity || 0}
+                    </span>
+                    
+                    <button 
+                      type="button" 
+                      className={`w-7 h-7 rounded-full ${buttonBgClass} ${headingColorClass} hover:bg-electric-blue hover:text-white flex items-center justify-center transition-colors`}
+                      onClick={() => updateTicketQuantity(ticket.id, 'increase')}
+                      aria-label={locale === 'tr' ? 'Arttır' : 'Increase'}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+              
+              {Object.keys(formErrors).length > 0 && (
+                <div className="text-neon-red text-xs mt-2">
+                  {Object.values(formErrors).map((error, index) => (
+                    <p key={index}>{error}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          
+          {currentStep === 2 && (
+            <div className="step-details space-y-3">
+              {/* Heading renk düzeltmesi */}
+              <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-very-dark-grey'}`}>
+                {locale === 'tr' ? 'Kişisel Bilgiler' : 'Personal Details'}
+              </h3>
+              
+              {reservationStartTime && (
+                <div className="flex items-center bg-neon-red/10 p-2 rounded-md text-xs text-neon-red mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                  </svg>
+                  <ReservationTimer 
+                    startTime={reservationStartTime} 
+                    duration={reservationDuration} 
+                    onExpire={handleReservationExpire}
+                    locale={locale}
+                  />
+                </div>
+              )}
+              
+              <div className="space-y-3">
+                <div>
+                  <label htmlFor="fullName" className={`block text-xs font-medium ${textColorClass} mb-1`}>
+                    {locale === 'tr' ? 'Ad Soyad' : 'Full Name'}
+                  </label>
+                  <input
+                    type="text"
+                    id="fullName"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="email" className={`block text-xs font-medium ${textColorClass} mb-1`}>
+                    {locale === 'tr' ? 'E-posta' : 'Email'}
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="phone" className={`block text-xs font-medium ${textColorClass} mb-1`}>
+                    {locale === 'tr' ? 'Telefon' : 'Phone'}
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
+                    required
+                  />
+                </div>
+              </div>
+              
+              {/* Seat selection if required */}
+              {requiresSeatSelection && (
+                <div className="mt-4">
+                  <h4 className={`font-medium ${headingColorClass} text-xs mb-2`}>
+                    {locale === 'tr' ? 'Koltuk Seçimi' : 'Seat Selection'}
+                  </h4>
+                  <SeatSelector 
+                    event={event} 
+                    selectedTickets={selectedTickets} 
+                    locale={locale}
+                  />
+                </div>
+              )}
+
+              {/* Terms acceptance checkbox */}
+              <div className="flex items-start mt-4">
+                <input
+                  type="checkbox"
+                  id="acceptTerms"
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  className="mt-1 mr-2"
+                  required
+                />
+                <label htmlFor="acceptTerms" className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {locale === 'tr'
+                    ? 'Ödeme yaparak, satın alma koşullarını ve gizlilik politikasını kabul etmiş oluyorum.'
+                    : 'By making payment, I agree to the purchase terms and privacy policy.' 
+                  }
+                </label>
+              </div>
+              
+              {/* İyzico bilgisi - tek satırda */}
+              <div className="text-center mt-4">
+                <p className="whitespace-nowrap text-[10px] inline-flex items-center justify-center flex-wrap">
+                  <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                    {locale === 'tr' ? 'Ödeme işleminiz ' : 'Your payment is ' }
+                  </span>
+                  <span className="font-extrabold text-[#1E64FF] mx-1">iyzico</span>
+                  <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                    {locale === 'tr' ? ' tarafından güvenle gerçekleştirilmektedir' : ' securely processed'}
+                  </span>
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {currentStep === 4 && (
+            <div className="step-confirmation text-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-neon-green/20 flex items-center justify-center mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-neon-green" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+              
+              <h3 className={`text-xl font-bold ${headingColorClass}`}>
+                {locale === 'tr' ? 'Ödeme Başarılı!' : 'Payment Successful!'}
+              </h3>
+              
+              <p className={`${textColorClass} text-sm`}>
+                {locale === 'tr' 
+                  ? 'Biletleriniz e-posta adresinize gönderildi.' 
+                  : 'Your tickets have been sent to your email address.'
+                }
+              </p>
+              
+              <div className={`p-3 ${cardBgClass} rounded-lg`}>
+                <h4 className={`font-bold ${headingColorClass} mb-2 text-sm`}>
+                  {locale === 'tr' ? 'Sipariş Özeti' : 'Order Summary'}
+                </h4>
+                
+                <div className="space-y-1.5">
+                  {selectedTickets.map((ticket) => (
+                    <div key={ticket.id} className={`flex justify-between ${textColorClass} text-xs`}>
+                      <span>{`${ticket.quantity}x ${ticket.name}`}</span>
+                      <span className="text-electric-blue flex items-center">
+                        {ticket.price * ticket.quantity} <span className="ml-1">₺</span>
+                      </span>
+                    </div>
+                  ))}
+                  
+                  <div className={`border-t ${borderColorClass} pt-1.5 flex justify-between font-bold ${headingColorClass} text-xs`}>
+                    <span>{locale === 'tr' ? 'Toplam' : 'Total'}</span>
+                    <span className="text-neon-green flex items-center">
+                      {totalPrice} <span className="ml-1">₺</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex flex-col space-y-2 mt-2">
+                <button 
+                  onClick={handleDownloadTicket} 
+                  className="w-full px-4 py-2 bg-electric-blue text-white rounded-md hover:opacity-90 transition-colors text-xs flex items-center justify-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                  {locale === 'tr' ? 'Bileti İndir (PDF)' : 'Download Ticket (PDF)'}
+                </button>
+                
+                <button 
+                  onClick={handleAddToCalendar} 
+                  className={`w-full px-4 py-2 ${buttonBgClass} ${buttonTextClass} rounded-md hover:opacity-90 transition-colors text-xs flex items-center justify-center`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                  </svg>
+                  {locale === 'tr' ? 'Takvime Ekle' : 'Add to Calendar'}
+                </button>
+              </div>
+
+              {/* Add the "Continue to iterate?" option */}
+              {showIterateOption && (
+                <div className={`mt-4 border-t ${borderColorClass} pt-4`}>
+                  <p className={`text-sm ${headingColorClass} mb-3`}>
+                    {locale === 'tr' ? 'Başka bilet almak ister misiniz?' : 'Would you like to purchase another ticket?'}
+                  </p>
+                  <div className="flex space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => handleIteration(true)}
+                      className="flex-1 px-4 py-2 bg-neon-green text-black dark:text-graphite font-medium rounded-md hover:opacity-90 transition-colors text-xs"
+                    >
+                      {locale === 'tr' ? 'Evet, devam et' : 'Yes, continue'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleIteration(false)}
+                      className={`flex-1 px-4 py-2 ${buttonBgClass} ${buttonTextClass} rounded-md hover:opacity-90 transition-colors text-xs`}
+                    >
+                      {locale === 'tr' ? 'Hayır, teşekkürler' : 'No, thank you'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         
         {/* Summary and actions */}
         {currentStep < 4 && (
-          <div className="mt-6 pt-4 border-t border-carbon-grey">
+          <div className={`mt-3 pt-2 border-t ${isDark ? 'border-gray-700/50' : borderColorClass}`}>
             {/* Order Summary */}
             {selectedTickets.length > 0 && (
-              <div className="mb-4">
-                <h4 className="text-sm font-medium text-silver mb-2">
+              <div className="mb-2.5">
+                <h4 className={`text-[10px] font-medium ${textColorClass} mb-1.5`}>
                   {locale === 'tr' ? 'Sipariş Özeti' : 'Order Summary'}
                 </h4>
                 
-                <div className="space-y-1 mb-2">
+                <div className="space-y-0.5 mb-1.5 text-xs">
                   {selectedTickets.map((ticket) => (
-                    <div key={ticket.id} className="flex justify-between text-sm">
-                      <span className="text-light-grey">{ticket.quantity}x {ticket.name}</span>
-                      <span className="text-light-grey">
-                        {locale === 'tr' 
-                          ? `${ticket.price * ticket.quantity} ₺`
-                          : `${ticket.price * ticket.quantity} TRY`
-                        }
+                    <div key={ticket.id} className="flex justify-between">
+                      <span className={textColorClass}>{ticket.quantity}x {ticket.name}</span>
+                      <span className="text-electric-blue flex items-center">
+                        {ticket.price * ticket.quantity} <span className="ml-1">₺</span>
                       </span>
                     </div>
                   ))}
                 </div>
                 
-                <div className="flex justify-between text-white font-bold">
+                <div className={`flex justify-between ${headingColorClass} font-bold text-xs`}>
                   <span>{locale === 'tr' ? 'Toplam' : 'Total'}</span>
-                  <span className="text-electric-blue">
-                    {locale === 'tr' 
-                      ? `${totalPrice} ₺`
-                      : `${totalPrice} TRY`
-                    }
+                  <span className="text-neon-green flex items-center">
+                    {totalPrice} <span className="ml-1">₺</span>
                   </span>
                 </div>
               </div>
             )}
             
-            {/* Action buttons */}
-            <div className="flex items-center space-x-3">
-              {currentStep > 1 && (
+            {/* Action buttons with better alignment and consistent coloring */}
+            <div className="flex items-center justify-center mt-2.5">
+              {currentStep > 1 ? (
+                <div className="flex justify-center w-full">
+                  <button
+                    type="button"
+                    onClick={goBack}
+                    className={`px-3 py-1.5 ${buttonBgClass} ${buttonTextClass} rounded hover:opacity-80 transition-colors text-xs font-medium border ${borderColorClass} mr-2`}
+                  >
+                    {locale === 'tr' ? 'Geri' : 'Back'}
+                  </button>
+                  
+                  <button
+                    type="submit"
+                    disabled={!isStepComplete() || isProcessing}
+                    className={`px-3 py-1.5 rounded text-xs font-medium flex justify-center items-center transition-colors ${getPaymentButtonClass()}`}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-1.5 h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {locale === 'tr' ? 'İşleniyor...' : 'Processing...'}
+                      </>
+                    ) : (
+                      <>
+                        {locale === 'tr' ? 'Ödemeye Geç' : 'Proceed to Payment'}
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
                 <button
-                  type="button"
-                  onClick={goBack}
-                  className="px-4 py-2 border border-carbon-grey text-light-grey rounded-md hover:bg-dark-grey transition-colors flex-1"
+                  type="submit"
+                  disabled={!isStepComplete()}
+                  className={`w-full px-3 py-1.5 rounded text-xs font-medium flex justify-center items-center transition-colors ${getContinueButtonClass()}`}
                 >
-                  {locale === 'tr' ? 'Geri' : 'Back'}
+                  {locale === 'tr' ? 'Devam Et' : 'Continue'}
                 </button>
               )}
-              
-              <button
-                type="submit"
-                disabled={!isStepComplete() || isProcessing}
-                className={`px-4 py-2 rounded-md text-white flex-1 flex justify-center items-center ${
-                  isStepComplete() && !isProcessing
-                    ? 'bg-neon-red hover:bg-neon-red/90' 
-                    : 'bg-carbon-grey cursor-not-allowed'
-                }`}
-              >
-                {isProcessing ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    {locale === 'tr' ? 'İşleniyor...' : 'Processing...'}
-                  </>
-                ) : currentStep === 3 ? (
-                  locale === 'tr' ? 'Ödeme Yap' : 'Make Payment'
-                ) : (
-                  locale === 'tr' ? 'Devam Et' : 'Continue'
-                )}
-              </button>
             </div>
+
+            {formErrors.payment && (
+              <div className="mt-2 bg-neon-red/10 border border-neon-red text-neon-red p-2 rounded-md text-xs">
+                {formErrors.payment}
+              </div>
+            )}
           </div>
         )}
       </form>

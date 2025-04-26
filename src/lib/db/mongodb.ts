@@ -1,3 +1,5 @@
+'use server';  // This marks the file as server-only code
+
 import mongoose from 'mongoose';
 
 if (!process.env.MONGODB_URI) {

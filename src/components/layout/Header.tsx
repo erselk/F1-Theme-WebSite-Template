@@ -86,11 +86,11 @@ const Header = () => {
           <Link href="/" className="-m-0 p-0">
             <span className="sr-only">PadokClub</span>
             <Image
-              className={`${scrolled ? 'h-20' : 'h-32'} w-auto transition-all duration-300`}
+              className={`${scrolled ? 'h-10' : 'h-16'} w-auto transition-all duration-300`} // Reduced from h-20/h-32 to h-10/h-16
               src={isDark ? '/images/logodark.png' : '/images/logolight.png'}
               alt="PadokClub"
-              width={480}
-              height={130}
+              width={240} // Reduced from 480
+              height={65} // Reduced from 130
               priority
             />
           </Link>

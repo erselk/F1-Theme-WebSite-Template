@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
 import Iyzipay from 'iyzipay';
 
-// Initialize Iyzipay with configuration
-const iyzipay = new Iyzipay({
-  apiKey: process.env.IYZIPAY_API_KEY || 'your_api_key',
-  secretKey: process.env.IYZIPAY_SECRET_KEY || 'your_secret_key',
-  uri: process.env.NODE_ENV === 'production' 
-    ? 'https://api.iyzipay.com' 
-    : 'https://sandbox-api.iyzipay.com'
-});
+// Use a conditional to delay Iyzipay initialization until runtime
+// This prevents build-time errors with resource paths
+const getIyzipay = () => {
+  return new Iyzipay({
+    apiKey: process.env.IYZIPAY_API_KEY || 'your_api_key',
+    secretKey: process.env.IYZIPAY_SECRET_KEY || 'your_secret_key',
+    uri: process.env.NODE_ENV === 'production' 
+      ? 'https://api.iyzipay.com' 
+      : 'https://sandbox-api.iyzipay.com'
+  });
+};
 
 export async function POST(request: Request) {
   try {
@@ -27,6 +30,9 @@ export async function POST(request: Request) {
       );
     }
 
+    // Get Iyzipay instance at runtime
+    const iyzipay = getIyzipay();
+
     // Create a unique payment conversation ID
     const conversationId = `padok_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     
@@ -37,7 +43,7 @@ export async function POST(request: Request) {
     const formattedPrice = totalPrice.toFixed(2);
     
     // Create payment request
-    const request = {
+    const paymentRequest = {
       locale: locale === 'en' ? Iyzipay.LOCALE.EN : Iyzipay.LOCALE.TR,
       conversationId: conversationId,
       price: formattedPrice,
@@ -91,7 +97,7 @@ export async function POST(request: Request) {
 
     // Create a new checkout form for redirect
     return new Promise((resolve) => {
-      iyzipay.checkoutFormInitialize.create(request, function (err, result) {
+      iyzipay.checkoutFormInitialize.create(paymentRequest, function (err, result) {
         if (err) {
           console.error('Iyzipay error:', err);
           resolve(NextResponse.json(

@@ -1,10 +1,38 @@
+'use server';  // This marks the file as server-only code
+
 import { BlogPost, Event, getEventStatus } from '@/types';
+import { MongoClient, Db } from 'mongodb';
+
+// MongoDB connection
+let cachedClient: MongoClient | null = null;
+let cachedDb: Db | null = null;
+
+export async function connectToDatabase(): Promise<Db> {
+  if (cachedDb) {
+    return cachedDb;
+  }
+
+  const uri = process.env.MONGODB_URI || '';
+  
+  if (!uri) {
+    throw new Error('MongoDB URI is not defined in environment variables');
+  }
+
+  if (!cachedClient) {
+    cachedClient = new MongoClient(uri);
+    await cachedClient.connect();
+  }
+
+  const dbName = process.env.MONGODB_DB || 'padokclub';
+  cachedDb = cachedClient.db(dbName);
+  
+  return cachedDb;
+}
 
 /**
  * MongoDB servislerini içeren yardımcı fonksiyonlar
  */
 
-// Blog servisleri
 export async function getAllBlogs(): Promise<BlogPost[]> {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/blogs`, {
@@ -41,7 +69,6 @@ export async function getBlogBySlug(slug: string): Promise<BlogPost | null> {
   }
 }
 
-// Etkinlik servisleri
 export async function getAllEvents(): Promise<Event[]> {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/events`, {
@@ -78,7 +105,6 @@ export async function getEventBySlug(slug: string): Promise<Event | null> {
   }
 }
 
-// Öne çıkan etkinlikleri getir
 export async function getFeaturedEvents(): Promise<Event[]> {
   try {
     const allEvents = await getAllEvents();
@@ -97,7 +123,6 @@ export async function getFeaturedEvents(): Promise<Event[]> {
   }
 }
 
-// Etkinlikleri sıralı olarak getir
 export async function getSortedEvents(): Promise<Event[]> {
   try {
     const events = await getAllEvents();

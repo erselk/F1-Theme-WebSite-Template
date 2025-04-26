@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LanguageType } from '@/lib/ThemeLanguageContext';
+import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
+import { ScrollbarStyles } from './ScrollbarStyles';
 
 interface NavItem {
   id: string;
@@ -13,13 +14,14 @@ interface NavItem {
 
 interface SmoothScrollNavProps {
   items: NavItem[];
-  locale: LanguageType;
 }
 
-export function SmoothScrollNav({ items, locale }: SmoothScrollNavProps) {
+export function SmoothScrollNav({ items }: SmoothScrollNavProps) {
   const [activeSection, setActiveSection] = useState<string>(items[0]?.id || '');
+  const { isDark, language } = useThemeLanguage();
 
   useEffect(() => {
+    // Create an observer to detect which section is in view
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -30,7 +32,7 @@ export function SmoothScrollNav({ items, locale }: SmoothScrollNavProps) {
       },
       {
         rootMargin: '-100px 0px -80% 0px', // Element must be 20% from top to be considered active
-        threshold: 0
+        threshold: 0.1
       }
     );
 
@@ -68,20 +70,49 @@ export function SmoothScrollNav({ items, locale }: SmoothScrollNavProps) {
     }
   };
 
+  // Define inline styles to override any global CSS that might be interfering
+  const navItemStyle = {
+    color: isDark ? '#D0D0D0' : '#4D4D4D',  // Use hex values directly
+  };
+  
+  const navItemHoverStyle = {
+    backgroundColor: isDark ? '#2B2B2B' : '#F2F2F2',
+    color: isDark ? '#CCCCCC' : '#222222',
+  };
+  
+  const activeItemStyle = {
+    backgroundColor: '#00CCFF',
+    color: '#FFFFFF',
+    boxShadow: '0 4px 6px rgba(0, 204, 255, 0.3)',
+  };
+
   return (
-    <nav className="sticky top-20 z-10 bg-dark-grey/80 backdrop-blur-md rounded-lg p-2 shadow-lg">
-      <ul className="flex items-center overflow-x-auto whitespace-nowrap gap-2 px-2">
+    <nav 
+      className={`sticky top-0 z-10 backdrop-blur-md rounded-b-lg shadow-lg border-b border-neon-green/30
+        ${isDark ? 'bg-dark-grey/95' : 'bg-gray-100/95'}`}
+    >
+      <ScrollbarStyles />
+      <ul className="flex items-center overflow-x-auto scrollbar-hide whitespace-nowrap gap-2 px-3 py-3">
         {items.map((item) => (
           <li key={item.id}>
             <button
               onClick={() => scrollToSection(item.id)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
-                ${activeSection === item.id
-                  ? 'bg-electric-blue/20 text-electric-blue'
-                  : 'text-light-grey hover:bg-carbon-grey/30 hover:text-white'
-                }`}
+              style={activeSection === item.id ? activeItemStyle : navItemStyle}
+              onMouseOver={(e) => {
+                if (activeSection !== item.id) {
+                  e.currentTarget.style.backgroundColor = navItemHoverStyle.backgroundColor;
+                  e.currentTarget.style.color = navItemHoverStyle.color;
+                }
+              }}
+              onMouseOut={(e) => {
+                if (activeSection !== item.id) {
+                  e.currentTarget.style.backgroundColor = '';
+                  e.currentTarget.style.color = navItemStyle.color;
+                }
+              }}
+              className="px-4 py-2 rounded-md text-sm font-medium transition-colors nav-item"
             >
-              {item.label[locale]}
+              {item.label[language]}
             </button>
           </li>
         ))}

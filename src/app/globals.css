@@ -20,6 +20,76 @@
   --foreground: var(--dark-grey);
   --primary: var(--f1-red);
   --primary-hover: #E01A1A;
+  
+  /* Light mode color variables */
+  --light-text-primary: #1c1c22;
+  --light-text-secondary: #333339;
+  --light-border-color: #e0e0e5;
+  --light-bg-primary: #ffffff;
+  --light-bg-secondary: #f5f5f7;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    /* Light mode specific variables */
+    --text-primary: var(--light-text-primary);
+    --text-secondary: var(--light-text-secondary);
+    --border-color: var(--light-border-color);
+    --bg-primary: var(--light-bg-primary);
+    --bg-secondary: var(--light-bg-secondary);
+  }
+}
+
+.light {
+  /* Light theme specific styles */
+  --text-primary: var(--light-text-primary);
+  --text-secondary: var(--light-text-secondary);
+  --border-color: var(--light-border-color);
+  --bg-primary: var(--light-bg-primary);
+  --bg-secondary: var(--light-bg-secondary);
+  
+  /* Make sure text on dark backgrounds remains visible in light mode */
+  .text-white {
+    color: #fff !important;
+  }
+  
+  .dark\:text-white {
+    color: #fff !important;
+  }
+  
+  /* Ensure borders are visible in light mode */
+  .border-carbon-grey {
+    border-color: var(--carbon-grey) !important;
+  }
+  
+  .dark\:border-carbon-grey {
+    border-color: var(--carbon-grey) !important;
+  }
+  
+  /* Making sure buttons and backgrounds maintain visibility */
+  .bg-neon-red {
+    background-color: var(--neon-red) !important; 
+    opacity: 1 !important;
+  }
+  
+  .bg-electric-blue {
+    background-color: var(--electric-blue) !important;
+  }
+  
+  /* Fix ticket form specific elements */
+  .step-confirmation h3,
+  .ticket-title,
+  .total-amount,
+  .continue-button,
+  .submit-button {
+    color: #fff !important;
+  }
+  
+  /* Özel başlıkları için renk düzeltmesi */
+  .step-select-tickets h3,
+  .step-details h3 {
+    color: var(--dark-grey) !important;
+  }
 }
 
 .dark {

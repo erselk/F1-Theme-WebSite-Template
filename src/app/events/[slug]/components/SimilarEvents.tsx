@@ -1,157 +1,166 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import Image from 'next/image';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Event, formatEventDate } from '@/types';
-import { LanguageType } from '@/lib/ThemeLanguageContext';
+import Image from 'next/image';
+import { Event, LanguageType, getEventStatus } from '@/types';
 
 interface SimilarEventsProps {
   currentEventId: string;
   category: string;
   locale: LanguageType;
+  maxEvents?: number;
+  showPastEvents?: boolean;
 }
 
-export function SimilarEvents({ currentEventId, category, locale }: SimilarEventsProps) {
+export function SimilarEvents({ 
+  currentEventId, 
+  category, 
+  locale,
+  maxEvents = 4,
+  showPastEvents = false
+}: SimilarEventsProps) {
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Benzer etkinlikleri yükle
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchSimilarEvents = async () => {
       try {
         setIsLoading(true);
         
-        // API'den aynı kategorideki etkinlikleri getir
-        const res = await fetch(`/api/events?category=${encodeURIComponent(category)}`);
-        const data = await res.json();
+        // Fetch events with query parameters for MongoDB filtering
+        const params = new URLSearchParams({
+          category: category,
+          excludeId: currentEventId,
+          showPastEvents: showPastEvents.toString(),
+          limit: maxEvents.toString()
+        });
         
-        if (data.success && data.events) {
-          // Mevcut etkinliği liste dışı tut ve en çok 4 etkinlik göster
-          const similarEvents = data.events
-            .filter((event: Event) => event.id !== currentEventId)
-            .slice(0, 4);
-          
-          setEvents(similarEvents);
+        const response = await fetch(`/api/events/similar?${params.toString()}`);
+        
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
-      } catch (error) {
-        console.error('Benzer etkinlikler yüklenirken hata:', error);
+        
+        const similarEvents = await response.json();
+        setEvents(similarEvents);
+      } catch (err) {
+        setError('Failed to load similar events');
+        console.error(err);
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchSimilarEvents();
-  }, [currentEventId, category]);
-  
-  // Animasyon varyantları
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        when: "beforeChildren",
-        staggerChildren: 0.1
-      }
-    }
-  };
-  
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { type: "spring", stiffness: 100 }
-    }
-  };
-  
+  }, [currentEventId, category, maxEvents, showPastEvents]);
+
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {[...Array(4)].map((_, index) => (
-          <div key={index} className="bg-gray-100 animate-pulse rounded-lg h-64"></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-pulse">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="rounded-lg bg-dark-grey h-48"></div>
         ))}
       </div>
     );
   }
-  
-  if (events.length === 0) {
+
+  if (error) {
     return (
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="text-center text-gray-500 italic py-4"
-      >
-        {locale === 'tr' 
-          ? 'Bu kategoride başka etkinlik bulunamadı.' 
-          : 'No other events found in this category.'
-        }
-      </motion.p>
+      <div className="bg-neon-red/10 p-4 rounded-lg text-neon-red text-center">
+        <p>{error}</p>
+      </div>
     );
   }
-  
+
+  if (events.length === 0) {
+    return (
+      <div className="bg-graphite/50 p-6 rounded-lg text-center border border-carbon-grey">
+        <p className="text-silver">
+          {locale === 'tr' 
+            ? 'Bu kategoride başka etkinlik bulunamadı.' 
+            : 'No other events found in this category.'
+          }
+        </p>
+      </div>
+    );
+  }
+
+  const getEventStatusClass = (date: string) => {
+    const status = getEventStatus(new Date(date));
+    switch (status) {
+      case 'upcoming': return 'bg-neon-green text-very-dark-grey';
+      case 'today': return 'bg-electric-blue text-white';
+      default: return 'bg-carbon-grey text-light-grey';
+    }
+  };
+
+  const getEventStatusLabel = (date: string) => {
+    const status = getEventStatus(new Date(date));
+    switch (status) {
+      case 'upcoming': return locale === 'tr' ? 'Yaklaşan' : 'Upcoming';
+      case 'today': return locale === 'tr' ? 'Bugün' : 'Today';
+      default: return locale === 'tr' ? 'Tamamlandı' : 'Past';
+    }
+  };
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-    >
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {events.map((event) => (
-        <motion.div
+        <Link 
+          href={`/events/${event.slug}`} 
           key={event.id}
-          variants={itemVariants}
-          whileHover={{ y: -5 }}
-          className="bg-background border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+          className="group"
         >
-          <Link href={`/events/${event.slug}`} className="block">
-            <div className="relative h-40">
+          <div className="flex flex-col h-full rounded-lg overflow-hidden bg-dark-grey border border-carbon-grey hover:border-electric-blue transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-electric-blue/20">
+            <div className="relative h-40 w-full overflow-hidden">
               <Image
-                src={event.squareImage || '/images/events/default.jpg'}
+                src={event.bannerImage || "/images/events/banner/default.jpg"}
                 alt={event.title[locale]}
                 fill
-                className="object-cover"
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-                loading="lazy"
-                placeholder="blur"
-                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAEDQIEXYA9oAAAAABJRU5ErkJggg=="
               />
-              
-              {/* Etkinlik etiketi */}
               <div className="absolute top-2 right-2">
-                <span className={`px-2 py-1 text-xs rounded-full text-white ${
-                  event.status === 'today' 
-                    ? 'bg-yellow-500' 
-                    : event.status === 'upcoming' 
-                      ? 'bg-green-500' 
-                      : 'bg-gray-500'
-                }`}>
-                  {event.status === 'today' 
-                    ? (locale === 'tr' ? 'Bugün' : 'Today') 
-                    : event.status === 'upcoming' 
-                      ? (locale === 'tr' ? 'Yaklaşan' : 'Upcoming') 
-                      : (locale === 'tr' ? 'Geçmiş' : 'Past')
-                  }
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getEventStatusClass(event.date)}`}>
+                  {getEventStatusLabel(event.date)}
+                </span>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-very-dark-grey to-transparent opacity-70"></div>
+            </div>
+
+            <div className="p-4 flex-grow flex flex-col justify-between">
+              <h3 className="font-bold text-white group-hover:text-electric-blue transition-colors mb-2">
+                {event.title[locale]}
+              </h3>
+              
+              <div className="flex justify-between items-center mt-1">
+                <div className="flex items-center text-silver text-xs">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1 text-neon-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {formatDate(event.date)}
+                </div>
+                
+                <span className="bg-neon-red/80 text-white text-xs px-2 py-0.5 rounded">
+                  {event.category}
                 </span>
               </div>
             </div>
-            
-            <div className="p-4">
-              <h3 className="font-semibold truncate">{event.title[locale]}</h3>
-              <p className="text-sm text-gray-600 mt-1">{formatEventDate(event.date, locale)}</p>
-              <p className="text-sm text-gray-600">{event.location[locale]}</p>
-              
-              <div className="mt-3 flex justify-between items-center">
-                <span className="text-primary font-semibold">{event.price} TL</span>
-                <button className="text-sm text-primary hover:underline">
-                  {locale === 'tr' ? 'Detaylar' : 'Details'} &rarr;
-                </button>
-              </div>
-            </div>
-          </Link>
-        </motion.div>
+          </div>
+        </Link>
       ))}
-    </motion.div>
+    </div>
   );
 }

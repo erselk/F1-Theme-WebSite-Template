@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  transpilePackages: ['mongodb'],
   sassOptions: {
     includePaths: [path.join(process.cwd(), "src/styles")],
   },
@@ -28,6 +29,23 @@ const nextConfig: NextConfig = {
     // Bu seçenek sadece build işlemini başarılı yapmak için kullanılmalıdır
     // Projeyi canlıya almadan önce tüm tip hataları düzeltilmelidir
     ignoreBuildErrors: true,
+  },
+  
+  // MongoDB için Node.js modüllerini webpack ile yapılandırma
+  webpack: (config) => {
+    // MongoDB ve diğer Node.js modülleri için browser uyumsuzluklarını çözmek için
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      child_process: false,
+      fs: false,
+      net: false,
+      tls: false,
+      dns: false,
+      os: false,
+      path: false,
+    };
+    
+    return config;
   },
 };
 

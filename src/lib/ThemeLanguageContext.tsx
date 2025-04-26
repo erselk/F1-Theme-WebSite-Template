@@ -15,9 +15,9 @@ interface ThemeLanguageContextType {
   mounted: boolean;
 }
 
-// Default context değerleri
+// Default context values with English as default
 const defaultContext: ThemeLanguageContextType = {
-  language: 'tr',
+  language: 'en',
   setLanguage: () => {},
   toggleLanguage: () => {},
   isDark: false,
@@ -30,7 +30,7 @@ const ThemeLanguageContext = createContext<ThemeLanguageContextType>(defaultCont
 export function ThemeLanguageProvider({ children }: { children: ReactNode }) {
   const { setTheme, theme, systemTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [language, setLanguage] = useState<LanguageType>('tr');
+  const [language, setLanguage] = useState<LanguageType>('en');
 
   useEffect(() => {
     setMounted(true);
@@ -39,15 +39,15 @@ export function ThemeLanguageProvider({ children }: { children: ReactNode }) {
     if (savedLanguage && ['tr', 'en'].includes(savedLanguage as string)) {
       setLanguage(savedLanguage as LanguageType);
     } else if (typeof window !== 'undefined') {
-      // Eğer cookie yoksa ve client tarafındaysak tarayıcı dilini kontrol et
+      // If no cookie exists and we're on client-side, check browser language
       const browserLanguage = navigator.language.split('-')[0];
-      const detectedLanguage = ['tr', 'en'].includes(browserLanguage) ? browserLanguage as LanguageType : 'tr';
+      const detectedLanguage = ['tr', 'en'].includes(browserLanguage) ? browserLanguage as LanguageType : 'en';
       setLanguage(detectedLanguage);
       setCookie('NEXT_LOCALE', detectedLanguage);
     }
   }, []);
 
-  // Theme ayarı için güvenli getter
+  // Safe getter for theme setting
   const isDark = mounted && (resolvedTheme === 'dark' || theme === 'dark');
 
   const toggleLanguage = () => {
@@ -60,7 +60,7 @@ export function ThemeLanguageProvider({ children }: { children: ReactNode }) {
     setTheme(isDark ? 'light' : 'dark');
   };
 
-  // Server/client uyumsuzluğunu önlemek için ilk render'da içeriği geciktir
+  // Delay content on first render to prevent server/client mismatch
   if (!mounted) {
     return (
       <ThemeLanguageContext.Provider value={defaultContext}>

@@ -106,61 +106,61 @@ export function SeatSelector({ event, selectedTickets, locale }: SeatSelectorPro
   
   // Get seat color based on status and category
   const getSeatColor = (seat: Seat) => {
-    if (seat.status === 'sold') return 'bg-gray-500 cursor-not-allowed';
-    if (seat.status === 'reserved') return 'bg-amber-500 cursor-not-allowed';
-    if (seat.status === 'selected') return 'bg-electric-blue';
+    if (seat.status === 'sold') return 'bg-carbon-grey text-silver cursor-not-allowed';
+    if (seat.status === 'reserved') return 'bg-amber-500 text-white cursor-not-allowed';
+    if (seat.status === 'selected') return 'bg-electric-blue text-white';
     
     // Available seats - color by category
     switch (seat.category) {
       case 'premium':
-        return 'bg-neon-red hover:bg-neon-red/80';
+        return 'bg-neon-red hover:bg-neon-red/80 text-white';
       case 'standard':
-        return 'bg-electric-blue/70 hover:bg-electric-blue/60';
+        return 'bg-electric-blue/70 hover:bg-electric-blue/60 text-white';
       case 'economy':
-        return 'bg-neon-green hover:bg-neon-green/80';
+        return 'bg-neon-green hover:bg-neon-green/80 text-very-dark-grey';
       default:
-        return 'bg-gray-300 hover:bg-gray-400';
+        return 'bg-gray-300 hover:bg-gray-400 text-very-dark-grey';
     }
   };
   
   return (
     <div className="seat-selector">
-      <div className="flex justify-center mb-6">
-        <div className="flex items-center space-x-4 flex-wrap">
+      <div className="flex justify-center mb-4">
+        <div className="flex items-center flex-wrap gap-3">
           <div className="flex items-center">
-            <div className="w-4 h-4 bg-neon-red rounded mr-2"></div>
-            <span className="text-sm text-light-grey">{locale === 'tr' ? 'Premium' : 'Premium'}</span>
+            <div className="w-3 h-3 bg-neon-red rounded mr-1"></div>
+            <span className="text-xs text-light-grey">{locale === 'tr' ? 'Premium' : 'Premium'}</span>
           </div>
           <div className="flex items-center">
-            <div className="w-4 h-4 bg-electric-blue/70 rounded mr-2"></div>
-            <span className="text-sm text-light-grey">{locale === 'tr' ? 'Standart' : 'Standard'}</span>
+            <div className="w-3 h-3 bg-electric-blue/70 rounded mr-1"></div>
+            <span className="text-xs text-light-grey">{locale === 'tr' ? 'Standart' : 'Standard'}</span>
           </div>
           <div className="flex items-center">
-            <div className="w-4 h-4 bg-neon-green rounded mr-2"></div>
-            <span className="text-sm text-light-grey">{locale === 'tr' ? 'Ekonomi' : 'Economy'}</span>
+            <div className="w-3 h-3 bg-neon-green rounded mr-1"></div>
+            <span className="text-xs text-light-grey">{locale === 'tr' ? 'Ekonomi' : 'Economy'}</span>
           </div>
           <div className="flex items-center">
-            <div className="w-4 h-4 bg-gray-500 rounded mr-2"></div>
-            <span className="text-sm text-light-grey">{locale === 'tr' ? 'Satıldı' : 'Sold'}</span>
+            <div className="w-3 h-3 bg-carbon-grey rounded mr-1"></div>
+            <span className="text-xs text-light-grey">{locale === 'tr' ? 'Satıldı' : 'Sold'}</span>
           </div>
           <div className="flex items-center">
-            <div className="w-4 h-4 bg-amber-500 rounded mr-2"></div>
-            <span className="text-sm text-light-grey">{locale === 'tr' ? 'Rezerve' : 'Reserved'}</span>
+            <div className="w-3 h-3 bg-amber-500 rounded mr-1"></div>
+            <span className="text-xs text-light-grey">{locale === 'tr' ? 'Rezerve' : 'Reserved'}</span>
           </div>
         </div>
       </div>
       
-      <div className="mb-6 p-2 bg-dark-grey/50 rounded-lg text-center font-medium text-light-grey">
+      <div className="mb-4 p-1.5 bg-dark-grey/50 rounded-lg text-center text-xs font-medium text-light-grey">
         {locale === 'tr' ? 'SAHNE / ETKİNLİK ALANI' : 'STAGE / EVENT AREA'}
       </div>
       
-      <div className="grid grid-cols-10 gap-2 mb-8">
+      <div className="grid grid-cols-10 gap-1.5 mb-6">
         {seats.map((seat) => (
           <button
             key={seat.id}
             onClick={() => handleSeatClick(seat)}
             disabled={seat.status === 'sold' || seat.status === 'reserved'}
-            className={`seat flex items-center justify-center w-8 h-8 rounded text-xs font-medium text-white ${getSeatColor(seat)}`}
+            className={`seat flex items-center justify-center w-7 h-7 rounded text-xs font-medium ${getSeatColor(seat)}`}
             title={`${seat.row}${seat.number} - ${seat.category.toUpperCase()}`}
           >
             {seat.row}{seat.number}
@@ -168,8 +168,8 @@ export function SeatSelector({ event, selectedTickets, locale }: SeatSelectorPro
         ))}
       </div>
       
-      <div className="p-4 rounded-lg bg-dark-grey/30 mb-4">
-        <h3 className="font-medium mb-2 text-light-grey">
+      <div className="p-3 rounded-lg bg-dark-grey/30 mb-3">
+        <h3 className="text-xs font-medium mb-2 text-light-grey">
           {locale === 'tr' ? 'Seçilen Koltuklar' : 'Selected Seats'}:
         </h3>
         
@@ -180,7 +180,7 @@ export function SeatSelector({ event, selectedTickets, locale }: SeatSelectorPro
               return (
                 <span 
                   key={id} 
-                  className="px-2 py-1 rounded bg-electric-blue text-white text-xs"
+                  className="px-1.5 py-0.5 rounded bg-electric-blue text-white text-xs"
                 >
                   {seat.row}{seat.number}
                 </span>
@@ -188,7 +188,7 @@ export function SeatSelector({ event, selectedTickets, locale }: SeatSelectorPro
             })}
           </div>
         ) : (
-          <p className="text-sm text-silver">
+          <p className="text-xs text-silver">
             {locale === 'tr' 
               ? 'Henüz koltuk seçilmedi. Lütfen yukarıdan koltuk seçin.'
               : 'No seats selected yet. Please select seats above.'
@@ -197,7 +197,7 @@ export function SeatSelector({ event, selectedTickets, locale }: SeatSelectorPro
         )}
       </div>
       
-      <div className="flex justify-between text-light-grey">
+      <div className="flex justify-between text-xs text-light-grey">
         <div>
           {locale === 'tr' 
             ? `Seçilmesi gereken koltuk sayısı: ${totalTickets}`

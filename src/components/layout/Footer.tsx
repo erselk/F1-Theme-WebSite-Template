@@ -97,11 +97,11 @@ const Footer = () => {
             <div className="mb-6">
               <Link href="/" locale={undefined} className="inline-block">
                 <Image
-                  className="h-16 w-auto"
+                  className="h-8 w-auto"
                   src="/images/logodark.png"
                   alt="PadokClub"
-                  width={160}
-                  height={64}
+                  width={80}
+                  height={32}
                 />
               </Link>
             </div>
