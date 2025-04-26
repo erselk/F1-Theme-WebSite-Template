@@ -3,9 +3,13 @@
   publish = ".next"
 
 [build.environment]
-  NEXT_PUBLIC_SITE_URL = "https://padokclub.netlify.app"
+  NEXT_PUBLIC_SITE_URL = "https://padokclubpreview.netlify.app"
+  NEXT_PUBLIC_API_URL = "https://padokclubpreview.netlify.app"
   NODE_VERSION = "20"
   NPM_FLAGS = "--prefer-offline --no-audit"
+  # Not: MongoDB bilgilerini burada değil, Netlify dashboard üzerinden tanımlayın!
+  # MONGODB_URI ve MONGODB_DB çevre değişkenlerini Netlify kontrol panelinden ekleyin
+  # Güvenlik için hassas bilgiler source code içinde tutulmamalı
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

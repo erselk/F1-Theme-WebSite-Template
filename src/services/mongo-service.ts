@@ -7,6 +7,16 @@ import { MongoClient, Db } from 'mongodb';
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
 
+// API URL fonksiyonu - çalışma ortamına göre URL oluşturur
+function getApiUrl() {
+  // Server-side: Göreceli URL kullan 
+  if (typeof window === 'undefined') {
+    return '';
+  }
+  // Client-side: Tam URL kullan
+  return process.env.NEXT_PUBLIC_API_URL || '';
+}
+
 export async function connectToDatabase(): Promise<Db> {
   if (cachedDb) {
     return cachedDb;
@@ -35,7 +45,8 @@ export async function connectToDatabase(): Promise<Db> {
 
 export async function getAllBlogs(): Promise<BlogPost[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/blogs`, {
+    const baseUrl = getApiUrl();
+    const res = await fetch(`${baseUrl}/api/blogs`, {
       cache: 'no-store' // Verileri her zaman yeniden çek
     });
 
@@ -53,7 +64,8 @@ export async function getAllBlogs(): Promise<BlogPost[]> {
 
 export async function getBlogBySlug(slug: string): Promise<BlogPost | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/blogs/${slug}`, {
+    const baseUrl = getApiUrl();
+    const res = await fetch(`${baseUrl}/api/blogs/${slug}`, {
       cache: 'no-store'
     });
 
@@ -71,7 +83,8 @@ export async function getBlogBySlug(slug: string): Promise<BlogPost | null> {
 
 export async function getAllEvents(): Promise<Event[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/events`, {
+    const baseUrl = getApiUrl();
+    const res = await fetch(`${baseUrl}/api/events`, {
       cache: 'no-store'
     });
 
@@ -89,7 +102,8 @@ export async function getAllEvents(): Promise<Event[]> {
 
 export async function getEventBySlug(slug: string): Promise<Event | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/events/${slug}`, {
+    const baseUrl = getApiUrl();
+    const res = await fetch(`${baseUrl}/api/events/${slug}`, {
       cache: 'no-store'
     });
 
