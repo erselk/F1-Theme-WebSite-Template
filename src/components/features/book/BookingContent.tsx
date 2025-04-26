@@ -74,7 +74,7 @@ const venues = [
 
 // SearchParams hook'unu kullanan bileşen
 const BookingContentWithParams: React.FC = () => {
-  const { language } = useThemeLanguage();
+  const { language, isDark } = useThemeLanguage();
   const [selectedVenue, setSelectedVenue] = useState<string | null>(null);
   const [isFormSubmitted, setIsFormSubmitted] = useState(false);
   const searchParams = useSearchParams();
@@ -108,6 +108,20 @@ const BookingContentWithParams: React.FC = () => {
   }));
 
   const handleFormSubmit = () => {
+    // Load reservation data from localStorage
+    setReservationData({
+      ref: localStorage.getItem('reservation_ref') || '',
+      name: localStorage.getItem('reservation_name') || '',
+      venue: localStorage.getItem('reservation_venue') || '',
+      date: localStorage.getItem('reservation_date') || '',
+      time: localStorage.getItem('reservation_time') || '',
+      people: localStorage.getItem('reservation_people') || '',
+      price: localStorage.getItem('reservation_price') || '',
+      phone: localStorage.getItem('reservation_phone') || '',
+      dateRaw: localStorage.getItem('reservation_date_raw') || '',
+      startTime: localStorage.getItem('reservation_startTime') || '',
+      endTime: localStorage.getItem('reservation_endTime') || ''
+    });
     setIsFormSubmitted(true);
   };
 
@@ -221,7 +235,7 @@ const BookingContentWithParams: React.FC = () => {
                     saveAs(blob, 'reservation.ics');
                   });
                 }}
-                className="bg-race-blue hover:bg-blue-600 text-white font-medium py-3 px-6 rounded flex items-center justify-center"
+                className={`flex items-center justify-center py-3 px-6 rounded ${isDark ? 'bg-blue-600 text-white' : 'bg-race-blue text-black'} hover:bg-blue-600 ${isDark ? 'hover:text-white' : 'hover:text-black'} font-medium`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
