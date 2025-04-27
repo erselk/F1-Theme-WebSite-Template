@@ -73,54 +73,28 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
   // New state for tracking if user wants to iterate again
   const [showIterateOption, setShowIterateOption] = useState<boolean>(false);
   
-  // Sample ticket types (in real app, this would come from the backend)
-  const [ticketTypes, setTicketTypes] = useState<TicketType[]>([
-    {
-      id: 'standard',
-      name: locale === 'tr' ? 'Standart Bilet' : 'Standard Ticket',
-      price: event.price || 250,
-      maxPerOrder: 5,
-      availableCount: 150,
-      variant: 'standard'
-    },
-    {
-      id: 'premium',
-      name: locale === 'tr' ? 'Premium Bilet' : 'Premium Ticket',
-      price: (event.price || 250) * 1.5,
-      description: locale === 'tr' ? 'Özel alan erişimi dahil' : 'Includes special area access',
-      maxPerOrder: 3,
-      availableCount: 50,
-      variant: 'premium'
-    },
-    {
-      id: 'vip',
-      name: locale === 'tr' ? 'VIP Bilet' : 'VIP Ticket',
-      price: (event.price || 250) * 2.5,
-      description: locale === 'tr' ? 'Sınırsız ikramlar ve özel alan erişimi' : 'Unlimited refreshments and special area access',
-      maxPerOrder: 2,
-      availableCount: 20,
-      variant: 'vip'
-    }
-  ]);
+  // Bilet tiplerini MongoDB'den gelen veri ile oluştur
+  const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
   
-  // Update ticket names when language changes
+  // MongoDB'den gelen bilet tiplerini kullanarak ticketTypes'ı doldur
   useEffect(() => {
-    setTicketTypes(prev => prev.map(ticket => ({
-      ...ticket,
-      name: locale === 'tr' 
-        ? ticket.id === 'standard' ? 'Standart Bilet' 
-          : ticket.id === 'premium' ? 'Premium Bilet' 
-          : 'VIP Bilet'
-        : ticket.id === 'standard' ? 'Standard Ticket'
-          : ticket.id === 'premium' ? 'Premium Ticket'
-          : 'VIP Ticket',
-      description: ticket.id === 'premium' 
-        ? (locale === 'tr' ? 'Özel alan erişimi dahil' : 'Includes special area access')
-        : ticket.id === 'vip' 
-          ? (locale === 'tr' ? 'Sınırsız ikramlar ve özel alan erişimi' : 'Unlimited refreshments and special area access')
-          : undefined
-    })))
-  }, [locale]);
+    // Eğer event.tickets varsa kullan, yoksa boş dizi olarak ayarla
+    if (event.tickets && Array.isArray(event.tickets) && event.tickets.length > 0) {
+      const formattedTickets = event.tickets.map(ticket => ({
+        id: ticket.id,
+        name: ticket.name[locale] || (locale === 'tr' ? 'Bilet' : 'Ticket'),
+        price: ticket.price,
+        description: ticket.description?.[locale],
+        maxPerOrder: ticket.maxPerOrder || 5,
+        availableCount: ticket.availableCount || 100,
+        variant: ticket.variant || 'standard'
+      }));
+      setTicketTypes(formattedTickets);
+    } else {
+      // MongoDB'de bilet tipi yoksa boş dizi olarak ayarla
+      setTicketTypes([]);
+    }
+  }, [event.tickets, event.price, locale]);
   
   // Selected ticket quantities
   const [selectedTickets, setSelectedTickets] = useState<{
@@ -448,50 +422,70 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                 {locale === 'tr' ? 'Bilet Seçin' : 'Select Tickets'}
               </h3>
               
-              {ticketTypes.map((ticket) => (
-                <div 
-                  key={ticket.id}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 ${cardBgClass} rounded-lg border ${borderColorClass}`}
-                >
-                  <div className="mb-2 sm:mb-0">
-                    <h4 className={`font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'} text-sm`}>{ticket.name}</h4>
-                    {ticket.description && (
-                      <p className={`text-xs ${textColorClass}`}>{ticket.description}</p>
-                    )}
-                    <p className="text-electric-blue font-bold mt-1 text-sm flex items-center">
-                      {ticket.price} <span className="ml-1">₺</span>
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center space-x-3">
-                    <button 
-                      type="button" 
-                      className={`w-7 h-7 rounded-full ${buttonBgClass} ${headingColorClass} hover:bg-neon-red hover:text-white flex items-center justify-center transition-colors`}
-                      onClick={() => updateTicketQuantity(ticket.id, 'decrease')}
-                      aria-label={locale === 'tr' ? 'Azalt' : 'Decrease'}
+              {ticketTypes.length > 0 ? (
+                <>
+                  {ticketTypes.map((ticket) => (
+                    <div 
+                      key={ticket.id}
+                      className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 ${cardBgClass} rounded-lg border ${borderColorClass}`}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                    
-                    <span className={`min-w-6 text-center ${isDark ? 'text-gray-100' : 'text-gray-900'} text-sm`}>
-                      {selectedTickets.find(t => t.id === ticket.id)?.quantity || 0}
-                    </span>
-                    
-                    <button 
-                      type="button" 
-                      className={`w-7 h-7 rounded-full ${buttonBgClass} ${headingColorClass} hover:bg-electric-blue hover:text-white flex items-center justify-center transition-colors`}
-                      onClick={() => updateTicketQuantity(ticket.id, 'increase')}
-                      aria-label={locale === 'tr' ? 'Arttır' : 'Increase'}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
+                      <div className="mb-2 sm:mb-0">
+                        <h4 className={`font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'} text-sm`}>{ticket.name}</h4>
+                        {ticket.description && (
+                          <p className={`text-xs ${textColorClass}`}>{ticket.description}</p>
+                        )}
+                        <p className="text-electric-blue font-bold mt-1 text-sm flex items-center">
+                          {ticket.price} <span className="ml-1">₺</span>
+                        </p>
+                      </div>
+                      
+                      <div className="flex items-center space-x-3">
+                        <button 
+                          type="button" 
+                          className={`w-7 h-7 rounded-full ${buttonBgClass} ${headingColorClass} hover:bg-neon-red hover:text-white flex items-center justify-center transition-colors`}
+                          onClick={() => updateTicketQuantity(ticket.id, 'decrease')}
+                          aria-label={locale === 'tr' ? 'Azalt' : 'Decrease'}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                        
+                        <span className={`min-w-6 text-center ${isDark ? 'text-gray-100' : 'text-gray-900'} text-sm`}>
+                          {selectedTickets.find(t => t.id === ticket.id)?.quantity || 0}
+                        </span>
+                        
+                        <button 
+                          type="button" 
+                          className={`w-7 h-7 rounded-full ${buttonBgClass} ${headingColorClass} hover:bg-electric-blue hover:text-white flex items-center justify-center transition-colors`}
+                          onClick={() => updateTicketQuantity(ticket.id, 'increase')}
+                          aria-label={locale === 'tr' ? 'Arttır' : 'Increase'}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <div className={`p-4 rounded-lg border ${borderColorClass} ${cardBgClass} text-center`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto mb-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className={`${textColorClass} text-sm mb-1`}>
+                    {locale === 'tr' 
+                      ? 'Biletler henüz satışa çıkmadı.' 
+                      : 'Tickets are not available for sale yet.'}
+                  </p>
+                  <p className={`${isDark ? 'text-gray-400' : 'text-gray-500'} text-xs`}>
+                    {locale === 'tr' 
+                      ? 'Lütfen daha sonra tekrar kontrol ediniz.' 
+                      : 'Please check back later.'}
+                  </p>
                 </div>
-              ))}
+              )}
               
               {Object.keys(formErrors).length > 0 && (
                 <div className="text-neon-red text-xs mt-2">

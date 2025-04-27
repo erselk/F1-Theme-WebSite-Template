@@ -4,8 +4,33 @@ import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { useThemeLanguage, LanguageType } from '@/lib/ThemeLanguageContext';
 import { Event, EventDescription, Ticket, MultiLanguageText } from '@/data/events';
 import Image from 'next/image';
-import { generateSlugFromEnglishTitle, simpleTranslate } from '@/data/events/utils';
-import { PlusIcon, MinusIcon, TrashIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { generateSlugFromEnglishTitle } from '@/data/events/utils';
+import { PlusIcon, MinusIcon, TrashIcon, ArrowPathIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import useTranslate from '@/hooks/useTranslate';
+import ImageSelector from './ImageSelector';
+
+// Interface for image file data
+interface ImageFile {
+  id: string;
+  filename: string;
+  url: string;
+  publicPath: string;
+  createdAt: string;
+  contentType: string;
+}
+
+// Function to generate ID in the format ddmmyyxxx
+const generateEventId = () => {
+  const now = new Date();
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = String(now.getFullYear()).slice(2);
+  
+  // Random number between 001-999 for the last part
+  const randomNum = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
+  
+  return `${day}${month}${year}${randomNum}`;
+};
 
 interface EventFormProps {
   event?: Event;
@@ -18,29 +43,27 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
   const { isDark, language, setLanguage } = useThemeLanguage();
   const isEditMode = !!event;
 
+  // Image selector modals state
+  const [bannerSelectorOpen, setBannerSelectorOpen] = useState(false);
+  const [squareSelectorOpen, setSquareSelectorOpen] = useState(false);
+  const [gallerySelectorOpen, setGallerySelectorOpen] = useState(false);
+
   // Form state
   const [formData, setFormData] = useState<Partial<Event>>({
     title: { tr: '', en: '' },
-    description: { 
-      short: { tr: '', en: '' },
-      long: { tr: '', en: '' }
-    },
+    description: { tr: '', en: '' },
     location: { tr: '', en: '' },
     date: '',
     price: 0,
     category: 'other',
     isFeatured: false,
-    bannerImage: '/images/events/banner/default.jpg',
-    squareImage: '/images/events/square/default.jpg',
+    bannerImage: '/images/logouzun.png',
+    squareImage: '/images/logokare.png',
     slug: '',
-    tickets: [{ 
-      id: 'standard', 
-      name: { tr: 'Standart Bilet', en: 'Standard Ticket' }, 
-      price: 0, 
-      description: { tr: '', en: '' } 
-    }],
-    rules: [{ tr: '', en: '' }],
-    gallery: []
+    tickets: [], // Changed from default ticket to empty array
+    rules: [], // Boş başlaması için boş dizi yapıldı
+    gallery: ['/images/logouzun.png', '/images/logouzun.png', '/images/logouzun.png'],
+    schedule: []
   });
 
   // Form validation state
@@ -56,8 +79,8 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   
   // Default images that already exist in the project
-  const defaultBannerImage = '/images/events/banner/suan.jpg';
-  const defaultSquareImage = '/images/events/square/suan.jpg';
+  const defaultBannerImage = '/images/logouzun.png';
+  const defaultSquareImage = '/images/logokare.png';
   
   // Initialize form with default images that actually exist
   useEffect(() => {
@@ -68,9 +91,6 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
     }));
   }, []);
 
-  // Translation state
-  const [isTranslating, setIsTranslating] = useState(false);
-  
   // Make sure left panel stays open
   const [isNavPanelOpen, setIsNavPanelOpen] = useState(true);
 
@@ -81,18 +101,14 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
   useEffect(() => {
     if (event) {
       // Handle compatibility with old event structure
-      const description = event.description && typeof event.description === 'object' && !('short' in event.description)
-        ? {
-            short: {
-              tr: (event.description as any).tr?.split('\n\n')[0] || '',
-              en: (event.description as any).en?.split('\n\n')[0] || '',
-            },
-            long: {
-              tr: (event.description as any).tr || '',
-              en: (event.description as any).en || '',
+      const description = event.description && typeof event.description === 'object' 
+        ? ('short' in event.description || 'long' in event.description)
+          ? {
+              tr: event.description.short?.tr || event.description.long?.tr || event.description?.tr || '',
+              en: event.description.short?.en || event.description.long?.en || event.description?.en || '',
             }
-          }
-        : event.description;
+          : event.description
+        : { tr: '', en: '' };
       
       // Set default tickets if not present
       const tickets = event.tickets || [{
@@ -102,11 +118,75 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
         description: { tr: 'Etkinlik girişi', en: 'Event entry' }
       }];
       
-      // Set default rules if not present
-      const rules = event.rules || [{ tr: '', en: '' }];
+      // Debug - Log initial event data received by the form
+      console.log('EventForm initializing with event:', event);
+      console.log('Schedule from event:', event.schedule);
       
-      // Set default gallery if not present
-      const gallery = event.gallery || [];
+      // Rules handling - convert from API format to form format if needed
+      let rules = [];
+      if (event.rules) {
+        if (typeof event.rules === 'object' && event.rules.tr && event.rules.en) {
+          // Convert from API { tr: [str1, str2], en: [str1, str2] } format 
+          // to form format: [{tr: str1, en: str1}, {tr: str2, en: str2}]
+          console.log('Converting rules from API format to form format');
+          rules = [];
+          // Get the maximum length of either tr or en array
+          const maxLength = Math.max(
+            Array.isArray(event.rules.tr) ? event.rules.tr.length : 0, 
+            Array.isArray(event.rules.en) ? event.rules.en.length : 0
+          );
+          
+          for (let i = 0; i < maxLength; i++) {
+            rules.push({
+              tr: Array.isArray(event.rules.tr) && i < event.rules.tr.length ? event.rules.tr[i] : '',
+              en: Array.isArray(event.rules.en) && i < event.rules.en.length ? event.rules.en[i] : ''
+            });
+          }
+        } else if (Array.isArray(event.rules)) {
+          // If rules is already in array format
+          rules = event.rules;
+        }
+      }
+      
+      // If no valid rules found, set a default empty rule
+      if (!rules || rules.length === 0) {
+        rules = [{ tr: '', en: '' }];
+      }
+      
+      // Set default gallery if not present or ensure at least 3 images
+      let gallery = event.gallery || [];
+      
+      // Eğer gallery dizisi boşsa veya yoksa 3 tane logouzun.png ekleyelim
+      if (!gallery || gallery.length === 0) {
+        gallery = ['/images/logouzun.png', '/images/logouzun.png', '/images/logouzun.png'];
+      } 
+      // Eğer gallery dizisinde 1 veya 2 görsel varsa, eksik görsel sayısını logouzun.png ile tamamlayalım
+      else if (gallery.length < 3) {
+        const missingCount = 3 - gallery.length;
+        for(let i = 0; i < missingCount; i++) {
+          gallery.push('/images/logouzun.png');
+        }
+      }
+      
+      // Handle schedule data
+      let schedule = [];
+      if (event.schedule) {
+        if (Array.isArray(event.schedule)) {
+          // If schedule is already an array, use it directly
+          console.log('Using schedule array directly:', event.schedule);
+          schedule = event.schedule;
+        } else {
+          console.log('Schedule is not in expected array format:', event.schedule);
+          // If it's not an array, try to convert it
+          schedule = [];
+        }
+      }
+      
+      // If no valid schedule found, set as empty array
+      if (!schedule || schedule.length === 0) {
+        console.log('Using empty schedule array');
+        schedule = [];
+      }
 
       setFormData({
         ...event,
@@ -116,7 +196,8 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
         location: { ...event.location },
         tickets: JSON.parse(JSON.stringify(tickets)),
         rules: JSON.parse(JSON.stringify(rules)),
-        gallery: [...gallery]
+        gallery: [...gallery],
+        schedule: JSON.parse(JSON.stringify(schedule))
       });
       
       // Initialize date input value if there's an event date
@@ -165,33 +246,28 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
           [formLanguage]: value
         }
       }));
+    } else if (name === 'description') {
+      // Direct handling for description field
+      setFormData(prev => ({
+        ...prev,
+        description: {
+          ...prev.description!,
+          [formLanguage]: value
+        }
+      }));
     } else if (name.includes('.')) {
       // Handle nested properties
       const parts = name.split('.');
       
       if (parts.length === 2) {
-        if (parts[0] === 'description') {
-          // For description.short and description.long
-          setFormData(prev => ({
-            ...prev,
-            description: {
-              ...prev.description!,
-              [parts[1]]: {
-                ...prev.description?.[parts[1]],
-                [formLanguage]: value
-              }
-            }
-          }));
-        } else {
-          // For other nested properties that don't need translation
-          setFormData(prev => ({
-            ...prev,
-            [parts[0]]: {
-              ...prev[parts[0]],
-              [parts[1]]: value
-            }
-          }));
-        }
+        // For other nested properties that don't need translation
+        setFormData(prev => ({
+          ...prev,
+          [parts[0]]: {
+            ...prev[parts[0]],
+            [parts[1]]: value
+          }
+        }));
       }
     } else {
       setFormData(prev => ({
@@ -259,8 +335,16 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
         // Debug for ticket description changes
         console.log(`Updated ticket ${index} ${field} in ${formLanguage}:`, updatedTickets[index][field]);
       } else if (field === 'price') {
-        // Ensure price is always a valid number or 0
-        const numValue = typeof value === 'number' ? value : (parseFloat(value) || 0);
+        // Ensure price is always a valid natural number (integer ≥ 0)
+        let numValue = 0;
+        if (typeof value === 'number') {
+          numValue = Math.max(0, Math.floor(value));
+        } else if (typeof value === 'string') {
+          // Parse string value and ensure it's a non-negative integer
+          const parsed = parseInt(value);
+          numValue = !isNaN(parsed) ? Math.max(0, parsed) : 0;
+        }
+        
         updatedTickets[index] = {
           ...updatedTickets[index],
           [field]: numValue
@@ -273,6 +357,30 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
         };
       }
       
+      return { ...prev, tickets: updatedTickets };
+    });
+  };
+
+  // Handle ticket price increase
+  const increaseTicketPrice = (index: number) => {
+    setFormData(prev => {
+      const updatedTickets = [...(prev.tickets || [])];
+      updatedTickets[index] = {
+        ...updatedTickets[index],
+        price: (updatedTickets[index].price || 0) + 1
+      };
+      return { ...prev, tickets: updatedTickets };
+    });
+  };
+
+  // Handle ticket price decrease
+  const decreaseTicketPrice = (index: number) => {
+    setFormData(prev => {
+      const updatedTickets = [...(prev.tickets || [])];
+      updatedTickets[index] = {
+        ...updatedTickets[index],
+        price: Math.max(0, (updatedTickets[index].price || 0) - 1)
+      };
       return { ...prev, tickets: updatedTickets };
     });
   };
@@ -332,6 +440,52 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
     });
   };
 
+  // Schedule handlers
+  const handleProgramChange = (index: number, field: string, value: string) => {
+    setFormData(prev => {
+      const updatedSchedule = [...(prev.schedule || [])];
+      
+      if (field === 'time') {
+        updatedSchedule[index] = {
+          ...updatedSchedule[index],
+          time: value
+        };
+      } else if (field === 'title' || field === 'description') {
+        updatedSchedule[index] = {
+          ...updatedSchedule[index],
+          [field]: {
+            ...updatedSchedule[index][field],
+            [formLanguage]: value
+          }
+        };
+      }
+      
+      return { ...prev, schedule: updatedSchedule };
+    });
+  };
+
+  const addProgramItem = () => {
+    setFormData(prev => ({
+      ...prev,
+      schedule: [
+        ...(prev.schedule || []),
+        {
+          time: '09:00',
+          title: { tr: '', en: '' },
+          description: { tr: '', en: '' }
+        }
+      ]
+    }));
+  };
+
+  const removeProgramItem = (index: number) => {
+    setFormData(prev => {
+      const updatedSchedule = [...(prev.schedule || [])];
+      updatedSchedule.splice(index, 1);
+      return { ...prev, schedule: updatedSchedule };
+    });
+  };
+
   // Auto-generate slug from English title
   useEffect(() => {
     if (formData.title?.en && !isEditMode) {
@@ -343,79 +497,6 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
       }));
     }
   }, [formData.title?.en, isEditMode]);
-
-  // Modified translation function to fix the translation issues
-  const translateAllFields = async () => {
-    setIsTranslating(true);
-    const source = formLanguage;
-    const target = source === 'tr' ? 'en' : 'tr';
-    
-    try {
-      // Create a deep copy of the form data to work with
-      const updatedData = JSON.parse(JSON.stringify(formData));
-      
-      // Translate title
-      if (updatedData.title?.[source]) {
-        const translatedTitle = await simpleTranslate(updatedData.title[source], source, target);
-        updatedData.title[target] = translatedTitle;
-      }
-      
-      // Translate descriptions
-      if (updatedData.description?.short?.[source]) {
-        const translatedShortDesc = await simpleTranslate(updatedData.description.short[source], source, target);
-        updatedData.description.short[target] = translatedShortDesc;
-      }
-      
-      if (updatedData.description?.long?.[source]) {
-        const translatedLongDesc = await simpleTranslate(updatedData.description.long[source], source, target);
-        updatedData.description.long[target] = translatedLongDesc;
-      }
-      
-      // Translate location
-      if (updatedData.location?.[source]) {
-        const translatedLocation = await simpleTranslate(updatedData.location[source], source, target);
-        updatedData.location[target] = translatedLocation;
-      }
-      
-      // Translate tickets
-      if (updatedData.tickets) {
-        for (let index = 0; index < updatedData.tickets.length; index++) {
-          const ticket = updatedData.tickets[index];
-          
-          if (ticket.name[source]) {
-            const translatedName = await simpleTranslate(ticket.name[source], source, target);
-            updatedData.tickets[index].name[target] = translatedName;
-          }
-          
-          if (ticket.description[source]) {
-            const translatedDesc = await simpleTranslate(ticket.description[source], source, target);
-            updatedData.tickets[index].description[target] = translatedDesc;
-          }
-        }
-      }
-      
-      // Translate rules
-      if (updatedData.rules) {
-        for (let index = 0; index < updatedData.rules.length; index++) {
-          const rule = updatedData.rules[index];
-          
-          if (rule[source]) {
-            const translatedRule = await simpleTranslate(rule[source], source, target);
-            updatedData.rules[index][target] = translatedRule;
-          }
-        }
-      }
-      
-      console.log("Updated form data after translation:", updatedData);
-      // Update form data with all translations
-      setFormData(updatedData);
-      
-    } catch (error) {
-      console.error('Translation error:', error);
-    } finally {
-      setIsTranslating(false);
-    }
-  };
 
   // Validate the form
   const validateForm = () => {
@@ -437,15 +518,11 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
       errors['date'] = true;
     }
     
-    if (!formData.description?.short?.[currentLang]?.trim()) {
-      errors['description.short'] = true;
-    }
-    
-    if (!formData.description?.long?.[currentLang]?.trim()) {
-      errors['description.long'] = true;
+    if (!formData.description?.[currentLang]?.trim()) {
+      errors['description'] = true;
     }
 
-    // Check tickets
+    // Check tickets - only validate if there are tickets
     if (formData.tickets && formData.tickets.length > 0) {
       formData.tickets.forEach((ticket, index) => {
         if (!ticket.name?.[currentLang]?.trim()) {
@@ -455,9 +532,8 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
           errors[`ticket.${index}.id`] = true;
         }
       });
-    } else {
-      errors['tickets'] = true; // At least one ticket is required
     }
+    // Removed "else { errors['tickets'] = true; }" to make tickets optional
     
     console.log('Validation results:', {
       errors,
@@ -512,18 +588,73 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
     }
     
     try {
-      setIsTranslating(true);
-      
       // Translate all content before submitting
       await translateAllFields();
       
-      // Submit the form with translated data
-      console.log('Submitting form data:', formData);
+      // Generate event ID if it's a new event (not in edit mode)
+      let updatedData = {...formData};
       
-      onSubmit(formData);
+      if (!isEditMode) {
+        // Generate ID in format ddmmyyxxx
+        updatedData.id = generateEventId();
+      }
+      
+      // SLUG kontrolü - title.en değerinden oluşturulacak
+      // Boşsa veya geçersizse yeniden oluştur
+      let slug = updatedData.slug;
+      if (!slug || slug.trim() === '' || slug === 'undefined' || slug.includes('undefined')) {
+        if (updatedData.title?.en) {
+          slug = generateSlugFromEnglishTitle(updatedData.title.en);
+          console.log('Auto-generated slug from English title:', slug);
+        } else if (updatedData.title?.tr) {
+          // İngilizce başlık yoksa Türkçeyi kullan
+          slug = generateSlugFromEnglishTitle(updatedData.title.tr);
+          console.log('Auto-generated slug from Turkish title:', slug);
+        } else {
+          // Fallback olarak random bir slug oluştur
+          const randomPart = Math.random().toString(36).substring(2, 8);
+          slug = `event-${randomPart}`;
+          console.log('Generated random fallback slug:', slug);
+        }
+      }
+      
+      // Ensure all required fields are properly formatted
+      updatedData = {
+        ...updatedData,
+        slug: slug, // Updated slug handling
+        date: updatedData.date ? new Date(updatedData.date).toISOString() : new Date().toISOString(),
+      };
+      
+      // Schedule data is already in the correct format, no need to convert program to schedule
+      
+      // Convert rules format to match MongoDB schema
+      if (updatedData.rules && Array.isArray(updatedData.rules)) {
+        // Doğru formatta rules yapısı oluştur
+        const formattedRules = {
+          tr: [],
+          en: []
+        };
+        
+        updatedData.rules.forEach(rule => {
+          if (rule.tr && typeof rule.tr === 'string') formattedRules.tr.push(rule.tr);
+          if (rule.en && typeof rule.en === 'string') formattedRules.en.push(rule.en);
+        });
+        
+        // Doğrudan değer atama
+        updatedData.rules = formattedRules;
+        
+        // Debug için log
+        console.log('Formatted rules structure:', JSON.stringify(formattedRules));
+      }
+      
+      // Deep clone the data to avoid any reference issues
+      const finalData = JSON.parse(JSON.stringify(updatedData));
+      
+      console.log('Submitting form data:', finalData);
+      
+      onSubmit(finalData);
     } catch (error) {
       console.error('Form submission error:', error);
-      setIsTranslating(false);
     }
   };
 
@@ -541,14 +672,15 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
     ) : null
   );
 
-  // Handle image upload
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+  // Handle image upload with MongoDB storage
+  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const { name, files } = e.target;
     
     if (files && files.length > 0) {
       const file = files[0];
       const reader = new FileReader();
       
+      // Önce local preview oluştur
       reader.onload = (event) => {
         if (event.target?.result) {
           // Set image preview
@@ -557,64 +689,323 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
           } else if (name === 'squareImage') {
             setSquarePreview(event.target.result as string);
           }
-          
-          // In a real application, you would upload the image to the server here
-          // For now, we're just saving the file name
-          setFormData(prev => ({
-            ...prev,
-            [name]: `/images/events/${name === 'bannerImage' ? 'banner' : 'square'}/${file.name}`
-          }));
         }
       };
       
       reader.readAsDataURL(file);
+      
+      try {
+        // Dosyayı sunucuya yükle
+        const imageCategory = name === 'bannerImage' ? 'banner' : 'square';
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('category', imageCategory);
+        
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Görsel yükleme hatası: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // Form verisini güncelle
+          setFormData(prev => ({
+            ...prev,
+            [name]: result.publicPath
+          }));
+          console.log(`${name} MongoDB'ye başarıyla yüklendi:`, result.publicPath);
+        } else {
+          console.error('Görsel yükleme hatası:', result.error);
+          alert(formLanguage === 'tr' 
+            ? 'Görsel yüklenirken bir hata oluştu.'
+            : 'An error occurred while uploading the image.');
+        }
+      } catch (error) {
+        console.error('Görsel yükleme hatası:', error);
+        alert(formLanguage === 'tr' 
+          ? 'Görsel yüklenirken bir hata oluştu.'
+          : 'An error occurred while uploading the image.');
+      }
     }
   };
 
-  // Handle gallery image uploads
-  const handleGalleryImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+  // Handle gallery image uploads with MongoDB storage
+  const handleGalleryImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const filesArray = Array.from(e.target.files);
-      const newPreviews: string[] = [];
       const newGalleryPaths: string[] = [];
+      const newPreviews: string[] = [];
       
-      filesArray.forEach(file => {
+      // Varsayılan görsel yolu (varsayılan görselleri tespit etmek için)
+      const defaultImagePath = '/images/logouzun.png';
+      
+      // Mevcut galeriyi ve önizlemeleri alalım
+      const currentGallery = [...(formData.gallery || [])];
+      
+      // Önce varsayılan olmayan görselleri (özel görselleri) tespit edelim
+      const customImages = currentGallery.filter(img => img !== defaultImagePath);
+      
+      // Dosyaları önce local preview için oku
+      for (const file of filesArray) {
         const reader = new FileReader();
         
-        reader.onload = (event) => {
-          if (event.target?.result) {
-            newPreviews.push(event.target.result as string);
-            newGalleryPaths.push(`/images/events/gallery/${file.name}`);
-            
-            // If all files are processed
-            if (newPreviews.length === filesArray.length) {
-              setGalleryPreviews(prev => [...prev, ...newPreviews]);
-              
-              setFormData(prev => ({
-                ...prev,
-                gallery: [...(prev.gallery || []), ...newGalleryPaths]
-              }));
+        await new Promise<void>((resolve) => {
+          reader.onload = (event) => {
+            if (event.target?.result) {
+              newPreviews.push(event.target.result as string);
+              resolve();
             }
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // Önizlemeleri ekle (optimistik UI güncellemesi için)
+      const updatedPreviews = [...customImages.map(img => img), ...newPreviews];
+      const previewsWithDefault = [...updatedPreviews];
+      
+      // En az 3 önizleme olmasını sağla
+      if (previewsWithDefault.length < 3) {
+        const missingCount = 3 - previewsWithDefault.length;
+        for (let i = 0; i < missingCount; i++) {
+          previewsWithDefault.push(defaultImagePath);
+        }
+      }
+      
+      setGalleryPreviews(previewsWithDefault);
+      
+      // MongoDB'ye yükleme işlemi
+      for (const file of filesArray) {
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('category', 'gallery');
+          
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Gallery image upload error: ${response.status}`);
           }
-        };
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            // Successful upload, store the path
+            newGalleryPaths.push(result.publicPath);
+          }
+        } catch (error) {
+          console.error('Gallery image upload error:', error);
+        }
+      }
+      
+      // Tüm başarılı yüklemeleri formData'ya ekle
+      if (newGalleryPaths.length > 0) {
+        // Final gallery - özel görseller + yeni yüklenenler
+        const finalGallery = [...customImages, ...newGalleryPaths];
         
-        reader.readAsDataURL(file);
-      });
+        // En az 3 görsel olmasını sağla
+        if (finalGallery.length < 3) {
+          const missingCount = 3 - finalGallery.length;
+          for (let i = 0; i < missingCount; i++) {
+            finalGallery.push(defaultImagePath);
+          }
+        }
+        
+        setFormData(prev => ({
+          ...prev,
+          gallery: finalGallery
+        }));
+        
+        console.log("Gallery updated with MongoDB uploads:", {
+          customImages,
+          newGalleryPaths,
+          finalGallery
+        });
+      }
     }
   };
+
+  // Galeri yüklendiğinde önizleme görselleri ile galerinin senkronize olmasını sağlar
+  useEffect(() => {
+    if (formData.gallery && formData.gallery.length > 0 && galleryPreviews.length === 0) {
+      // Önizleme görsellerini formData.gallery'den yükle
+      const previews = formData.gallery.map(imagePath => imagePath);
+      setGalleryPreviews(previews);
+    }
+  }, [formData.gallery, galleryPreviews.length]);
 
   // Remove a gallery image
   const removeGalleryImage = (index: number) => {
+    // Varsayılan görsel yolu
+    const defaultImagePath = '/images/logouzun.png';
+    
     setFormData(prev => {
       const updatedGallery = [...(prev.gallery || [])];
+      // Silinecek görselin varsayılan mı yoksa özel mi olduğunu kontrol et
+      const isDefaultImage = updatedGallery[index] === defaultImagePath;
+      
+      // Görseli kaldır
       updatedGallery.splice(index, 1);
+      
+      // Eğer özel bir görsel silindiyse ve toplam görsel sayısı 3'ten az ise
+      // varsayılan görsel ekle
+      if (updatedGallery.length < 3) {
+        updatedGallery.push(defaultImagePath);
+      }
+      
       return { ...prev, gallery: updatedGallery };
     });
     
+    // Önizlemeleri de güncelle
     setGalleryPreviews(prev => {
       const updated = [...prev];
       updated.splice(index, 1);
+      
+      // Eğer önizleme sayısı 3'ten az ise varsayılan görsel ekle
+      if (updated.length < 3) {
+        updated.push('/images/logouzun.png');
+      }
+      
       return updated;
+    });
+  };
+
+  // Translate function to process content in other language
+  const translateAllFields = async () => {
+    try {
+      // Define source and target languages
+      const fromLang = formLanguage as 'tr' | 'en';
+      const toLang = fromLang === 'tr' ? 'en' : 'tr';
+      
+      // Düzenleme modunda sadece değişen alanları çevir, yeni ekleme modunda tümünü çevir
+      if (isEditMode && event) {
+        // Import translation service
+        const { translateChangedFields } = await import('@/services/translation-service');
+        
+        try {
+          console.log('Sadece değişen alanlar çevriliyor:', fromLang, 'dilinden', toLang, 'diline');
+          
+          // Orijinal event ile karşılaştırarak sadece değişen alanları çevir
+          const translatedFormData = await translateChangedFields(formData, event, fromLang, toLang);
+          
+          console.log('Çevrilen alanlar güncellendi:', translatedFormData);
+          
+          // Update form data with translations
+          setFormData(translatedFormData);
+          
+          return true;
+        } catch (error) {
+          console.error('Translation error:', error);
+          
+          // Kullanıcıya hata mesajı göster
+          alert(fromLang === 'tr' 
+            ? `Çeviri işlemi sırasında bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
+            : `An error occurred during translation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          
+          return false;
+        }
+      } else {
+        // Yeni etkinlik ekleme modunda tüm alanları çevir
+        const { translateMultiLangObject } = await import('@/services/translation-service');
+        
+        try {
+          console.log('Tüm alanlar çevriliyor:', fromLang, 'dilinden', toLang, 'diline');
+          
+          // Tüm form verilerini çevirip güncelle
+          const translatedFormData = await translateMultiLangObject(formData, fromLang, toLang);
+          
+          // Update form data with translations
+          setFormData(translatedFormData);
+          
+          return true;
+        } catch (error) {
+          console.error('Translation error:', error);
+          
+          // Kullanıcıya hata mesajı göster
+          alert(fromLang === 'tr' 
+            ? `Çeviri işlemi sırasında bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
+            : `An error occurred during translation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          
+          return false;
+        }
+      }
+    } catch (error) {
+      console.error('Translation service error:', error);
+      
+      // Kullanıcıya servis hatası göster
+      alert(formLanguage === 'tr'
+        ? 'Çeviri servisi yüklenemedi. Lütfen daha sonra tekrar deneyin.'
+        : 'Translation service could not be loaded. Please try again later.');
+      
+      return false;
+    }
+  };
+
+  // Handle image selection from modal
+  const handleBannerImageSelection = (image: ImageFile) => {
+    // MongoDB'den gelen görsel ise doğrudan URL'i kullan, değilse publicPath kullan
+    const imageUrl = image.url?.startsWith('/api/files/') ? image.url : image.publicPath;
+    
+    setFormData(prev => ({
+      ...prev,
+      bannerImage: imageUrl
+    }));
+    setBannerPreview(null);
+  };
+  
+  const handleSquareImageSelection = (image: ImageFile) => {
+    // MongoDB'den gelen görsel ise doğrudan URL'i kullan, değilse publicPath kullan
+    const imageUrl = image.url?.startsWith('/api/files/') ? image.url : image.publicPath;
+    
+    setFormData(prev => ({
+      ...prev,
+      squareImage: imageUrl
+    }));
+    setSquarePreview(null);
+  };
+  
+  const handleGalleryImageSelection = (image: ImageFile) => {
+    // Add the selected image to the gallery
+    const defaultImagePath = '/images/logouzun.png';
+    
+    // MongoDB'den gelen görsel ise doğrudan URL'i kullan, değilse publicPath kullan
+    const imageUrl = image.url?.startsWith('/api/files/') ? image.url : image.publicPath;
+    
+    setFormData(prev => {
+      // Get current gallery, filtering out default images
+      const currentGallery = [...(prev.gallery || [])];
+      const customImages = currentGallery.filter(img => img !== defaultImagePath);
+      
+      // Add the new image to gallery
+      const updatedGallery = [...customImages, imageUrl];
+      
+      // Ensure at least 3 images in the gallery
+      if (updatedGallery.length < 3) {
+        const missingCount = 3 - updatedGallery.length;
+        for (let i = 0; i < missingCount; i++) {
+          updatedGallery.push(defaultImagePath);
+        }
+      }
+      
+      return {
+        ...prev,
+        gallery: updatedGallery
+      };
+    });
+    
+    // Update gallery previews
+    setGalleryPreviews(prev => {
+      const defaultImages = prev.filter(img => img === defaultImagePath);
+      const customImages = prev.filter(img => img !== defaultImagePath);
+      return [...customImages, image.url, ...defaultImages].slice(0, Math.max(3, customImages.length + 1));
     });
   };
 
@@ -631,7 +1022,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
             onChange={(e) => setFormLanguage(e.target.value as LanguageType)}
             className={`px-3 py-2 rounded-md ${
               isDark
-                ? 'bg-carbon-grey border border-dark-grey text-white'
+                ? 'bg-carbon-grey border border-dark-grey text-white [&>option]:bg-carbon-grey'
                 : 'bg-white border border-light-grey text-dark-grey'
             }`}
           >
@@ -755,7 +1146,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                 onChange={handleInputChange}
                 className={`w-full px-3 py-2 rounded-md ${
                   isDark
-                    ? 'bg-carbon-grey border border-dark-grey text-white'
+                    ? 'bg-carbon-grey border border-dark-grey text-white [&>option]:bg-carbon-grey'
                     : 'bg-white border border-light-grey text-dark-grey'
                 }`}
               >
@@ -765,6 +1156,30 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                 <option value="party">{formLanguage === 'tr' ? 'Parti' : 'Party'}</option>
                 <option value="other">{formLanguage === 'tr' ? 'Diğer' : 'Other'}</option>
               </select>
+            </div>
+            
+            {/* Featured Checkbox */}
+            <div className="md:col-span-2">
+              <div className="flex items-center mt-3">
+                <input
+                  type="checkbox"
+                  id="isFeatured"
+                  name="isFeatured"
+                  checked={formData.isFeatured || false}
+                  onChange={handleCheckboxChange}
+                  className={`w-4 h-4 mr-2 ${
+                    isDark
+                      ? 'bg-carbon-grey border border-dark-grey text-electric-blue'
+                      : 'bg-white border border-light-grey text-dark-grey'
+                  }`}
+                />
+                <label 
+                  htmlFor="isFeatured" 
+                  className={`text-sm font-medium ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+                >
+                  {formLanguage === 'tr' ? 'Öne Çıkarılsın' : 'Featured'}
+                </label>
+              </div>
             </div>
           </div>
         </div>
@@ -804,86 +1219,38 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
           </div>
         </div>
         
-        {/* Descriptions - Now split into short and long descriptions */}
+        {/* Description - Single field */}
         <div className={`p-4 border rounded-md mb-6 ${
           isDark ? 'border-carbon-grey bg-dark-grey bg-opacity-50' : 'border-light-grey bg-very-light-grey bg-opacity-50'
         }`}>
           <h3 className={`text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
-            {formLanguage === 'tr' ? 'Açıklamalar' : 'Descriptions'}
+            {formLanguage === 'tr' ? 'Açıklama' : 'Description'}
           </h3>
           
-          <div className="grid grid-cols-1 gap-6">
-            {/* Short Description */}
-            <div>
-              <h4 className={`text-md font-medium mb-3 ${isDark ? 'text-silver' : 'text-dark-grey'}`}>
-                {formLanguage === 'tr' ? 'Kısa Açıklama' : 'Short Description'}
-              </h4>
-              
-              <div>
-                {/* Short Description - Single Language Input */}
-                <div>
-                  <label 
-                    htmlFor="description.short" 
-                    className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                  >
-                    {formLanguage === 'tr' ? 'Kısa Açıklama *' : 'Short Description *'}
-                  </label>
-                  <textarea
-                    id="description.short"
-                    name="description.short"
-                    required
-                    rows={2}
-                    value={formData.description?.short?.[formLanguage] || ''}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 rounded-md ${
-                      isDark
-                        ? 'bg-carbon-grey border border-dark-grey text-white'
-                        : 'bg-white border border-light-grey text-dark-grey'
-                    } ${hasError('description.short') ? 'border-f1-red ring-1 ring-f1-red' : ''}`}
-                    placeholder={formLanguage === 'tr' 
-                      ? "Etkinliğin kısa açıklaması (liste görünümünde gösterilecek)" 
-                      : "Short description of the event (shown in list view)"}
-                  ></textarea>
-                  <ErrorMessage show={hasError('description.short')} />
-                </div>
-              </div>
-            </div>
-            
-            {/* Long Description */}
-            <div>
-              <h4 className={`text-md font-medium mb-3 ${isDark ? 'text-silver' : 'text-dark-grey'}`}>
-                {formLanguage === 'tr' ? 'Detaylı Açıklama' : 'Detailed Description'}
-              </h4>
-              
-              <div>
-                {/* Long Description - Single Language Input */}
-                <div>
-                  <label 
-                    htmlFor="description.long" 
-                    className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                  >
-                    {formLanguage === 'tr' ? 'Detaylı Açıklama *' : 'Detailed Description *'}
-                  </label>
-                  <textarea
-                    id="description.long"
-                    name="description.long"
-                    required
-                    rows={6}
-                    value={formData.description?.long?.[formLanguage] || ''}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 rounded-md ${
-                      isDark
-                        ? 'bg-carbon-grey border border-dark-grey text-white'
-                        : 'bg-white border border-light-grey text-dark-grey'
-                    } ${hasError('description.long') ? 'border-f1-red ring-1 ring-f1-red' : ''}`}
-                    placeholder={formLanguage === 'tr' 
-                      ? "Etkinliğin detaylı açıklaması (etkinlik detay sayfasında gösterilecek)" 
-                      : "Detailed description of the event (shown on event detail page)"}
-                  ></textarea>
-                  <ErrorMessage show={hasError('description.long')} />
-                </div>
-              </div>
-            </div>
+          <div>
+            <label 
+              htmlFor="description" 
+              className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+            >
+              {formLanguage === 'tr' ? 'Açıklama *' : 'Description *'}
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              required
+              rows={6}
+              value={formData.description?.[formLanguage] || ''}
+              onChange={handleInputChange}
+              className={`w-full px-3 py-2 rounded-md ${
+                isDark
+                  ? 'bg-carbon-grey border border-dark-grey text-white'
+                  : 'bg-white border border-light-grey text-dark-grey'
+              } ${hasError('description') ? 'border-f1-red ring-1 ring-f1-red' : ''}`}
+              placeholder={formLanguage === 'tr' 
+                ? "Etkinlik açıklaması" 
+                : "Event description"}
+            ></textarea>
+            <ErrorMessage show={hasError('description')} />
           </div>
         </div>
         
@@ -911,134 +1278,150 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
           </div>
           
           <div className="space-y-6">
-            {formData.tickets?.map((ticket, index) => (
-              <div 
-                key={ticket.id} 
-                className={`p-4 border rounded-md ${
-                  isDark ? 'border-dark-grey' : 'border-light-grey'
-                }`}
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <h4 className={`font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
-                    {formLanguage === 'tr' ? `Bilet #${index + 1}` : `Ticket #${index + 1}`}
-                  </h4>
+            {Array.isArray(formData.tickets) && formData.tickets.length > 0 ? (
+              formData.tickets.map((ticket, index) => (
+                <div 
+                  key={ticket.id || `ticket-${index}`} 
+                  className={`p-4 border rounded-md ${
+                    isDark ? 'border-dark-grey' : 'border-light-grey'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <h4 className={`font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+                      {formLanguage === 'tr' ? `Bilet #${index + 1}` : `Ticket #${index + 1}`}
+                    </h4>
+                    
+                    {formData.tickets && formData.tickets.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeTicket(index)}
+                        className={`p-1 rounded-md ${
+                          isDark
+                            ? 'text-silver hover:bg-dark-grey'
+                            : 'text-medium-grey hover:bg-very-light-grey'
+                        }`}
+                        title={formLanguage === 'tr' ? "Bu bilet tipini sil" : "Delete this ticket type"}
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                   
-                  {formData.tickets && formData.tickets.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeTicket(index)}
-                      className={`p-1 rounded-md ${
-                        isDark
-                          ? 'text-silver hover:bg-dark-grey'
-                          : 'text-medium-grey hover:bg-very-light-grey'
-                      }`}
-                      title={formLanguage === 'tr' ? "Bu bilet tipini sil" : "Delete this ticket type"}
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
-                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Ticket Name - Single Language Input */}
+                    <div>
+                      <label 
+                        className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+                      >
+                        {formLanguage === 'tr' ? 'Bilet Adı *' : 'Ticket Name *'}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        data-ticket-index={index}
+                        data-field="name"
+                        value={ticket.name[formLanguage]}
+                        onChange={(e) => handleTicketChange(index, 'name', e.target.value)}
+                        className={`w-full px-3 py-2 rounded-md ${
+                          isDark
+                            ? 'bg-carbon-grey border border-dark-grey text-white'
+                            : 'bg-white border border-light-grey text-dark-grey'
+                        } ${hasError(`ticket.${index}.name`) ? 'border-f1-red ring-1 ring-f1-red' : ''}`}
+                      />
+                      <ErrorMessage show={hasError(`ticket.${index}.name`)} />
+                    </div>
+                    
+                    {/* Ticket Price */}
+                    <div>
+                      <label 
+                        className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+                      >
+                        {formLanguage === 'tr' ? 'Fiyat (₺) *' : 'Price (₺) *'}
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        value={ticket.price}
+                        onChange={(e) => handleTicketChange(index, 'price', e.target.value)}
+                        className={`w-full px-3 py-2 rounded-md ${
+                          isDark
+                            ? 'bg-carbon-grey border border-dark-grey text-white'
+                            : 'bg-white border border-light-grey text-dark-grey'
+                        }`}
+                      />
+                      <p className="text-sm mt-1 italic text-green-500">
+                        {formLanguage === 'tr' ? '0 seçilirse bilet ücretsiz olacaktır' : 'If 0 is selected, the ticket will be free'}
+                      </p>
+                    </div>
+                    
+                    {/* Bilet açıklaması - başlangıçta bilet adı ile aynı boyutta */}
+                    <div>
+                      <label 
+                        className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+                      >
+                        {formLanguage === 'tr' ? 'Açıklama' : 'Description'}
+                      </label>
+                      <textarea
+                        rows={1}
+                        value={ticket.description?.[formLanguage] || ''}
+                        onChange={(e) => handleTicketChange(index, 'description', e.target.value)}
+                        style={{ minHeight: '38px', height: 'auto' }}
+                        onInput={(e) => {
+                          // Otomatik büyüme için textarea yüksekliğini ayarla
+                          const target = e.target as HTMLTextAreaElement;
+                          target.style.height = 'auto';
+                          target.style.height = target.scrollHeight + 'px';
+                        }}
+                        className={`w-full px-3 py-2 rounded-md ${
+                          isDark
+                            ? 'bg-carbon-grey border border-dark-grey text-white'
+                            : 'bg-white border border-light-grey text-dark-grey'
+                        }`}
+                        placeholder={formLanguage === 'tr' 
+                          ? "Bilet tipi hakkında açıklama girin" 
+                          : "Enter description about this ticket type"}
+                      />
+                    </div>
+                    
+                    {/* Maximum Sales Count */}
+                    <div>
+                      <label 
+                        className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+                      >
+                        {formLanguage === 'tr' ? 'Maksimum Satış Sayısı' : 'Maximum Sales Count'}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={ticket.maxSalesCount || 0}
+                        onChange={(e) => handleTicketChange(index, 'maxSalesCount', e.target.value)}
+                        className={`w-full px-3 py-2 rounded-md ${
+                          isDark
+                            ? 'bg-carbon-grey border border-dark-grey text-white'
+                            : 'bg-white border border-light-grey text-dark-grey'
+                        }`}
+                      />
+                      <p className="text-sm mt-1 italic text-green-500">
+                        {formLanguage === 'tr' ? '0 seçilirse satış limiti olmayacaktır' : 'If 0 is selected, there will be no sales limit'}
+                      </p>
+                    </div>
+                    
+                    {/* ID alanı görünmeyecek şekilde hidden input olarak ekleyelim */}
+                    <input
+                      type="hidden"
+                      value={ticket.id || `ticket-${Date.now()}-${index}`}
+                    />
+                  </div>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Ticket Name - Single Language Input */}
-                  <div>
-                    <label 
-                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                    >
-                      {formLanguage === 'tr' ? 'Bilet Adı *' : 'Ticket Name *'}
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      data-ticket-index={index}
-                      data-field="name"
-                      value={ticket.name[formLanguage]}
-                      onChange={(e) => handleTicketChange(index, 'name', e.target.value)}
-                      className={`w-full px-3 py-2 rounded-md ${
-                        isDark
-                          ? 'bg-carbon-grey border border-dark-grey text-white'
-                          : 'bg-white border border-light-grey text-dark-grey'
-                      } ${hasError(`ticket.${index}.name`) ? 'border-f1-red ring-1 ring-f1-red' : ''}`}
-                    />
-                    <ErrorMessage show={hasError(`ticket.${index}.name`)} />
-                  </div>
-                  
-                  {/* Ticket Price */}
-                  <div>
-                    <label 
-                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                    >
-                      {formLanguage === 'tr' ? 'Fiyat (₺) *' : 'Price (₺) *'}
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min="0"
-                      step="0.01"
-                      value={ticket.price}
-                      onChange={(e) => handleTicketChange(index, 'price', parseFloat(e.target.value))}
-                      className={`w-full px-3 py-2 rounded-md ${
-                        isDark
-                          ? 'bg-carbon-grey border border-dark-grey text-white'
-                          : 'bg-white border border-light-grey text-dark-grey'
-                      }`}
-                    />
-                  </div>
-                  
-                  {/* Ticket ID */}
-                  <div>
-                    <label 
-                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                    >
-                      {formLanguage === 'tr' ? 'Bilet ID *' : 'Ticket ID *'}
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      data-ticket-index={index}
-                      data-field="id"
-                      value={ticket.id}
-                      onChange={(e) => handleTicketChange(index, 'id', e.target.value)}
-                      className={`w-full px-3 py-2 rounded-md ${
-                        isDark
-                          ? 'bg-carbon-grey border border-dark-grey text-white'
-                          : 'bg-white border border-light-grey text-dark-grey'
-                      } ${hasError(`ticket.${index}.id`) ? 'border-f1-red ring-1 ring-f1-red' : ''}`}
-                    />
-                    <p className={`text-xs mt-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
-                      {formLanguage === 'tr' 
-                        ? 'Sadece harfler, rakamlar ve tireler (-) kullanın' 
-                        : 'Use only letters, numbers, and hyphens (-)'}
-                    </p>
-                    <ErrorMessage show={hasError(`ticket.${index}.id`)} />
-                  </div>
-                  
-                  {/* Ticket Description - Single Language Input */}
-                  <div className="md:col-span-2">
-                    <label 
-                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                    >
-                      {formLanguage === 'tr' ? 'Açıklama' : 'Description'}
-                    </label>
-                    <textarea
-                      rows={2}
-                      data-ticket-index={index}
-                      data-field="description"
-                      value={ticket.description[formLanguage] || ''}
-                      onChange={(e) => handleTicketChange(index, 'description', e.target.value)}
-                      className={`w-full px-3 py-2 rounded-md ${
-                        isDark
-                          ? 'bg-carbon-grey border border-dark-grey text-white'
-                          : 'bg-white border border-light-grey text-dark-grey'
-                      }`}
-                      placeholder={formLanguage === 'tr' 
-                        ? "Bilet tipi hakkında açıklama" 
-                        : "Description about this ticket type"}
-                    ></textarea>
-                  </div>
-                </div>
+              ))
+            ) : (
+              <div className={`py-6 text-center ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+                {formLanguage === 'tr' 
+                  ? 'Henüz bilet eklenmemiş. Eklemek için "Yeni Bilet Tipi Ekle" butonunu kullanın.'
+                  : 'No tickets added yet. Use the "Add New Ticket Type" button to add tickets.'}
               </div>
-            ))}
+            )}
           </div>
         </div>
         
@@ -1066,7 +1449,89 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
           </div>
           
           <div className="space-y-4">
-            {formData.rules?.map((rule, index) => (
+            {Array.isArray(formData.rules) && formData.rules.length > 0 ? (
+              formData.rules.map((rule, index) => (
+                <div 
+                  key={index} 
+                  className={`p-4 border rounded-md ${
+                    isDark ? 'border-dark-grey' : 'border-light-grey'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+                      {formLanguage === 'tr' ? `Kural #${index + 1}` : `Rule #${index + 1}`}
+                    </h4>
+                    
+                    <button
+                      type="button"
+                      onClick={() => removeRule(index)}
+                      className={`p-1 rounded-md ${
+                        isDark ? 'text-silver hover:bg-dark-grey' : 'text-medium-grey hover:bg-very-light-grey'
+                      }`}
+                      title={formLanguage === 'tr' ? "Bu kuralı sil" : "Delete this rule"}
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  {/* Rule - Single Language Input */}
+                  <div>
+                    <label 
+                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+                    >
+                      {formLanguage === 'tr' ? 'Kural' : 'Rule'}
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={rule[formLanguage]}
+                      onChange={(e) => handleRuleChange(index, e.target.value)}
+                      className={`w-full px-3 py-2 rounded-md ${
+                        isDark
+                          ? 'bg-carbon-grey border border-dark-grey text-white'
+                          : 'bg-white border border-light-grey text-dark-grey'
+                      }`}
+                      placeholder={formLanguage === 'tr' 
+                        ? "Etkinlik kuralı ekleyin" 
+                        : "Add event rule"}
+                    ></textarea>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className={`py-6 text-center ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+                {formLanguage === 'tr' 
+                  ? 'Henüz kural eklenmemiş. Eklemek için "Kural Ekle" butonunu kullanın.'
+                  : 'No rules added yet. Use the "Add Rule" button to add rules.'}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Program Section */}
+        <div className={`p-4 border rounded-md mb-6 ${
+          isDark ? 'border-carbon-grey bg-dark-grey bg-opacity-50' : 'border-light-grey bg-very-light-grey bg-opacity-50'
+        }`}>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className={`text-lg font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+              {formLanguage === 'tr' ? 'Etkinlik Programı' : 'Event Program'}
+            </h3>
+            
+            <button
+              type="button"
+              onClick={addProgramItem}
+              className={`px-3 py-1 rounded-md flex items-center ${
+                isDark
+                  ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
+                  : 'bg-race-blue text-white hover:bg-race-blue/80'
+              }`}
+            >
+              <PlusIcon className="w-4 h-4 mr-1" />
+              {formLanguage === 'tr' ? 'Yeni Program Öğesi Ekle' : 'Add New Program Item'}
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            {formData.schedule?.map((item, index) => (
               <div 
                 key={index} 
                 className={`p-4 border rounded-md ${
@@ -1075,41 +1540,83 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
               >
                 <div className="flex justify-between items-start mb-2">
                   <h4 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
-                    {formLanguage === 'tr' ? `Kural #${index + 1}` : `Rule #${index + 1}`}
+                    {formLanguage === 'tr' ? `Program #${index + 1}` : `Program #${index + 1}`}
                   </h4>
                   
                   <button
                     type="button"
-                    onClick={() => removeRule(index)}
+                    onClick={() => removeProgramItem(index)}
                     className={`p-1 rounded-md ${
                       isDark ? 'text-silver hover:bg-dark-grey' : 'text-medium-grey hover:bg-very-light-grey'
                     }`}
-                    title={formLanguage === 'tr' ? "Bu kuralı sil" : "Delete this rule"}
+                    title={formLanguage === 'tr' ? "Bu program öğesini sil" : "Delete this program item"}
                   >
                     <TrashIcon className="w-4 h-4" />
                   </button>
                 </div>
                 
-                {/* Rule - Single Language Input */}
-                <div>
-                  <label 
-                    className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                  >
-                    {formLanguage === 'tr' ? 'Kural' : 'Rule'}
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={rule[formLanguage]}
-                    onChange={(e) => handleRuleChange(index, e.target.value)}
-                    className={`w-full px-3 py-2 rounded-md ${
-                      isDark
-                        ? 'bg-carbon-grey border border-dark-grey text-white'
-                        : 'bg-white border border-light-grey text-dark-grey'
-                    }`}
-                    placeholder={formLanguage === 'tr' 
-                      ? "Etkinlik kuralı ekleyin" 
-                      : "Add event rule"}
-                  ></textarea>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Time */}
+                  <div>
+                    <label 
+                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+                    >
+                      {formLanguage === 'tr' ? 'Zaman *' : 'Time *'}
+                    </label>
+                    <input
+                      type="time"
+                      required
+                      value={item.time}
+                      onChange={(e) => handleProgramChange(index, 'time', e.target.value)}
+                      className={`w-full px-3 py-2 rounded-md ${
+                        isDark
+                          ? 'bg-carbon-grey border border-dark-grey text-white'
+                          : 'bg-white border border-light-grey text-dark-grey'
+                      }`}
+                    />
+                  </div>
+
+                  {/* Title */}
+                  <div>
+                    <label 
+                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+                    >
+                      {formLanguage === 'tr' ? 'Başlık *' : 'Title *'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={item.title[formLanguage]}
+                      onChange={(e) => handleProgramChange(index, 'title', e.target.value)}
+                      className={`w-full px-3 py-2 rounded-md ${
+                        isDark
+                          ? 'bg-carbon-grey border border-dark-grey text-white'
+                          : 'bg-white border border-light-grey text-dark-grey'
+                      }`}
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div className="md:col-span-2">
+                    <label 
+                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+                    >
+                      {formLanguage === 'tr' ? 'Açıklama' : 'Description'}
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={item.description[formLanguage]}
+                      onChange={(e) => handleProgramChange(index, 'description', e.target.value)}
+                      className={`w-full px-3 py-2 rounded-md ${
+                        isDark
+                          ? 'bg-carbon-grey border border-dark-grey text-white'
+                          : 'bg-white border border-light-grey text-dark-grey'
+                      }`}
+                      placeholder={formLanguage === 'tr' 
+                        ? "Program öğesi hakkında açıklama" 
+                        : "Description about this program item"}
+                    ></textarea>
+                  </div>
                 </div>
               </div>
             ))}
@@ -1128,13 +1635,12 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
             {/* Banner Image */}
             <div>
               <label 
-                htmlFor="bannerImage" 
                 className={`block text-sm font-medium mb-2 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
               >
                 {formLanguage === 'tr' ? 'Banner Görseli (16:9 önerilen)' : 'Banner Image (16:9 recommended)'}
               </label>
               
-              <div className="mb-2">
+              <div className="mb-4">
                 {bannerPreview ? (
                   <div className="relative w-full h-40 bg-gray-100 rounded-md overflow-hidden">
                     <Image 
@@ -1162,34 +1668,41 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                 )}
               </div>
               
-              <input
-                type="file"
-                id="bannerImage"
-                name="bannerImage"
-                accept="image/*"
-                onChange={handleImageChange}
-                className={`w-full px-3 py-2 rounded-md ${
-                  isDark
-                    ? 'bg-carbon-grey border border-dark-grey text-white'
-                    : 'bg-white border border-light-grey text-dark-grey'
-                } file:mr-3 file:py-2 file:px-4 file:border-0 file:rounded-md ${
-                  isDark
-                    ? 'file:bg-electric-blue file:text-white'
-                    : 'file:bg-race-blue file:text-white'
-                }`}
+              <div className="flex items-center">
+                {/* Select Image Button */}
+                <button
+                  type="button"
+                  onClick={() => setBannerSelectorOpen(true)}
+                  className={`w-full px-4 py-2 rounded-md ${
+                    isDark
+                      ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
+                      : 'bg-race-blue text-white hover:bg-race-blue/80'
+                  } flex items-center justify-center`}
+                >
+                  <PhotoIcon className="w-5 h-5 mr-2" />
+                  {formLanguage === 'tr' ? 'Görsel Seç' : 'Select Image'}
+                </button>
+              </div>
+
+              {/* Banner Image Selector Modal */}
+              <ImageSelector
+                isOpen={bannerSelectorOpen}
+                onClose={() => setBannerSelectorOpen(false)}
+                onSelect={handleBannerImageSelection}
+                category="banner" // Sadece upload kategorisi için kullanılıyor
+                currentImage={formData.bannerImage}
               />
             </div>
             
             {/* Square Image */}
             <div>
               <label 
-                htmlFor="squareImage" 
                 className={`block text-sm font-medium mb-2 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
               >
                 {formLanguage === 'tr' ? 'Kare Görseli (1:1 önerilen)' : 'Square Image (1:1 recommended)'}
               </label>
               
-              <div className="mb-2">
+              <div className="mb-4">
                 {squarePreview ? (
                   <div className="relative w-40 h-40 bg-gray-100 rounded-md overflow-hidden">
                     <Image 
@@ -1217,21 +1730,29 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                 )}
               </div>
               
-              <input
-                type="file"
-                id="squareImage"
-                name="squareImage"
-                accept="image/*"
-                onChange={handleImageChange}
-                className={`w-full px-3 py-2 rounded-md ${
-                  isDark
-                    ? 'bg-carbon-grey border border-dark-grey text-white'
-                    : 'bg-white border border-light-grey text-dark-grey'
-                } file:mr-3 file:py-2 file:px-4 file:border-0 file:rounded-md ${
-                  isDark
-                    ? 'file:bg-electric-blue file:text-white'
-                    : 'file:bg-race-blue file:text-white'
-                }`}
+              <div className="flex items-center">
+                {/* Select Image Button */}
+                <button
+                  type="button"
+                  onClick={() => setSquareSelectorOpen(true)}
+                  className={`w-full px-4 py-2 rounded-md ${
+                    isDark
+                      ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
+                      : 'bg-race-blue text-white hover:bg-race-blue/80'
+                  } flex items-center justify-center`}
+                >
+                  <PhotoIcon className="w-5 h-5 mr-2" />
+                  {formLanguage === 'tr' ? 'Görsel Seç' : 'Select Image'}
+                </button>
+              </div>
+
+              {/* Square Image Selector Modal */}
+              <ImageSelector
+                isOpen={squareSelectorOpen}
+                onClose={() => setSquareSelectorOpen(false)}
+                onSelect={handleSquareImageSelection}
+                category="square"
+                currentImage={formData.squareImage}
               />
             </div>
           </div>
@@ -1240,38 +1761,25 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
           <div>
             <div className="flex justify-between items-center mb-4">
               <label 
-                htmlFor="galleryImages" 
                 className={`block text-sm font-medium ${isDark ? 'text-silver' : 'text-medium-grey'}`}
               >
                 {formLanguage === 'tr' ? 'Galeri Görselleri' : 'Gallery Images'}
               </label>
               
-              <div className="flex items-center">
-                <span className={`text-xs mr-3 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
-                  {formLanguage === 'tr' 
-                    ? `${formData.gallery?.length || 0} görsel` 
-                    : `${formData.gallery?.length || 0} images`}
-                </span>
-                
-                <label
-                  htmlFor="galleryImages"
-                  className={`px-3 py-1 rounded-md flex items-center cursor-pointer ${
+              <div className="flex items-center space-x-2">
+                {/* Select Image Button */}
+                <button
+                  type="button"
+                  onClick={() => setGallerySelectorOpen(true)}
+                  className={`px-4 py-2 rounded-md ${
                     isDark
                       ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
                       : 'bg-race-blue text-white hover:bg-race-blue/80'
-                  }`}
+                  } flex items-center justify-center`}
                 >
-                  <PlusIcon className="w-4 h-4 mr-1" />
-                  {formLanguage === 'tr' ? 'Görsel Ekle' : 'Add Image'}
-                </label>
-                <input
-                  type="file"
-                  id="galleryImages"
-                  multiple
-                  accept="image/*"
-                  onChange={handleGalleryImageUpload}
-                  className="hidden"
-                />
+                  <PhotoIcon className="w-5 h-5 mr-2" />
+                  {formLanguage === 'tr' ? 'Görsel Seç' : 'Select Image'}
+                </button>
               </div>
             </div>
             
@@ -1336,11 +1844,20 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
               ) : (
                 <div className={`col-span-full py-6 text-center ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                   {formLanguage === 'tr' 
-                    ? 'Henüz galeri görseli eklenmemiş. Eklemek için "Görsel Ekle" butonunu kullanın.'
-                    : 'No gallery images added yet. Use the "Add Image" button to add images.'}
+                    ? 'Henüz galeri görseli eklenmemiş. Görsel seçmek veya yüklemek için butonları kullanın.'
+                    : 'No gallery images added yet. Use the buttons to select or upload images.'}
                 </div>
               )}
             </div>
+            
+            {/* Gallery Image Selector Modal */}
+            <ImageSelector
+              isOpen={gallerySelectorOpen}
+              onClose={() => setGallerySelectorOpen(false)}
+              onSelect={handleGalleryImageSelection}
+              category="gallery"
+              currentImage=""
+            />
           </div>
         </div>
         
@@ -1349,26 +1866,27 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
           <button
             type="button"
             onClick={onCancel}
-            disabled={isSubmitting || isTranslating}
+            disabled={isSubmitting}
             className={`px-4 py-2 rounded-md ${
               isDark
                 ? 'bg-carbon-grey text-silver hover:bg-dark-grey'
                 : 'bg-light-grey text-medium-grey hover:bg-very-light-grey'
-            } ${(isSubmitting || isTranslating) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            } ${(isSubmitting) ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {formLanguage === 'tr' ? 'İptal' : 'Cancel'}
           </button>
           
           <button
             type="submit"
-            disabled={isSubmitting || isTranslating}
+            disabled={isSubmitting}
             className={`px-4 py-2 rounded-md ${
               isDark
+               
                 ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
                 : 'bg-race-blue text-white hover:bg-race-blue/80'
-            } ${(isSubmitting || isTranslating) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            } ${(isSubmitting) ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {isSubmitting || isTranslating ? (
+            {isSubmitting ? (
               <span className="flex items-center">
                 <svg 
                   className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" 
@@ -1390,13 +1908,11 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                {isTranslating 
-                  ? (formLanguage === 'tr' ? 'Çeviriliyor...' : 'Translating...') 
-                  : (formLanguage === 'tr' ? 'Kaydediliyor...' : 'Saving...')}
+                {formLanguage === 'tr' ? 'Kaydediliyor...' : 'Saving...'}
               </span>
             ) : isEditMode 
-              ? (formLanguage === 'tr' ? 'Güncelle ve Yayınla' : 'Update and Publish')
-              : (formLanguage === 'tr' ? 'Ekle ve Yayınla' : 'Add and Publish')}
+              ? (formLanguage === 'tr' ? 'Güncelle' : 'Update')
+              : (formLanguage === 'tr' ? 'Yayınla' : 'Publish')}
           </button>
         </div>
       </form>

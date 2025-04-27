@@ -25,7 +25,31 @@ export default function EventsListPage() {
         const data = await response.json();
         
         if (response.ok && data.events) {
-          setEvents(data.events);
+          // Bugünün tarihini alıyoruz (saat, dakika, saniye olmadan)
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          // Etkinlikleri gelecek ve geçmiş olarak ayırıyoruz
+          const futureEvents = [];
+          const pastEvents = [];
+          
+          data.events.forEach(event => {
+            const eventDate = new Date(event.date);
+            if (eventDate >= today) {
+              futureEvents.push(event);
+            } else {
+              pastEvents.push(event);
+            }
+          });
+          
+          // Gelecek etkinlikleri tarihe göre artan sırada sıralıyoruz (en yakın olan önce)
+          futureEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          
+          // Geçmiş etkinlikleri tarihe göre azalan sırada sıralıyoruz (en son olan önce)
+          pastEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          
+          // İki listeyi birleştiriyoruz: önce gelecek sonra geçmiş etkinlikler
+          setEvents([...futureEvents, ...pastEvents]);
         } else {
           throw new Error(data.error || 'Etkinlikler yüklenirken bir hata oluştu');
         }
@@ -50,7 +74,7 @@ export default function EventsListPage() {
       setIsDeleting(slug);
       setDeleteError(null);
       
-      const response = await fetch(`/api/events?slug=${slug}`, {
+      const response = await fetch(`/api/events/${slug}`, {
         method: 'DELETE',
       });
       

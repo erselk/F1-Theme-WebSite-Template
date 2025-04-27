@@ -29,3 +29,49 @@ export async function GET() {
     }, { status: 500 });
   }
 }
+
+// Yeni etkinlik oluşturmak için POST metodu
+export async function POST(request: Request) {
+  try {
+    await connectToDatabase();
+    
+    // İstek gövdesini JSON olarak parse et
+    const eventData = await request.json();
+    
+    // Tarih ve ID kontrolü
+    if (!eventData.date) {
+      eventData.date = new Date().toISOString();
+    }
+    
+    // ID kontrolü - eğer yoksa oluştur
+    if (!eventData.id) {
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = String(now.getFullYear()).slice(2);
+      const randomNum = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
+      
+      eventData.id = `${day}${month}${year}${randomNum}`;
+    }
+
+    // MongoDB'ye kaydet
+    const newEvent = new Event(eventData);
+    await newEvent.save();
+    
+    // Başarılı yanıt döndür
+    return NextResponse.json({
+      success: true,
+      message: 'Etkinlik başarıyla oluşturuldu',
+      event: newEvent
+    }, { status: 201 });
+  } catch (error: any) {
+    console.error('Etkinlik oluşturma hatası:', error);
+    
+    // Hata detaylarını döndür
+    return NextResponse.json({
+      success: false,
+      message: 'Etkinlik oluşturulurken bir hata oluştu',
+      error: error.message
+    }, { status: 500 });
+  }
+}

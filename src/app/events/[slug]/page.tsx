@@ -10,7 +10,7 @@ import { EventDetailContent } from './components/EventDetailContent';
 
 // Server-side locale detection function
 async function getLocaleFromHeaders(): Promise<LanguageType> {
-  const headersList = headers();
+  const headersList = await headers();
   // Try to get locale from Accept-Language header or cookies
   // Default to 'en' if not found
   const acceptLanguage = headersList.get('accept-language') || '';
@@ -22,7 +22,9 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const event = await getEventBySlug(params.slug);
+  // Properly extract the slug parameter
+  const { slug } = params;
+  const event = await getEventBySlug(slug);
 
   if (!event) {
     return {
@@ -44,7 +46,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 // Server component main page function
 export default async function EventDetailPage({ params }: Props) {
-  const event = await getEventBySlug(params.slug);
+  // Properly extract the slug parameter
+  const { slug } = params;
+  const event = await getEventBySlug(slug);
   const locale = await getLocaleFromHeaders();
 
   if (!event) {
@@ -55,7 +59,7 @@ export default async function EventDetailPage({ params }: Props) {
   const eventStatus = getEventStatus(new Date(event.date));
   
   // Sayfa URL'si
-  const pageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://padokclub.com'}/events/${params.slug}`;
+  const pageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://padokclub.com'}/events/${slug}`;
 
   // We'll pass the data to a client component for theme handling
   return <EventDetailContent event={event} eventStatus={eventStatus} pageUrl={pageUrl} locale={locale} />;

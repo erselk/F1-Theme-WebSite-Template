@@ -1,5 +1,26 @@
 import mongoose, { Schema } from 'mongoose';
 
+// Çift dil desteği olan metin için şema
+const localizedTextSchema = {
+  tr: String,
+  en: String
+};
+
+// Bilet tipi için şema
+const ticketSchema = new Schema({
+  id: String,
+  name: localizedTextSchema,
+  price: Number,
+  description: localizedTextSchema,
+  maxPerOrder: Number,
+  availableCount: Number,
+  maxSalesCount: Number, // Maximum number of tickets that can be sold
+  variant: {
+    type: String,
+    enum: ['standard', 'premium', 'vip']
+  }
+}, { _id: false });
+
 // Event şeması
 const eventSchema = new Schema({
   id: String,
@@ -13,21 +34,43 @@ const eventSchema = new Schema({
   price: Number,
   isFeatured: Boolean,
   date: String, // ISO date string
-  location: {
-    tr: String,
-    en: String
-  },
-  title: {
-    tr: String,
-    en: String
-  },
-  description: {
-    tr: String,
-    en: String
-  },
+  location: localizedTextSchema,
+  title: localizedTextSchema,
+  description: localizedTextSchema,
   category: {
     type: String,
     enum: ['workshop', 'meetup', 'conference', 'race', 'other']
+  },
+  // Galeri
+  gallery: [String],
+  // Etkinlik programı
+  schedule: {
+    type: [{
+      time: String,
+      title: localizedTextSchema,
+      description: localizedTextSchema
+    }],
+    default: []
+  },
+  // Kurallar
+  rules: {
+    tr: [String],
+    en: [String]
+  },
+  // Biletler
+  tickets: {
+    type: [ticketSchema],
+    default: []
+  },
+  // Yorumlar
+  comments: {
+    type: [{
+      id: String,
+      name: String,
+      timestamp: String,
+      content: String
+    }],
+    default: []
   }
 }, {
   timestamps: true

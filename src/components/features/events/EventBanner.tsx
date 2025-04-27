@@ -48,7 +48,7 @@ export function EventBanner({ events }: EventBannerProps) {
             }`}
           >
             <Image
-              src={event.bannerImage || '/images/events/default.jpg'}
+              src={event.bannerImage || '/images/logouzun.png'}
               alt={event.title[language]}
               fill
               className="object-cover"
@@ -121,7 +121,7 @@ export function EventBanner({ events }: EventBannerProps) {
             aria-label={`${language === 'tr' ? 'Slayta git' : 'Go to slide'} ${index + 1}`}
           >
             <Image
-              src={event.squareImage || '/images/events/default.jpg'}
+              src={event.squareImage || '/images/logokare.png'}
               alt=""
               fill
               className="object-cover"

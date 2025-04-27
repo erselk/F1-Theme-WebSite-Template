@@ -123,7 +123,7 @@ export function EventCard({ event }: EventCardProps) {
           {/* Image - Add overlay for past events */}
           <div className="relative w-full h-full">
             <Image
-              src={squareImage || '/images/events/default.jpg'}
+              src={squareImage || '/images/logokare.png'}
               alt={title[language]}
               fill
               className={`object-cover group-hover:scale-105 transition-transform duration-300 ${status === 'past' ? 'brightness-75' : ''}`}

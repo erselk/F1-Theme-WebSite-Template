@@ -51,7 +51,7 @@ export function EventBanner({ event, eventStatus, pageUrl }: EventBannerProps) {
     <div className="relative w-full h-[45vh] md:h-[60vh]">
       {/* Banner görseli */}
       <Image 
-        src={event.bannerImage || "/images/events/square/default-event-banner.jpg"} 
+        src={event.bannerImage || "/images/logouzun.png"} 
         alt={event.title[language]} 
         className="object-cover" 
         fill
@@ -59,6 +59,7 @@ export function EventBanner({ event, eventStatus, pageUrl }: EventBannerProps) {
         sizes="100vw"
         placeholder="empty"
         quality={85}
+        unoptimized={event.bannerImage?.startsWith('/api/files/')}
       />
       
       {/* Filigran etkisi yaratacak overlay - Tema durumuna göre beyaz veya siyah */}

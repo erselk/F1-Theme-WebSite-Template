@@ -126,11 +126,12 @@ export function SimilarEvents({
           <div className="flex flex-col h-full rounded-lg overflow-hidden bg-dark-grey border border-carbon-grey hover:border-electric-blue transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-electric-blue/20">
             <div className="relative h-40 w-full overflow-hidden">
               <Image
-                src={event.bannerImage || "/images/events/banner/default.jpg"}
+                src={event.bannerImage || "/images/logouzun.jpg"}
                 alt={event.title[locale]}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                unoptimized={event.bannerImage?.startsWith('/api/files/')}
               />
               <div className="absolute top-2 right-2">
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${getEventStatusClass(event.date)}`}>

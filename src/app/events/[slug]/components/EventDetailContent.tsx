@@ -54,13 +54,22 @@ export function EventDetailContent({ event, eventStatus, pageUrl, locale }: Even
   const headingColorClass = isDark ? 'text-white' : 'text-very-dark-grey';
   const textColorClass = isDark ? 'text-light-grey' : 'text-slate-700';
 
+  // CheckMongoDB URL - Eğer bir MongoDB URL'si (/api/files ile başlıyorsa) doğrudan kullan
+  const getImageUrl = (url: string) => {
+    if (!url) return '/images/logouzun.jpg';
+    return url;
+  };
+
   return (
     <main className="w-full bg-very-dark-grey overflow-x-hidden">
       <ScrollbarStyles />
       
       {/* Banner kısmını client component olarak ayırdık */}
       <EventBanner 
-        event={event}
+        event={{
+          ...event,
+          bannerImage: getImageUrl(event.bannerImage)
+        }}
         eventStatus={eventStatus}
         pageUrl={pageUrl}
       />
@@ -126,40 +135,24 @@ export function EventDetailContent({ event, eventStatus, pageUrl, locale }: Even
                       {t.rules}
                     </h2>
                     
-                    {event.rules ? (
+                    {/* Check if rules exists and has the current language data */}
+                    {event.rules && event.rules[language] && Array.isArray(event.rules[language]) && event.rules[language].length > 0 ? (
                       <ul className={`list-disc pl-5 space-y-2 ${textColorClass}`}>
-                        {event.rules[language]?.map((rule, index) => (
+                        {event.rules[language].map((rule, index) => (
                           <li key={index} className="text-base">{rule}</li>
                         ))}
                       </ul>
                     ) : (
-                      <ul className={`list-disc pl-5 space-y-2 ${textColorClass}`}>
-                        <li className="text-base">
+                      <div className="flex flex-col items-center py-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        <p className={`${textColorClass} text-center`}>
                           {language === 'tr' 
-                            ? 'Her takım 4 kişiden oluşmalıdır.' 
-                            : 'Each team must consist of 4 members.'}
-                        </li>
-                        <li className="text-base">
-                          {language === 'tr' 
-                            ? 'Lastik değişimi sırasında tüm güvenlik prosedürlerine uyulmalıdır.' 
-                            : 'All safety procedures must be followed during the tire change.'}
-                        </li>
-                        <li className="text-base">
-                          {language === 'tr' 
-                            ? 'Takımlar kendi ekipmanlarını kullanabilir.' 
-                            : 'Teams may use their own equipment.'}
-                        </li>
-                        <li className="text-base">
-                          {language === 'tr' 
-                            ? 'Zaman, tüm lastikler değiştirilip araç yere indirildiğinde durdurulur.' 
-                            : 'Time stops when all tires are changed and the car is lowered.'}
-                        </li>
-                        <li className="text-base">
-                          {language === 'tr' 
-                            ? 'Hakemlerin kararı kesindir.' 
-                            : 'Judges\' decisions are final.'}
-                        </li>
-                      </ul>
+                            ? 'Bu etkinlik için henüz kural belirtilmedi.' 
+                            : 'No rules have been specified for this event yet.'}
+                        </p>
+                      </div>
                     )}
                   </div>
                 </section>
@@ -176,9 +169,9 @@ export function EventDetailContent({ event, eventStatus, pageUrl, locale }: Even
                     
                     <ImageGallery 
                       images={event.gallery || [
-                        "/images/events/gallery/event1.jpg",
-                        "/images/events/gallery/event2.jpg",
-                        "/images/events/gallery/event3.jpg"
+                        "/images/about1.jpg",
+                        "/images/about2.jpg",
+                        "/images/about3.jpg"
                       ]} 
                       title={event.title[language]} 
                       locale={language} 

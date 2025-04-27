@@ -28,12 +28,12 @@ export async function seedDatabase() {
         const exampleBlog = {
           id: "example1",
           slug: "example-blog-post",
-          coverImage: "/images/blog/about1.jpg",
-          thumbnailImage: "/images/blog/about1.jpg",
+          coverImage: "/images/about1.jpg",
+          thumbnailImage: "/images/about1.jpg",
           publishDate: new Date().toISOString(),
           author: {
             name: "Admin",
-            avatar: "/images/blog/avatar.webp"
+            avatar: "/images/avatar.webp"
           },
           title: {
             tr: "Örnek Blog Yazısı",
@@ -73,8 +73,8 @@ export async function seedDatabase() {
         const exampleEvent = {
           id: "example1",
           slug: "example-event",
-          bannerImage: "/images/events/banner/suan.jpg",
-          squareImage: "/images/events/square/suan.jpg", 
+          bannerImage: "/images/suan.jpg",
+          squareImage: "/images/suan.jpg", 
           price: 500,
           isFeatured: true,
           date: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Bir hafta sonra

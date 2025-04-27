@@ -1,14 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import EventForm from '@/components/admin/EventForm';
 import { Event } from '@/data/events';
+import { useTheme } from 'next-themes';
 
 export default function AddEventPage() {
   const router = useRouter();
+  const { setTheme } = useTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Force dark theme on mount
+  useEffect(() => {
+    setTheme('dark');
+  }, [setTheme]);
 
   const handleSubmit = async (eventData: Partial<Event>) => {
     try {

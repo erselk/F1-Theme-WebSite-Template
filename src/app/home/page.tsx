@@ -16,7 +16,7 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   
   // Home slides from the home folder (about1.jpg to about19.jpg)
-  const homeSlides = Array.from({ length: 19 }, (_, i) => `/images/home/about${i + 1}.jpg`);
+  const homeSlides = Array.from({ length: 19 }, (_, i) => `/images/about${i + 1}.jpg`);
   
   // Handle slide change when clicking on dots
   const handleSlideChange = useCallback((index: number) => {
@@ -70,9 +70,9 @@ export default function Home() {
   
   // Fixed simulator images that won't change
   const simulatorImages = {
-    f1: "/images/home/about5.jpg",
-    vr: "/images/home/about12.jpg",
-    computers: "/images/home/about8.jpg"
+    f1: "/images/about5.jpg",
+    vr: "/images/about12.jpg",
+    computers: "/images/about8.jpg"
   };
   
   // Translations

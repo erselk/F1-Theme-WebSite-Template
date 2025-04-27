@@ -1,4 +1,5 @@
 import { LanguageType } from '@/lib/ThemeLanguageContext';
+import { createTimezoneDate, getStartOfDay, formatDate, DEFAULT_TIMEZONE } from '@/lib/date-utils';
 
 export interface BlogPost {
   id: string;
@@ -58,7 +59,7 @@ export interface Event {
       tr: string;
       en: string;
     };
-  }[];
+  }[]; 
   comments?: {
     id: string;
     name: string;
@@ -73,15 +74,17 @@ export interface Event {
 }
 
 export const getEventStatus = (date: string): 'today' | 'tomorrow' | 'this-week' | 'upcoming' | 'past' => {
-  const eventDate = new Date(date);
-  const now = new Date(); 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Use timezone-aware date creation
+  const eventDate = createTimezoneDate(date);
+  const now = createTimezoneDate();
   
-  const tomorrow = new Date(today);
+  // Start of day with timezone handling
+  const today = getStartOfDay(now);
+  
+  const tomorrow = createTimezoneDate(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
   
-  const endOfWeek = new Date(today);
+  const endOfWeek = createTimezoneDate(today);
   endOfWeek.setDate(endOfWeek.getDate() + 7);
   
   if (eventDate < now) {
@@ -98,15 +101,18 @@ export const getEventStatus = (date: string): 'today' | 'tomorrow' | 'this-week'
 };
 
 export const formatEventDate = (dateString: string, language: LanguageType): string => {
-  const date = new Date(dateString);
-  
-  const options: Intl.DateTimeFormatOptions = {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  };
-  
-  return date.toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', options);
+  // Use the timezone-aware formatter
+  return formatDate(
+    dateString, 
+    language === 'tr' ? 'tr-TR' : 'en-US',
+    DEFAULT_TIMEZONE,
+    {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: DEFAULT_TIMEZONE
+    }
+  );
 };

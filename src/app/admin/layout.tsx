@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
-import { useState } from 'react';
+import AdminAuth from '@/components/admin/AdminAuth';
 
 export default function AdminLayout({
   children,
@@ -12,7 +12,7 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const { isDark } = useThemeLanguage();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const sidebarOpen = true;
 
   // Admin sidebar navigation links
   const adminNavItems = [
@@ -41,6 +41,30 @@ export default function AdminLayout({
       )
     },
     { 
+      name: 'Bloglar',
+      href: '/admin/blogs',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+          <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" />
+          <path d="M18 14h-8" />
+          <path d="M15 18h-5" />
+          <path d="M10 6h8v4h-8V6Z" />
+        </svg>
+      )
+    },
+    { 
+      name: 'Yazarlar',
+      href: '/admin/authors',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+      )
+    },
+    { 
       name: 'Rezervasyonlar',
       href: '/admin/reservations',
       icon: (
@@ -64,140 +88,89 @@ export default function AdminLayout({
     },
   ];
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar */}
-      <aside
-        className={`fixed left-0 top-0 z-40 h-screen transition-transform ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-64'
-        } ${isDark ? 'bg-graphite border-r border-carbon-grey' : 'bg-white border-r border-light-grey'}`}
-        style={{ width: '16rem' }}
-      >
-        <div className="h-full flex flex-col">
-          {/* Sidebar Header */}
-          <div className="p-4 flex items-center justify-between border-b border-carbon-grey">
-            <Link
-              href="/admin"
-              className={`text-xl font-semibold font-['Titillium Web'] ${
-                isDark ? 'text-white' : 'text-dark-grey'
-              }`}
-            >
-              PadokClub Admin
-            </Link>
-            <button
-              onClick={toggleSidebar}
-              className={`p-1 rounded-md ${
-                isDark ? 'text-silver hover:bg-carbon-grey' : 'text-medium-grey hover:bg-light-grey'
-              }`}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d={sidebarOpen ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"} />
-              </svg>
-            </button>
-          </div>
-
-          {/* Sidebar Nav */}
-          <nav className="p-4 flex-1 overflow-y-auto">
-            <ul className="space-y-2">
-              {adminNavItems.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                      pathname === item.href
-                        ? isDark
-                          ? 'bg-carbon-grey text-electric-blue'
-                          : 'bg-light-grey text-f1-red'
-                        : isDark
-                        ? 'text-silver hover:bg-dark-grey'
-                        : 'text-medium-grey hover:bg-very-light-grey'
-                    }`}
-                  >
-                    {item.icon}
-                    <span>{item.name}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          {/* Sidebar Footer */}
-          <div className={`p-4 border-t ${isDark ? 'border-carbon-grey' : 'border-light-grey'}`}>
-            <Link
-              href="/"
-              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
-                isDark ? 'text-silver hover:bg-dark-grey' : 'text-medium-grey hover:bg-very-light-grey'
-              }`}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                <polyline points="10 17 15 12 10 7" />
-                <line x1="15" y1="12" x2="3" y2="12" />
-              </svg>
-              <span>Ana Siteye Dön</span>
-            </Link>
-          </div>
-        </div>
-      </aside>
-
-      {/* Sidebar Toggle Button (Mobile & Collapsed View) */}
-      <button
-        onClick={toggleSidebar}
-        className={`fixed top-4 left-4 z-50 p-2 rounded-md shadow-md ${
-          sidebarOpen ? 'left-[16rem]' : 'left-4'
-        } ${
-          isDark
-            ? 'bg-carbon-grey text-silver hover:bg-dark-grey'
-            : 'bg-white text-medium-grey hover:bg-very-light-grey'
-        }`}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+    <AdminAuth>
+      <div className="flex min-h-screen">
+        {/* Sidebar - always visible now */}
+        <aside
+          className={`fixed left-0 top-0 z-40 h-screen transition-transform translate-x-0
+          ${isDark ? 'bg-graphite border-r border-carbon-grey' : 'bg-white border-r border-light-grey'}`}
+          style={{ width: '16rem' }}
         >
-          <path d={sidebarOpen ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"} />
-        </svg>
-      </button>
+          <div className="h-full flex flex-col">
+            {/* Sidebar Header */}
+            <div className="p-4 flex items-center justify-between border-b border-carbon-grey">
+              <Link
+                href="/admin"
+                className={`text-xl font-semibold font-['Titillium Web'] ${
+                  isDark ? 'text-white' : 'text-dark-grey'
+                }`}
+              >
+                PadokClub Admin
+              </Link>
+            </div>
 
-      {/* Main Content */}
-      <main
-        className={`flex-1 transition-all ${
-          sidebarOpen ? 'ml-64' : 'ml-0'
-        } p-8 pt-16 ${isDark ? 'bg-dark-grey' : 'bg-very-light-grey'}`}
-      >
-        {children}
-      </main>
-    </div>
+            {/* Sidebar Nav */}
+            <nav className="p-4 flex-1 overflow-y-auto">
+              <ul className="space-y-2">
+                {adminNavItems.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                        pathname === item.href
+                          ? isDark
+                            ? 'bg-carbon-grey text-electric-blue'
+                            : 'bg-light-grey text-f1-red'
+                          : isDark
+                          ? 'text-silver hover:bg-dark-grey'
+                          : 'text-medium-grey hover:bg-very-light-grey'
+                      }`}
+                    >
+                      {item.icon}
+                      <span>{item.name}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            {/* Sidebar Footer */}
+            <div className={`p-4 border-t ${isDark ? 'border-carbon-grey' : 'border-light-grey'}`}>
+              <Link
+                href="/"
+                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                  isDark ? 'text-silver hover:bg-dark-grey' : 'text-medium-grey hover:bg-very-light-grey'
+                }`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                  <polyline points="10 17 15 12 10 7" />
+                  <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+                <span>Ana Siteye Dön</span>
+              </Link>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content - always shifted for sidebar */}
+        <main
+          className={`flex-1 transition-all ml-64 p-8 pt-16 ${isDark ? 'bg-dark-grey' : 'bg-very-light-grey'}`}
+        >
+          {children}
+        </main>
+      </div>
+    </AdminAuth>
   );
 }

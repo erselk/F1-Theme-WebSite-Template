@@ -55,60 +55,51 @@ export function getEventStatus(dateString: string): string {
   return 'upcoming';
 }
 
-// Simple translation function that simulates API translation
-// In a real app, this would call a translation API like Google Translate
+// Simple translation function that uses Google Translate API
 export async function simpleTranslate(
   text: string, 
   sourceLang: 'tr' | 'en', 
   targetLang: 'tr' | 'en'
 ): Promise<string> {
-  // For demo purposes we're not actually translating
-  // In production this would call a proper translation API
-  
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
   if (!text) return '';
   
-  // Some very basic hardcoded translations for common words
-  const translations: Record<string, Record<string, string>> = {
-    tr: {
-      'Standart Bilet': 'Standard Ticket',
-      'Etkinlik': 'Event',
-      'Bilet': 'Ticket',
-      'Yeni': 'New',
-      'Ücretsiz': 'Free',
-      'Konser': 'Concert',
-      'Atölye': 'Workshop',
-      'Buluşma': 'Meetup'
-    },
-    en: {
-      'Standard Ticket': 'Standart Bilet',
-      'Event': 'Etkinlik',
-      'Ticket': 'Bilet',
-      'New': 'Yeni',
-      'Free': 'Ücretsiz',
-      'Concert': 'Konser',
-      'Workshop': 'Atölye',
-      'Meetup': 'Buluşma'
+  try {
+    // Google Translate API endpoint
+    const apiUrl = `https://translate.googleapis.com/translate_a/single`;
+    
+    // Prepare parameters for the API call
+    const params = new URLSearchParams({
+      client: 'gtx', // Use public API without key
+      sl: sourceLang,
+      tl: targetLang,
+      dt: 't', // Return text
+      q: text
+    });
+    
+    // Make the API request
+    const response = await fetch(`${apiUrl}?${params}`);
+    
+    if (!response.ok) {
+      console.error('Translation API error:', response.statusText);
+      return text; // Return original text on error
     }
-  };
-  
-  // Look for exact matches in our mini dictionary
-  const fromLang = sourceLang as 'tr' | 'en';
-  const toLang = targetLang as 'tr' | 'en';
-  
-  if (translations[fromLang][text]) {
-    return translations[fromLang][text];
+    
+    const data = await response.json();
+    
+    // Extract translated text from the response
+    // Google Translate API returns a complex nested array
+    let translatedText = '';
+    if (data && data[0] && data[0].length > 0) {
+      data[0].forEach((item: any) => {
+        if (item[0]) {
+          translatedText += item[0];
+        }
+      });
+    }
+    
+    return translatedText || text;
+  } catch (error) {
+    console.error('Error during translation:', error);
+    return text; // Return original text on error
   }
-  
-  // For longer texts that aren't in our dictionary,
-  // in a real app we would call a translation API here
-  // For demo purposes, we're just adding a note
-  if (text.length > 20) {
-    return `${text} [${toLang === 'tr' ? 'çevirilecek' : 'to be translated'}]`;
-  }
-  
-  // Return the original text if no translation found
-  return text;
 }

@@ -34,7 +34,7 @@ const AboutContent: React.FC = () => {
           </div>
           <div className="relative h-[300px] w-full">
             <Image
-              src="/images/about/about1.jpg"
+              src="/images/about1.jpg"
               alt={language === 'tr' ? "PadokClub Hikayemiz" : "PadokClub Our Story"}
               fill
               className="object-cover rounded-lg shadow-md"
@@ -144,7 +144,7 @@ const AboutContent: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="relative h-[200px]">
               <Image
-                src="/images/about/about3.jpg"
+                src="/images/about3.jpg"
                 alt={language === 'tr' ? "PadokClub Tesislerimiz" : "PadokClub Our Facilities"}
                 fill
                 className="object-cover rounded-lg shadow-md"
@@ -152,7 +152,7 @@ const AboutContent: React.FC = () => {
             </div>
             <div className="relative h-[200px]">
               <Image
-                src="/images/about/about4.jpg"
+                src="/images/about4.jpg"
                 alt={language === 'tr' ? "PadokClub Simülatörlerimiz" : "PadokClub Our Simulators"}
                 fill
                 className="object-cover rounded-lg shadow-md"
@@ -171,7 +171,7 @@ const AboutContent: React.FC = () => {
           {[5, 6, 7, 8, 9, 10, 11, 12].map((num) => (
             <div key={num} className="relative h-[150px] md:h-[200px]">
               <Image
-                src={`/images/about/about${num}.jpg`}
+                src={`/images/about${num}.jpg`}
                 alt={language === 'tr' ? `PadokClub Galeri ${num}` : `PadokClub Gallery ${num}`}
                 fill
                 className="object-cover rounded-lg hover:opacity-90 transition-opacity shadow-md"

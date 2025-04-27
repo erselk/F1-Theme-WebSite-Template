@@ -106,7 +106,7 @@ export function EventDetail({ event: initialEvent }: EventDetailProps) {
         {/* Event Image */}
         <div className="relative h-[300px] md:h-[400px] w-full">
           <Image
-            src={event.bannerImage || '/images/events/default.jpg'}
+            src={event.bannerImage || '/images/logouzun.png'}
             alt={event.title[language]}
             fill
             className="object-cover"

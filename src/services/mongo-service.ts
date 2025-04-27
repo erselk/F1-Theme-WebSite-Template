@@ -1,19 +1,20 @@
 'use server';  // This marks the file as server-only code
 
 import { BlogPost, Event, getEventStatus } from '@/types';
-import { MongoClient, Db } from 'mongodb';
+import { MongoClient, Db, ObjectId } from 'mongodb';
 
 // MongoDB connection
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
+let db: Db;
 
 export async function connectToDatabase(): Promise<Db> {
   if (cachedDb) {
+    db = cachedDb;
     return cachedDb;
   }
 
   const uri = process.env.MONGODB_URI || '';
-  
   if (!uri) {
     throw new Error('MongoDB URI is not defined in environment variables');
   }
@@ -25,6 +26,7 @@ export async function connectToDatabase(): Promise<Db> {
 
   const dbName = process.env.MONGODB_DB || 'padokclub';
   cachedDb = cachedClient.db(dbName);
+  db = cachedDb;
   
   return cachedDb;
 }
@@ -147,5 +149,124 @@ export async function getSortedEvents(): Promise<Event[]> {
   } catch (error) {
     console.error('Sıralı etkinlikleri getirme hatası:', error);
     return [];
+  }
+}
+
+// Author collection operations
+export async function getAuthors() {
+  try {
+    await connectToDatabase();
+    // Test veritabanını kullan
+    const testDb = cachedClient!.db('test');
+    const authors = await testDb.collection('authors').find().sort({ createdAt: -1 }).toArray();
+    return { authors };
+  } catch (error) {
+    console.error('Error getting authors:', error);
+    throw new Error('Failed to fetch authors');
+  }
+}
+
+export async function getAuthorById(id: string) {
+  try {
+    await connectToDatabase();
+    
+    // Test veritabanını kullan
+    const testDb = cachedClient!.db('test');
+    
+    // ObjectId oluşturmayı dene, geçersizse normal string olarak kullan
+    let query = {};
+    try {
+      query = { _id: new ObjectId(id) };
+    } catch (error) {
+      console.warn(`Invalid ObjectId format: ${id}, using as string`);
+      query = { _id: id };
+    }
+    
+    const author = await testDb.collection('authors').findOne(query);
+    return { author };
+  } catch (error) {
+    console.error('Error getting author by id:', error);
+    throw new Error('Failed to fetch author');
+  }
+}
+
+export async function createAuthor(author: any) {
+  try {
+    await connectToDatabase();
+    
+    // Test veritabanını kullan
+    const testDb = cachedClient!.db('test');
+    
+    const now = new Date();
+    const authorToInsert = {
+      ...author,
+      articles: author.articles || [],
+      createdAt: now,
+      updatedAt: now
+    };
+    const result = await testDb.collection('authors').insertOne(authorToInsert);
+    console.log(`Yazar "${author.name}" test veritabanına kaydedildi`);
+    return { success: true, id: result.insertedId };
+  } catch (error) {
+    console.error('Error creating author:', error);
+    throw new Error('Failed to create author');
+  }
+}
+
+export async function updateAuthor(id: string, author: any) {
+  try {
+    await connectToDatabase();
+    
+    // Test veritabanını kullan
+    const testDb = cachedClient!.db('test');
+    
+    const now = new Date();
+    
+    // ObjectId oluşturmayı dene, geçersizse normal string olarak kullan
+    let query = {};
+    try {
+      query = { _id: new ObjectId(id) };
+    } catch (error) {
+      console.warn(`Invalid ObjectId format: ${id}, using as string`);
+      query = { _id: id };
+    }
+    
+    const result = await testDb.collection('authors').updateOne(
+      query,
+      { 
+        $set: { 
+          ...author, 
+          updatedAt: now 
+        } 
+      }
+    );
+    return { success: result.modifiedCount > 0 };
+  } catch (error) {
+    console.error('Error updating author:', error);
+    throw new Error('Failed to update author');
+  }
+}
+
+export async function deleteAuthor(id: string) {
+  try {
+    await connectToDatabase();
+    
+    // Test veritabanını kullan
+    const testDb = cachedClient!.db('test');
+    
+    // ObjectId oluşturmayı dene, geçersizse normal string olarak kullan
+    let query = {};
+    try {
+      query = { _id: new ObjectId(id) };
+    } catch (error) {
+      console.warn(`Invalid ObjectId format: ${id}, using as string`);
+      query = { _id: id };
+    }
+    
+    const result = await testDb.collection('authors').deleteOne(query);
+    return { success: result.deletedCount > 0 };
+  } catch (error) {
+    console.error('Error deleting author:', error);
+    throw new Error('Failed to delete author');
   }
 }

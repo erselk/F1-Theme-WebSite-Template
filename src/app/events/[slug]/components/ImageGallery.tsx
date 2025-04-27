@@ -24,43 +24,31 @@ export function ImageGallery({ images, title, locale }: ImageGalleryProps) {
     );
   }
 
-  return (
-    <div className="image-gallery">
-      {/* Main Image */}
-      <div className="relative w-full h-64 sm:h-80 mb-4 overflow-hidden rounded-lg">
-        {activeImage && (
-          <div 
-            className="w-full h-full cursor-pointer"
-            onClick={() => setLightboxOpen(true)}
-          >
-            <Image
-              src={activeImage}
-              alt={title}
-              className="object-cover rounded-lg transition-transform hover:scale-105"
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              quality={85}
-            />
-          </div>
-        )}
-      </div>
+  const openLightbox = (index: number) => {
+    setActiveImage(images[index]);
+    setLightboxOpen(true);
+  };
 
-      {/* Thumbnails */}
-      <div className="grid grid-cols-4 gap-2">
-        {images.slice(0, 8).map((img, index) => (
+  return (
+    <div>
+      {/* Thumbnail grid */}
+      <div className="grid grid-cols-2 gap-2">
+        {images.map((image, index) => (
           <div 
             key={index} 
-            className={`relative h-16 sm:h-20 cursor-pointer rounded-md overflow-hidden 
-              ${activeImage === img ? 'ring-2 ring-electric-blue' : 'opacity-70 hover:opacity-100'}`}
-            onClick={() => setActiveImage(img)}
+            className={`relative overflow-hidden rounded-lg cursor-pointer ${index >= 4 ? 'hidden md:block' : ''}`}
+            onClick={() => openLightbox(index)}
           >
-            <Image
-              src={img}
-              alt={`${title} - ${index + 1}`}
-              className="object-cover"
-              fill
-              sizes="(max-width: 768px) 25vw, 10vw"
-            />
+            <div className="aspect-w-1 aspect-h-1 w-full">
+              <Image 
+                src={image} 
+                alt={`${title} - ${index + 1}`}
+                className="object-cover transition-transform hover:scale-110 duration-300"
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                unoptimized={image.startsWith('/api/files/')}
+              />
+            </div>
           </div>
         ))}
       </div>

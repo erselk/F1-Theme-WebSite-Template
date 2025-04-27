@@ -112,6 +112,19 @@
   --foreground: var(--light-grey);
   --primary: var(--f1-red-bright);
   --primary-hover: var(--neon-red);
+  
+  /* Admin panel select düzeltmeleri */
+  select option {
+    background-color: var(--carbon-grey) !important;
+    color: var(--white) !important;
+  }
+}
+
+/* Admin panel menü stilleri - tema bağımsız genel stil */
+select {
+  appearance: auto;
+  -moz-appearance: none;
+  -webkit-appearance: menulist;
 }
 
 @theme inline {

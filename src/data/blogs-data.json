@@ -2,12 +2,12 @@
   {
     "id": "1",
     "slug": "f1-2025-season-started",
-    "coverImage": "/images/blog/about1.jpg",
-    "thumbnailImage": "/images/blog/about1.jpg",
+    "coverImage": "/images/about1.jpg",
+    "thumbnailImage": "/images/about1.jpg",
     "publishDate": "2025-03-15T00:00:00.000Z",
     "author": {
       "name": "Ahmet Yılmaz",
-      "avatar": "/images/blog/avatar.webp"
+      "avatar": "/images/avatar.webp"
     },
     "title": {
       "tr": "🏎️ F1 2025 Sezonu Başladı: Yeni Araçlar ve Yeni Kurallar",
@@ -26,12 +26,12 @@
   {
     "id": "2",
     "slug": "whats-changed-in-esports-2025",
-    "coverImage": "/images/blog/about2.jpg",
-    "thumbnailImage": "/images/blog/about2.jpg",
+    "coverImage": "/images/about2.jpg",
+    "thumbnailImage": "/images/about2.jpg",
     "publishDate": "2025-04-10T00:00:00.000Z",
     "author": {
       "name": "Ece Demir",
-      "avatar": "/images/blog/avatar.webp"
+      "avatar": "/images/avatar.webp"
     },
     "title": {
       "tr": "🎮 2025 E-spor Arenasında Neler Değişti?",
