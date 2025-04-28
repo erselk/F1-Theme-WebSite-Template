@@ -22,9 +22,10 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  // Properly extract the slug parameter
-  const { slug } = params;
-  const event = await getEventBySlug(slug);
+  // In Next.js App Router, params object is already resolved and doesn't need to be awaited
+  // Accessing slug property directly is safe, but we'll use a separate variable for clarity
+  const slugValue = params.slug;
+  const event = await getEventBySlug(slugValue);
 
   if (!event) {
     return {
@@ -46,9 +47,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 // Server component main page function
 export default async function EventDetailPage({ params }: Props) {
-  // Properly extract the slug parameter
-  const { slug } = params;
-  const event = await getEventBySlug(slug);
+  // In Next.js App Router, params object is already resolved and doesn't need to be awaited
+  // Accessing slug property directly is safe, but we'll use a separate variable for clarity
+  const slugValue = params.slug;
+  const event = await getEventBySlug(slugValue);
   const locale = await getLocaleFromHeaders();
 
   if (!event) {
@@ -59,7 +61,7 @@ export default async function EventDetailPage({ params }: Props) {
   const eventStatus = getEventStatus(new Date(event.date));
   
   // Sayfa URL'si
-  const pageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://padokclub.com'}/events/${slug}`;
+  const pageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://padokclub.com'}/events/${slugValue}`;
 
   // We'll pass the data to a client component for theme handling
   return <EventDetailContent event={event} eventStatus={eventStatus} pageUrl={pageUrl} locale={locale} />;

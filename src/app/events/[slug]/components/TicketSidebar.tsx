@@ -273,7 +273,59 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
     }
   };
   
-  // Modify to skip step 3 (payment details) and go directly to payment
+  // Form states for card details
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardHolderName, setCardHolderName] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCVC, setCardCVC] = useState('');
+
+  // State for tracking payment step: 1: Details, 2: Card Info, 3: Processing
+  const [paymentStep, setPaymentStep] = useState(1);
+  
+  // Function to format card number with spaces
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const matches = v.match(/\d{4,16}/g);
+    const match = matches && matches[0] || '';
+    const parts = [];
+    
+    for (let i = 0; i < match.length; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+    
+    if (parts.length) {
+      return parts.join(' ');
+    } else {
+      return value;
+    }
+  };
+  
+  // Function to format expiry date (MM/YY)
+  const formatExpiryDate = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    
+    if (v.length >= 3) {
+      return `${v.substring(0, 2)}/${v.substring(2, 4)}`;
+    }
+    return value;
+  };
+  
+  // Card validation functions
+  const isCardNumberValid = () => cardNumber.replace(/\s+/g, '').length >= 13;
+  const isCardHolderNameValid = () => cardHolderName.trim().length > 3;
+  const isExpiryValid = () => {
+    const expiry = cardExpiry.split('/');
+    return expiry.length === 2 && expiry[0].length === 2 && expiry[1].length === 2;
+  };
+  const isCVCValid = () => cardCVC.length === 3 || cardCVC.length === 4;
+  
+  const isCardFormValid = () => 
+    isCardNumberValid() && 
+    isCardHolderNameValid() && 
+    isExpiryValid() && 
+    isCVCValid();
+  
+  // Modify the handleSubmit function to include card step
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -284,40 +336,177 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
     if (currentStep === 1) {
       // Move to personal details step
       setCurrentStep(2);
+      setPaymentStep(1); // Reset payment step when going back to step 2
     } else if (currentStep === 2) {
-      // Process payment directly with iyzico
-      redirectToIyzicoPayment();
+      if (paymentStep === 1) {
+        // Move to card details
+        setPaymentStep(2);
+      } else if (paymentStep === 2) {
+        // Validate card form
+        if (!isCardFormValid()) {
+          setFormErrors({
+            ...formErrors,
+            card: locale === 'tr' 
+              ? 'Lütfen tüm kart bilgilerini doğru şekilde giriniz.' 
+              : 'Please enter all card information correctly.'
+          });
+          return;
+        }
+        // Move to processing payment
+        setPaymentStep(3);
+        
+        // Process payment with Garanti
+        redirectToGarantiPayment();
+      }
     }
   };
 
-  // New function to redirect to iyzico payment
-  const redirectToIyzicoPayment = async () => {
+  // Function to redirect to Garanti Payment
+  const redirectToGarantiPayment = async () => {
     setIsProcessing(true);
     
     try {
-      // In a real implementation, this would call your backend API to create a payment session
-      // Mock a successful API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Create a unique order ID (using UUID pattern)
+      const orderId = crypto.randomUUID ? crypto.randomUUID() : `order-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
       
-      // This is where you'd redirect to iyzico or show their embedded payment form
-      alert(locale === 'tr' 
-        ? 'Bu işlem normalde sizi iyzico güvenli ödeme sayfasına yönlendirecektir.' 
-        : 'This would normally redirect you to the iyzico secure payment page.' 
-      );
+      // Current date in UTC format for txntimestamp
+      const now = new Date();
+      const txnTimestamp = now.toISOString().replace(/\.\d{3}Z$/, 'Z');
       
-      // For demo purposes, simulate successful payment
-      setCurrentStep(4); // Success step
-      setShowIterateOption(true); // Show the iterate option after successful payment
+      // Calculate total amount in cents (no decimal point)
+      // Garanti expects amount in Kr (kuruş), so multiply by 100
+      const txnAmountInCents = Math.round(totalPrice * 100);
+      
+      // Prepare data for hash calculation
+      const terminalId = "30691297";
+      const merchantId = "7000679";
+      const terminalUserId = "PROVAUT";
+      // const terminalUserId = "GARANTI";
+      const terminalProvUserId = "PROVAUT";
+      const storeKey = "12345678";
+      const successUrl = `${window.location.origin}/api/payment/success`;
+      const errorUrl = `${window.location.origin}/api/payment/error`;
+      
+      // Extract expiry month and year from the card expiry input
+      const expiry = cardExpiry.split('/');
+      const expiryMonth = expiry[0];
+      const expiryYear = expiry[1];
+      
+      // Create a form and append all required fields
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine';
+      form.style.display = 'none';
+      
+      // Add all required fields to the form
+      const formFields = {
+        mode: 'TEST', // TEST for test environment, PROD for production
+        apiversion: '512',
+        secure3dsecuritylevel: '3D',
+        terminalprovuserid: terminalProvUserId,
+        terminaluserid: terminalUserId,
+        terminalmerchantid: merchantId,
+        terminalid: terminalId,
+        orderid: orderId,
+        successurl: successUrl,
+        errorurl: errorUrl,
+        // customeremailaddress: email,
+        customeripaddress: '46.196.122.132', // This would normally be filled from server-side
+        // companyname: 'PADOK',
+        // lang: locale === 'tr' ? 'tr' : 'en',
+        // txntimestamp: txnTimestamp,
+        // refreshtime: '5',
+        txnamount: txnAmountInCents.toString(),
+        txntype: 'sales',
+        txncurrencycode: '949', // TRY (Turkish Lira)
+        txninstallmentcount: '', // No installment
+        
+        // Card information
+        // cardholdername: cardHolderName,
+        cardnumber: cardNumber.replace(/\s+/g, ''), // Remove spaces
+        cardexpiredatemonth: expiryMonth,
+        cardexpiredateyear: expiryYear,
+        cardcvv2: cardCVC,
+      };
+      
+      // Add all form fields
+      Object.entries(formFields).forEach(([key, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+      });
+      
+      // In a real implementation, the secure hash should be calculated on the server
+      // because the storeKey is sensitive information.
+      // Here we'll make a call to our backend API to get the hash
+      
+      const paymentData = {
+        orderId,
+        amount: txnAmountInCents,
+        fullName,
+        email,
+        phone,
+        eventId: event.id,
+        eventTitle: event.title[locale],
+        tickets: selectedTickets,
+        customerIp: '', // Would be set by the server
+        locale,
+      };
+      
+      // Call our backend API to initiate payment and get the secure hash
+      const response = await fetch('/api/payment/initiate-garanti', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to initiate payment');
+      } else {
+        console.log('Payment initiation response:', response);
+      }
+      
+      const paymentSession = await response.json();
+      
+      if (paymentSession.secure3dhash) {
+        // Add the secure hash from the server
+        const hashInput = document.createElement('input');
+        hashInput.type = 'hidden';
+        hashInput.name = 'secure3dhash';
+        hashInput.value = paymentSession.secure3dhash;
+        form.appendChild(hashInput);
+        
+        // Append the form to body
+        document.body.appendChild(form);
+
+        // First, log the payment session for debugging
+        console.log('Payment session:', paymentSession);
+
+        // Then, log the form data for debugging
+        const formData = new FormData(form);
+        for (const [key, value] of formData.entries()) {
+          console.log(`${key}: ${value}`);
+        }
+        
+        // Submit the form to redirect to Garanti 3D payment page
+        form.submit();
+      } else {
+        throw new Error('Invalid payment session');
+      }
     } catch (error) {
-      console.error('Payment redirect error:', error);
+      console.error('Payment initiation error:', error);
       setFormErrors({
         ...formErrors,
         payment: locale === 'tr' 
-          ? 'Ödeme yönlendirmesi sırasında bir hata oluştu. Lütfen tekrar deneyin.'
-          : 'An error occurred during payment redirection. Please try again.'
+          ? 'Ödeme başlatılırken bir hata oluştu. Lütfen tekrar deneyin.'
+          : 'An error occurred while initiating the payment. Please try again.'
       });
-    } finally {
       setIsProcessing(false);
+      setPaymentStep(2); // Go back to card entry
     }
   };
 
@@ -501,7 +690,10 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
             <div className="step-details space-y-3">
               {/* Heading renk düzeltmesi */}
               <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-very-dark-grey'}`}>
-                {locale === 'tr' ? 'Kişisel Bilgiler' : 'Personal Details'}
+                {paymentStep === 1 
+                  ? (locale === 'tr' ? 'Kişisel Bilgiler' : 'Personal Details')
+                  : (locale === 'tr' ? 'Kart Bilgileri' : 'Card Details')
+                }
               </h3>
               
               {reservationStartTime && (
@@ -518,52 +710,193 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                 </div>
               )}
               
-              <div className="space-y-3">
-                <div>
-                  <label htmlFor="fullName" className={`block text-xs font-medium ${textColorClass} mb-1`}>
-                    {locale === 'tr' ? 'Ad Soyad' : 'Full Name'}
-                  </label>
-                  <input
-                    type="text"
-                    id="fullName"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
-                    required
-                  />
+              {paymentStep === 1 ? (
+                // Personal Details Form
+                <div className="space-y-3">
+                  <div>
+                    <label htmlFor="fullName" className={`block text-xs font-medium ${textColorClass} mb-1`}>
+                      {locale === 'tr' ? 'Ad Soyad' : 'Full Name'}
+                    </label>
+                    <input
+                      type="text"
+                      id="fullName"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="email" className={`block text-xs font-medium ${textColorClass} mb-1`}>
+                      {locale === 'tr' ? 'E-posta' : 'Email'}
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="phone" className={`block text-xs font-medium ${textColorClass} mb-1`}>
+                      {locale === 'tr' ? 'Telefon' : 'Phone'}
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
+                      required
+                    />
+                  </div>
+                  
+                  {/* Terms acceptance checkbox */}
+                  <div className="flex items-start mt-4">
+                    <input
+                      type="checkbox"
+                      id="acceptTerms"
+                      checked={acceptTerms}
+                      onChange={(e) => setAcceptTerms(e.target.checked)}
+                      className="mt-1 mr-2"
+                      required
+                    />
+                    <label htmlFor="acceptTerms" className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                      {locale === 'tr'
+                        ? 'Ödeme yaparak, satın alma koşullarını ve gizlilik politikasını kabul etmiş oluyorum.'
+                        : 'By making payment, I agree to the purchase terms and privacy policy.' 
+                      }
+                    </label>
+                  </div>
                 </div>
-                
-                <div>
-                  <label htmlFor="email" className={`block text-xs font-medium ${textColorClass} mb-1`}>
-                    {locale === 'tr' ? 'E-posta' : 'Email'}
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
-                    required
-                  />
+              ) : (
+                // Card Details Form
+                <div className="space-y-3">
+                  <div className="mb-3">
+                    <div className="flex justify-between items-center mb-1">
+                      <label htmlFor="cardHolderName" className={`text-xs font-medium ${textColorClass}`}>
+                        {locale === 'tr' ? 'Kart Sahibinin Adı' : 'Cardholder Name'}
+                      </label>
+                    </div>
+                    <input
+                      type="text"
+                      id="cardHolderName"
+                      value={cardHolderName}
+                      onChange={(e) => setCardHolderName(e.target.value)}
+                      placeholder={locale === 'tr' ? 'Kart üzerindeki isim' : 'Name on card'}
+                      className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
+                      autoComplete="cc-name"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="mb-3">
+                    <div className="flex justify-between items-center mb-1">
+                      <label htmlFor="cardNumber" className={`text-xs font-medium ${textColorClass}`}>
+                        {locale === 'tr' ? 'Kart Numarası' : 'Card Number'}
+                      </label>
+                      <div className="flex space-x-1">
+                        <img src="/images/payment/visa.svg" alt="Visa" className="h-4" />
+                        <img src="/images/payment/mastercard.svg" alt="Mastercard" className="h-4" />
+                        <img src="/images/payment/amex.svg" alt="American Express" className="h-4" />
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      id="cardNumber"
+                      value={cardNumber}
+                      onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                      placeholder="•••• •••• •••• ••••"
+                      maxLength={19}
+                      className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
+                      autoComplete="cc-number"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <div className="w-1/2">
+                      <label htmlFor="cardExpiry" className={`block text-xs font-medium ${textColorClass} mb-1`}>
+                        {locale === 'tr' ? 'Son Kullanma Tarihi' : 'Expiration Date'}
+                      </label>
+                      <input
+                        type="text"
+                        id="cardExpiry"
+                        value={cardExpiry}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^\d]/g, '');
+                          if (value.length <= 4) {
+                            setCardExpiry(formatExpiryDate(value));
+                          }
+                        }}
+                        placeholder="MM/YY"
+                        maxLength={5}
+                        className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
+                        autoComplete="cc-exp"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="w-1/2">
+                      <div className="flex justify-between items-center mb-1">
+                        <label htmlFor="cardCVC" className={`text-xs font-medium ${textColorClass}`}>
+                          {locale === 'tr' ? 'Güvenlik Kodu' : 'CVC/CVV'}
+                        </label>
+                        <span className="text-[10px] text-gray-400">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-3 h-3 inline-block">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        id="cardCVC"
+                        value={cardCVC}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^\d]/g, '');
+                          if (value.length <= 4) {
+                            setCardCVC(value);
+                          }
+                        }}
+                        placeholder="•••"
+                        maxLength={4}
+                        className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
+                        autoComplete="cc-csc"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  {formErrors.card && (
+                    <div className="mt-2 bg-neon-red/10 border border-neon-red text-neon-red p-2 rounded-md text-xs">
+                      {formErrors.card}
+                    </div>
+                  )}
+                  
+                  <div className="text-center mt-4">
+                    <div className="flex items-center justify-center mb-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 mr-1 text-emerald-500">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-[10px] text-emerald-500 font-medium">
+                        {locale === 'tr' ? 'Güvenli Ödeme' : 'Secure Payment'}
+                      </span>
+                    </div>
+                    
+                    {/* Payment provider logos */}
+                    <div className="flex justify-center items-center space-x-2 mt-2">
+                      <img src="/images/payment/garanti-bbva-logo.png" alt="Garanti BBVA" className="h-4" />
+                    </div>
+                  </div>
                 </div>
-                
-                <div>
-                  <label htmlFor="phone" className={`block text-xs font-medium ${textColorClass} mb-1`}>
-                    {locale === 'tr' ? 'Telefon' : 'Phone'}
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
-                    required
-                  />
-                </div>
-              </div>
+              )}
               
               {/* Seat selection if required */}
-              {requiresSeatSelection && (
+              {requiresSeatSelection && paymentStep === 1 && (
                 <div className="mt-4">
                   <h4 className={`font-medium ${headingColorClass} text-xs mb-2`}>
                     {locale === 'tr' ? 'Koltuk Seçimi' : 'Seat Selection'}
@@ -576,36 +909,20 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                 </div>
               )}
 
-              {/* Terms acceptance checkbox */}
-              <div className="flex items-start mt-4">
-                <input
-                  type="checkbox"
-                  id="acceptTerms"
-                  checked={acceptTerms}
-                  onChange={(e) => setAcceptTerms(e.target.checked)}
-                  className="mt-1 mr-2"
-                  required
-                />
-                <label htmlFor="acceptTerms" className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                  {locale === 'tr'
-                    ? 'Ödeme yaparak, satın alma koşullarını ve gizlilik politikasını kabul etmiş oluyorum.'
-                    : 'By making payment, I agree to the purchase terms and privacy policy.' 
-                  }
-                </label>
-              </div>
-              
               {/* İyzico bilgisi - tek satırda */}
-              <div className="text-center mt-4">
-                <p className="whitespace-nowrap text-[10px] inline-flex items-center justify-center flex-wrap">
-                  <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>
-                    {locale === 'tr' ? 'Ödeme işleminiz ' : 'Your payment is ' }
-                  </span>
-                  <span className="font-extrabold text-[#1E64FF] mx-1">iyzico</span>
-                  <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>
-                    {locale === 'tr' ? ' tarafından güvenle gerçekleştirilmektedir' : ' securely processed'}
-                  </span>
-                </p>
-              </div>
+              {paymentStep === 1 && (
+                <div className="text-center mt-4">
+                  <p className="whitespace-nowrap text-[10px] inline-flex items-center justify-center flex-wrap">
+                    <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                      {locale === 'tr' ? 'Ödeme işleminiz ' : 'Your payment is ' }
+                    </span>
+                    <span className="font-extrabold text-[#1E64FF] mx-1">iyzico</span>
+                    <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                      {locale === 'tr' ? ' tarafından güvenle gerçekleştirilmektedir' : ' securely processed'}
+                    </span>
+                  </p>
+                </div>
+              )}
             </div>
           )}
           

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { TranslateClient } from "@azure-rest/ai-translation-text";
+// Fix the import to use the correct method from Azure SDK
+import { createClient } from "@azure-rest/ai-translation-text";
 
 // Desteklenen diller
 type SupportedLanguage = 'en' | 'tr';
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
         region: MS_TRANSLATOR_REGION
       };
       
-      const client = TranslateClient(credential);
+      const client = createClient(credential);
       
       // Çeviri işlemini gerçekleştir
       const translateResponse = await client.path("/translate").post({
