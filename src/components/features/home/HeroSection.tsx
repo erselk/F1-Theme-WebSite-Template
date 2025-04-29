@@ -2,14 +2,26 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
 import { motion, useAnimation, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useSpring, animated } from "@react-spring/web";
-import Particles from "react-particles";
-import { loadSlim } from "tsparticles-slim";
+import dynamic from "next/dynamic";
 import type { Container, Engine } from "tsparticles-engine";
 import gsap from "gsap";
+import { throttle } from "lodash";
+
+// Particles bileşenini dinamik olarak yükle
+const Particles = dynamic(() => import('react-particles'), {
+  ssr: false,
+  loading: () => <div className="absolute inset-0 z-[1] bg-black/20"></div>
+});
+
+// Dinamik olarak loadSlim'i import et
+const loadParticlesSlim = async (engine: Engine) => {
+  const { loadSlim } = await import("tsparticles-slim");
+  return loadSlim(engine);
+};
 
 type HeroSectionProps = {
   translations: {
@@ -37,7 +49,7 @@ export default function HeroSection({ translations }: HeroSectionProps) {
   
   // Particles initialization
   const particlesInit = useCallback(async (engine: Engine) => {
-    await loadSlim(engine);
+    await loadParticlesSlim(engine);
   }, []);
 
   const particlesLoaded = useCallback(async (container: Container | undefined) => {
@@ -177,9 +189,10 @@ export default function HeroSection({ translations }: HeroSectionProps) {
         });
       }
       
-      // 3D Tilt effect for the hero section
+      // 3D Tilt effect for the hero section - optimized with throttle
       if (heroRef.current) {
-        heroRef.current.addEventListener('mousemove', (e) => {
+        // Mouse hareketlerini throttle ediyoruz
+        const handleMouseMove = throttle((e: MouseEvent) => {
           const { clientX, clientY } = e;
           const { left, top, width, height } = heroRef.current!.getBoundingClientRect();
           
@@ -195,7 +208,9 @@ export default function HeroSection({ translations }: HeroSectionProps) {
             duration: 0.5,
             ease: "power2.out"
           });
-        });
+        }, 25);
+        
+        heroRef.current.addEventListener('mousemove', handleMouseMove);
         
         heroRef.current.addEventListener('mouseleave', () => {
           gsap.to(heroRef.current, {
@@ -205,6 +220,13 @@ export default function HeroSection({ translations }: HeroSectionProps) {
             ease: "power2.out"
           });
         });
+        
+        // Event listener'ları temizleme
+        return () => {
+          if (heroRef.current) {
+            heroRef.current.removeEventListener('mousemove', handleMouseMove);
+          }
+        };
       }
     }
     
@@ -216,8 +238,8 @@ export default function HeroSection({ translations }: HeroSectionProps) {
     return () => clearInterval(interval);
   }, [homeSlides.length, mounted, animationSetup]);
   
-  // Particles configuration
-  const particlesOptions = {
+  // Memoize particles configuration for better performance
+  const particlesOptions = useMemo(() => ({
     particles: {
       number: {
         value: 70,
@@ -304,7 +326,7 @@ export default function HeroSection({ translations }: HeroSectionProps) {
       }
     },
     retina_detect: true
-  };
+  }), [isDark]); // Only recreate when theme changes
   
   if (!mounted) {
     return null; // Return null on server-side to prevent hydration mismatch

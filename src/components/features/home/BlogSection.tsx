@@ -8,9 +8,15 @@ import { BlogPost } from "@/types";
 import { getAllBlogs } from "@/services/mongo-service";
 import { motion, useScroll, useTransform, AnimatePresence, useMotionValueEvent, useSpring, useAnimationControls } from "framer-motion";
 import { gsap } from "gsap";
-import Lottie from "lottie-react";
-// İçe aktaracağımız konfeti animasyonu için JSON dosyası oluşturacağız
+import dynamic from "next/dynamic";
+// İçe aktaracağımız konfeti animasyonu için JSON dosyası
 import confettiAnimation from "@/data/confetti.json";
+
+// Client-side only Lottie bileşeni
+const Lottie = dynamic(() => import("lottie-react"), {
+  ssr: false, // Server-side rendering'i devre dışı bırakıyoruz
+  loading: () => <div className="hidden"></div>
+});
 
 type BlogSectionProps = {
   translations: {

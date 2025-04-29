@@ -4,6 +4,10 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ClientLayoutWrapper from "@/components/layout/ClientLayoutWrapper";
 
+// WebVitalsReporter artık ClientLayoutWrapper içinde kullanılacak
+// ClientLayoutWrapper bir client component olduğu için dinamik import
+// veya ssr: false kullanımı orada sorun olmayacak
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

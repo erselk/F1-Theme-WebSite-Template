@@ -6,11 +6,30 @@ import { useTranslation } from 'next-i18next';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
+import { throttle } from 'lodash';
 
 const Footer = () => {
   const { t } = useTranslation('common');
   const { language, isDark, mounted } = useThemeLanguage();
   const currentYear = new Date().getFullYear();
+  
+  // Intersection observer için referans oluşturma
+  const [footerRef, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+  
+  // Performans için ek InView referansları
+  const [socialRef, socialInView] = useInView({
+    triggerOnce: true,
+    threshold: 0.2,
+  });
+  
+  const [mapRef, mapInView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
 
   // Animation variants for different elements
   const containerVariants = {
@@ -65,15 +84,13 @@ const Footer = () => {
   const [buttonHighlight, setButtonHighlight] = useState(0);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval;
     if (buttonHovered) {
       interval = setInterval(() => {
         setButtonHighlight(prev => (prev + 1) % 360);
       }, 30);
     }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    return () => interval && clearInterval(interval);
   }, [buttonHovered]);
 
   // Floating effect animation
@@ -152,6 +169,7 @@ const Footer = () => {
         `0 0 0px ${isDark ? 'rgba(255, 51, 51, 0)' : 'rgba(225, 6, 0, 0)'}`,
         `0 0 10px ${isDark ? 'rgba(255, 51, 51, 0.7)' : 'rgba(225, 6, 0, 0.7)'}`,
         `0 0 0px ${isDark ? 'rgba(255, 51, 51, 0)' : 'rgba(225, 6, 0, 0)'}`
+
       ],
       scale: [1, 1.05, 1],
       transition: {
@@ -165,12 +183,13 @@ const Footer = () => {
   // Gradient animation for the footer background
   const [gradientPosition, setGradientPosition] = useState({ x: 0, y: 0 });
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Mouse hareketi için throttle uygulanmış fonksiyon
+  const handleMouseMove = throttle((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     setGradientPosition({ x, y });
-  };
+  }, 50);
 
   const footerLinks = {
     tr: [
@@ -287,14 +306,15 @@ const Footer = () => {
 
   return (
     <motion.footer 
+      ref={footerRef}
       initial="hidden"
-      animate="visible"
+      animate={inView ? "visible" : "hidden"}
       variants={containerVariants}
       className={`${isDark ? 'bg-[#1E1E1E]' : 'bg-gray-900'} text-white relative overflow-hidden`}
       onMouseMove={handleMouseMove}
     >
-      <div 
-        className="absolute inset-0 opacity-10 pointer-events-none z-0"
+      {/* Mevcut içerik devam ediyor... */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none z-0"
         style={{
           background: `radial-gradient(circle at ${gradientPosition.x}% ${gradientPosition.y}%, ${
             isDark ? '#FF3333' : '#E10600'
@@ -303,7 +323,7 @@ const Footer = () => {
       />
       <div className="mx-auto max-w-7xl px-4 pt-12 pb-8 relative z-10">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-          <motion.div variants={itemVariants}>
+          <motion.div ref={socialRef} variants={itemVariants}>
             <motion.div className="mb-6" variants={logoVariants}>
               <Link href="/" locale={undefined} className="inline-block">
                 <motion.div
@@ -311,11 +331,11 @@ const Footer = () => {
                   whileTap={{ scale: 0.95 }}
                 >
                   <Image
-                    className="h-16 w-auto" /* Increased logo size from h-14 to h-16 */
+                    className="h-16 w-auto"
                     src="/images/logodark.png"
                     alt="PadokClub"
-                    width={160} /* Increased from 140 */
-                    height={64} /* Increased from 56 */
+                    width={160}
+                    height={64}
                   />
                 </motion.div>
               </Link>
@@ -323,6 +343,7 @@ const Footer = () => {
             <motion.div 
               className="flex space-x-4 mt-4"
               variants={linksContainerVariants}
+              animate={socialInView ? "visible" : "hidden"}
             >
               {socialLinks.map((social) => (
                 <motion.a
@@ -330,9 +351,7 @@ const Footer = () => {
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`${isDark ? 'text-gray-300 hover:text-[#FF3333]' : 'text-gray-300 hover:text-[#E10600]'} transition-all duration-300`}
-                  aria-label={social.name}
-                  variants={socialItemVariants}
+                 
                   whileHover="hover"
                 >
                   <span className="sr-only">{social.name}</span>
@@ -445,7 +464,8 @@ const Footer = () => {
                 height="100%" 
                 style={{border: 0}} 
                 allowFullScreen 
-                loading="lazy" 
+                loading="lazy"
+                fetchPriority="low"
                 referrerPolicy="no-referrer-when-downgrade"
                 title="PadokClub Location"
               />

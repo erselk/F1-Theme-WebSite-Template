@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useTheme } from 'next-themes';
 import { setCookie, getCookie } from 'cookies-next';
 
@@ -50,15 +50,31 @@ export function ThemeLanguageProvider({ children }: { children: ReactNode }) {
   // Safe getter for theme setting
   const isDark = mounted && (resolvedTheme === 'dark' || theme === 'dark');
 
-  const toggleLanguage = () => {
-    const newLanguage = language === 'tr' ? 'en' : 'tr';
-    setLanguage(newLanguage);
-    setCookie('NEXT_LOCALE', newLanguage);
-  };
+  // Memoize toggleLanguage function to prevent unnecessary recreations
+  const toggleLanguage = useMemo(() => {
+    return () => {
+      const newLanguage = language === 'tr' ? 'en' : 'tr';
+      setLanguage(newLanguage);
+      setCookie('NEXT_LOCALE', newLanguage);
+    };
+  }, [language]);
 
-  const toggleTheme = () => {
-    setTheme(isDark ? 'light' : 'dark');
-  };
+  // Memoize toggleTheme function
+  const toggleTheme = useMemo(() => {
+    return () => {
+      setTheme(isDark ? 'light' : 'dark');
+    };
+  }, [isDark, setTheme]);
+
+  // Memoize context value to prevent unnecessary renders
+  const contextValue = useMemo(() => ({
+    language,
+    setLanguage,
+    toggleLanguage,
+    isDark,
+    toggleTheme,
+    mounted
+  }), [language, isDark, toggleLanguage, toggleTheme, mounted]);
 
   // Delay content on first render to prevent server/client mismatch
   if (!mounted) {
@@ -70,16 +86,7 @@ export function ThemeLanguageProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ThemeLanguageContext.Provider
-      value={{
-        language,
-        setLanguage,
-        toggleLanguage,
-        isDark,
-        toggleTheme,
-        mounted
-      }}
-    >
+    <ThemeLanguageContext.Provider value={contextValue}>
       {children}
     </ThemeLanguageContext.Provider>
   );

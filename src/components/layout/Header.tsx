@@ -1,11 +1,19 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
+import dynamic from 'next/dynamic';
+import { debounce } from 'lodash';
+
+// Mobil menüyü dinamik olarak yükle
+const DynamicMobileMenu = dynamic(() => import('./MobileMenu'), { 
+  ssr: false,
+  loading: () => <div className="lg:hidden"></div>
+});
 
 const Header = () => {
   const pathname = usePathname();
@@ -17,7 +25,7 @@ const Header = () => {
   
   // Handle scroll event - smooth animations based on scroll position
   useEffect(() => {
-    const handleScroll = () => {
+    const debouncedHandleScroll = debounce(() => {
       const isScrolled = window.scrollY > 10;
       if (isScrolled !== scrolled) {
         setScrolled(isScrolled);
@@ -35,14 +43,15 @@ const Header = () => {
           });
         }
       }
-    };
-
-    // Initial check on mount
-    handleScroll();
+    }, 10);
     
-    window.addEventListener('scroll', handleScroll);
+    // Initial check on mount
+    debouncedHandleScroll();
+    
+    window.addEventListener('scroll', debouncedHandleScroll);
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', debouncedHandleScroll);
+      debouncedHandleScroll.cancel();
     };
   }, [scrolled, controls]);
   
@@ -163,11 +172,11 @@ const Header = () => {
           <Link href="/" className="-m-0 p-0">
             <span className="sr-only">PadokClub</span>
             <Image
-              className={`${scrolled ? 'h-10' : 'h-16'} w-auto transition-all duration-300`} // Reduced from h-20/h-32 to h-10/h-16
+              className={`${scrolled ? 'h-10' : 'h-16'} w-auto transition-all duration-300`}
               src={isDark ? '/images/logodark.png' : '/images/logolight.png'}
               alt="PadokClub"
-              width={240} // Reduced from 480
-              height={65} // Reduced from 130
+              width={150} // Reduced from 240
+              height={45} // Reduced from 65
               priority
             />
           </Link>
@@ -238,70 +247,67 @@ const Header = () => {
           </div>
         </motion.div>
         
-        {/* Book Now button - Between Navigation and Theme/Lang Buttons */}
+        {/* Grouped right side elements for better performance */}
         <motion.div 
-          className="hidden lg:flex lg:items-center mx-1 lg:mx-2"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5, duration: 0.3 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Link
-            href="/book"
-            className={`text-base font-semibold rounded-md px-4 py-2.5 
-              ${isDark 
-                ? 'bg-[#FF0000] text-white hover:bg-[#FF3333]' 
-                : 'bg-[#E10600] text-white hover:bg-[#E10600]/90'
-              } shadow-sm font-['Titillium Web']`}
-          >
-            {bookText}
-          </Link>
-        </motion.div>
-        
-        {/* Theme and Language Switchers - Fixed Right */}
-        <motion.div 
-          className="hidden lg:flex lg:items-center lg:gap-x-3"
+          className="hidden lg:flex lg:items-center lg:gap-x-4"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.4 }}
         >
-          {/* Theme Switcher */}
-          <motion.button
-            onClick={toggleTheme}
-            className={`p-1.5 rounded-full ${isDark ? 'text-gray-200 hover:text-white' : 'text-gray-700 hover:text-gray-900'}`}
-            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            whileHover={{ scale: 1.1, rotate: 15 }}
-            whileTap={{ scale: 0.9 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          {/* Book Now button */}
+          <motion.div 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            {isDark ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414-1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-              </svg>
-            )}
-          </motion.button>
+            <Link
+              href="/book"
+              className={`flex-1 text-center block rounded-lg px-5 py-2 text-base font-semibold leading-7 text-white ${
+                isDark ? 'bg-[#FF0000] hover:bg-[#FF3333]' : 'bg-[#E10600] hover:bg-[#E10600]/90'
+              } font-['Titillium Web']`}
+            >
+              {bookText}
+            </Link>
+          </motion.div>
           
-          {/* Language Switcher */}
-          <motion.button
-            type="button"
-            onClick={toggleLanguage}
-            className={`flex items-center justify-center px-2.5 py-1 text-base font-semibold 
-              ${isDark 
-                ? 'text-gray-100 hover:text-white' 
-                : 'text-gray-900 hover:text-black'
-              } font-['Inter']`}
-            aria-label="Toggle language"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          >
-            {language === 'tr' ? 'TR' : 'EN'}
-          </motion.button>
+          {/* Theme and Language Switchers */}
+          <div className="flex items-center lg:gap-x-3">
+            {/* Theme Switcher */}
+            <motion.button
+              onClick={toggleTheme}
+              className={`p-1.5 rounded-full ${isDark ? 'text-gray-200 hover:text-white' : 'text-gray-700 hover:text-gray-900'}`}
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              whileHover={{ scale: 1.1, rotate: 15 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            >
+              {isDark ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414-1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+              )}
+            </motion.button>
+            
+            {/* Language Switcher */}
+            <motion.button
+              type="button"
+              onClick={toggleLanguage}
+              className={`flex items-center justify-center px-2.5 py-1 text-base font-semibold 
+                ${isDark 
+                  ? 'text-gray-100 hover:text-white' 
+                  : 'text-gray-900 hover:text-black'
+                } font-['Inter']`}
+              aria-label="Toggle language"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            >
+              {language === 'tr' ? 'TR' : 'EN'}
+            </motion.button>
+          </div>
         </motion.div>
       </nav>
       
