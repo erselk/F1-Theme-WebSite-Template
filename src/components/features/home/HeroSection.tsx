@@ -7,7 +7,7 @@ import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
 import { motion, useAnimation, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useSpring, animated } from "@react-spring/web";
 import dynamic from "next/dynamic";
-import type { Container, Engine } from "tsparticles-engine";
+import type { Container, Engine } from "react-particles";
 import gsap from "gsap";
 import { throttle } from "lodash";
 
@@ -19,7 +19,7 @@ const Particles = dynamic(() => import('react-particles'), {
 
 // Dinamik olarak loadSlim'i import et
 const loadParticlesSlim = async (engine: Engine) => {
-  const { loadSlim } = await import("tsparticles-slim");
+  const { loadSlim } = await import("react-particles");
   return loadSlim(engine);
 };
 
@@ -343,7 +343,7 @@ export default function HeroSection({ translations }: HeroSectionProps) {
         <div className="relative w-full h-full overflow-hidden">
           <Particles
             key={animationKey}
-            id="tsparticles"
+            id="react-particles"
             init={particlesInit}
             loaded={particlesLoaded}
             options={{
