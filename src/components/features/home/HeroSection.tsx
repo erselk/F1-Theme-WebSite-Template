@@ -7,7 +7,7 @@ import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
 import { motion, useAnimation, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useSpring, animated } from "@react-spring/web";
 import dynamic from "next/dynamic";
-import type { Container, Engine } from "react-particles";
+import type { Container, Engine } from "tsparticles-engine";
 import gsap from "gsap";
 import { throttle } from "lodash";
 
@@ -17,10 +17,14 @@ const Particles = dynamic(() => import('react-particles'), {
   loading: () => <div className="absolute inset-0 z-[1] bg-black/20"></div>
 });
 
-// Dinamik olarak loadSlim'i import et
+// Dinamik olarak loadSlim fonksiyonunu import et
 const loadParticlesSlim = async (engine: Engine) => {
-  const { loadSlim } = await import("react-particles");
-  return loadSlim(engine);
+  try {
+    const { loadSlim } = await import("tsparticles-slim");
+    return await loadSlim(engine);
+  } catch (error) {
+    console.error("Error loading particles:", error);
+  }
 };
 
 type HeroSectionProps = {
@@ -49,11 +53,13 @@ export default function HeroSection({ translations }: HeroSectionProps) {
   
   // Particles initialization
   const particlesInit = useCallback(async (engine: Engine) => {
+    console.log(engine);
+    // Initialize the tsParticles instance (engine) using our dynamic import
     await loadParticlesSlim(engine);
   }, []);
 
   const particlesLoaded = useCallback(async (container: Container | undefined) => {
-    // Optional callback
+    await console.log(container);
   }, []);
   
   // Home slides from the home folder (about1.jpg to about19.jpg)
@@ -288,10 +294,10 @@ export default function HeroSection({ translations }: HeroSectionProps) {
       move: {
         enable: true,
         speed: 2,
-        direction: "none",
+        direction: "none" as const, // Use const assertion to fix type error
         random: true,
         straight: false,
-        out_mode: "out",
+        out_mode: "out" as const,
         bounce: false,
         attract: {
           enable: true,
@@ -301,15 +307,15 @@ export default function HeroSection({ translations }: HeroSectionProps) {
       }
     },
     interactivity: {
-      detect_on: "canvas",
+      detect_on: "canvas" as const, // Use const assertion to fix type error
       events: {
         onhover: {
           enable: true,
-          mode: "grab"
+          mode: "grab" as const // Fix type error
         },
         onclick: {
           enable: true,
-          mode: "push"
+          mode: "push" as const // Fix type error
         },
         resize: true
       },
@@ -476,15 +482,22 @@ export default function HeroSection({ translations }: HeroSectionProps) {
             {translations.heroTitle}
           </motion.h1>
           
-          <animated.p 
+          {/* Replace animated components with motion components */}
+          <motion.p 
             ref={subtitleRef}
-            style={subtitleSpring} 
-            className="text-lg md:text-xl max-w-2xl mb-8 opacity-100"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.0, duration: 0.8 }}
+            className="text-lg md:text-xl max-w-2xl mb-8"
           >
             {translations.heroSubtitle}
-          </animated.p>
+          </motion.p>
           
-          <animated.div style={ctaSpring}>
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.5, duration: 0.8 }}
+          >
             <Link
               ref={ctaRef}
               href="/book"
@@ -536,7 +549,7 @@ export default function HeroSection({ translations }: HeroSectionProps) {
                 </motion.svg>
               </motion.span>
             </Link>
-          </animated.div>
+          </motion.div>
         </motion.div>
       </div>
       

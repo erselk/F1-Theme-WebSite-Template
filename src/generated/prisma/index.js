@@ -223,7 +223,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "D:\\padokclub\\PadokClub-Website\\src\\generated\\prisma",
+      "value": "E:\\padokclub\\src\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -237,7 +237,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "D:\\padokclub\\PadokClub-Website\\prisma\\schema.prisma",
+    "sourceFilePath": "E:\\padokclub\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

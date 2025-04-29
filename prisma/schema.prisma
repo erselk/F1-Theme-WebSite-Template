@@ -3,7 +3,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -58,7 +57,7 @@ model Event {
   description Json                   // {tr: String, en: String}
   tickets     Json[]                 // [{id: String, name: {tr: String, en: String}, price: Float, description: {tr: String, en: String}}]
   rules       Json?                  // {tr: String[], en: String[]}
-  gallery     String[]
+  gallery     String[]  
   comments    Json[]                 // [{id: String, userId: String, text: String, createdAt: DateTime}]
   status      String?                // 'today', 'tomorrow', 'this-week', 'upcoming', 'past'
   createdAt   DateTime               @default(now())

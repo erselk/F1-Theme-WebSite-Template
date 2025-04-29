@@ -38,12 +38,12 @@ importers:
       '@stripe/stripe-js':
         specifier: ^7.2.0
         version: 7.2.0
-      '@tsparticles/react':
-        specifier: ^3.0.0
-        version: 3.0.0(@tsparticles/engine@3.8.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@types/file-saver':
         specifier: ^2.0.7
         version: 2.0.7
+      '@types/lodash':
+        specifier: ^4.17.16
+        version: 4.17.16
       '@types/react-datepicker':
         specifier: ^7.0.0
         version: 7.0.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -173,9 +173,6 @@ importers:
       react-particles:
         specifier: ^2.12.2
         version: 2.12.2(react@19.1.0)
-      react-tsparticles:
-        specifier: ^2.12.2
-        version: 2.12.2(react@19.1.0)
       sass:
         specifier: ^1.87.0
         version: 1.87.0
@@ -200,9 +197,6 @@ importers:
       tsparticles:
         specifier: ^3.8.1
         version: 3.8.1
-      tsparticles-engine:
-        specifier: ^2.12.0
-        version: 2.12.0
       tsparticles-slim:
         specifier: ^2.12.0
         version: 2.12.0
@@ -1182,13 +1176,6 @@ packages:
   '@tsparticles/plugin-rgb-color@3.8.1':
     resolution: {integrity: sha512-xNLqnaFUYjU+7dCHQXjZdM4UojUAVorPVmXlYmkh1xmujLljEaFTwCg1UJVlNq+fXENIFkeaf3/XT0U/q0ZBTA==}
 
-  '@tsparticles/react@3.0.0':
-    resolution: {integrity: sha512-hjGEtTT1cwv6BcjL+GcVgH++KYs52bIuQGW3PWv7z3tMa8g0bd6RI/vWSLj7p//NZ3uTjEIeilYIUPBh7Jfq/Q==}
-    peerDependencies:
-      '@tsparticles/engine': ^3.0.2
-      react: '>=16.8.0'
-      react-dom: '>=16.8.0'
-
   '@tsparticles/shape-circle@3.8.1':
     resolution: {integrity: sha512-dM/f+qcpd8/KfviuVuKiTS8KLDE/T7xxHK7EI2S49yPW6yrJJBXdL7T4N9/n/6PF+Wslcl+kf/eTDjEAI3WjNQ==}
 
@@ -1299,6 +1286,9 @@ packages:
 
   '@types/keyv@3.1.4':
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
+
+  '@types/lodash@4.17.16':
+    resolution: {integrity: sha512-HX7Em5NYQAXKW+1T+FiuG27NGwzJfCX3s1GjOa7ujxZa52kjJLOr4FUxT+giF6Tgxv1e+/czV/iTtBw27WTU9g==}
 
   '@types/mapbox__point-geometry@0.1.4':
     resolution: {integrity: sha512-mUWlSxAmYLfwnRBmgYV86tgYmMIICX4kza8YnE/eIlywGe2XoOxlpVnXWwir92xRLjwyarqwpu2EJKD2pk0IUA==}
@@ -3733,12 +3723,6 @@ packages:
       '@types/react':
         optional: true
 
-  react-tsparticles@2.12.2:
-    resolution: {integrity: sha512-/nrEbyL8UROXKIMXe+f+LZN2ckvkwV2Qa+GGe/H26oEIc+wq/ybSG9REDwQiSt2OaDQGu0MwmA4BKmkL6wAWcA==}
-    deprecated: '@tsparticles/react is the new version, please use that'
-    peerDependencies:
-      react: '>=16'
-
   react-use-measure@2.1.7:
     resolution: {integrity: sha512-KrvcAo13I/60HpwGO5jpW7E9DfusKyLPLvuHlUyP5zqnmAPhNc6qTRjUQrdTADl0lpPpDVU2/Gg51UlOGHXbdg==}
     peerDependencies:
@@ -5586,12 +5570,6 @@ snapshots:
     dependencies:
       '@tsparticles/engine': 3.8.1
 
-  '@tsparticles/react@3.0.0(@tsparticles/engine@3.8.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
-    dependencies:
-      '@tsparticles/engine': 3.8.1
-      react: 19.1.0
-      react-dom: 19.1.0(react@19.1.0)
-
   '@tsparticles/shape-circle@3.8.1':
     dependencies:
       '@tsparticles/engine': 3.8.1
@@ -5753,6 +5731,8 @@ snapshots:
   '@types/keyv@3.1.4':
     dependencies:
       '@types/node': 20.17.32
+
+  '@types/lodash@4.17.16': {}
 
   '@types/mapbox__point-geometry@0.1.4': {}
 
@@ -8417,11 +8397,6 @@ snapshots:
       '@types/react': 19.1.2
     transitivePeerDependencies:
       - '@types/react-dom'
-
-  react-tsparticles@2.12.2(react@19.1.0):
-    dependencies:
-      react: 19.1.0
-      tsparticles-engine: 2.12.0
 
   react-use-measure@2.1.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
