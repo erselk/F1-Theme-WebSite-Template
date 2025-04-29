@@ -2,8 +2,12 @@ onlyBuiltDependencies:
   - '@parcel/watcher'
   - '@prisma/client'
   - '@prisma/engines'
+  - '@tsparticles/engine'
   - core-js
   - electron
   - esbuild
   - prisma
+  - react-particles
+  - react-tsparticles
   - sharp
+  - tsparticles-engine

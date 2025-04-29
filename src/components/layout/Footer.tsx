@@ -4,11 +4,173 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslation } from 'next-i18next';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 
 const Footer = () => {
   const { t } = useTranslation('common');
   const { language, isDark, mounted } = useThemeLanguage();
   const currentYear = new Date().getFullYear();
+
+  // Animation variants for different elements
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.3
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { type: 'spring', stiffness: 100 }
+    }
+  };
+
+  const socialItemVariants = {
+    hidden: { scale: 0, opacity: 0 },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      transition: { type: 'spring', stiffness: 200, damping: 10 }
+    },
+    hover: { 
+      scale: 1.2, 
+      rotate: [0, -10, 10, -10, 0],
+      transition: { duration: 0.3 }
+    }
+  };
+
+  const logoVariants = {
+    hidden: { opacity: 0, x: -50 },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      transition: { 
+        type: 'spring',
+        stiffness: 100,
+        duration: 0.8
+      }
+    }
+  };
+
+  // Rainbow effect for button
+  const [buttonHovered, setButtonHovered] = useState(false);
+  const [buttonHighlight, setButtonHighlight] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (buttonHovered) {
+      interval = setInterval(() => {
+        setButtonHighlight(prev => (prev + 1) % 360);
+      }, 30);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [buttonHovered]);
+
+  // Floating effect animation
+  const floatingVariants = {
+    floating: {
+      y: [0, -10, 0],
+      transition: {
+        duration: 3,
+        repeat: Infinity,
+        repeatType: "reverse" as const
+      }
+    }
+  };
+
+  // Wave animation for the map border
+  const waveVariants = {
+    animate: {
+      boxShadow: [
+        `0 0 0px ${isDark ? '#FF3333' : '#E10600'}`,
+        `0 0 15px ${isDark ? '#FF3333' : '#E10600'}`,
+        `0 0 0px ${isDark ? '#FF3333' : '#E10600'}`
+      ],
+      transition: {
+        duration: 2,
+        repeat: Infinity,
+        repeatType: "reverse" as const
+      }
+    }
+  };
+
+  // Links fade-in animation
+  const linksContainerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05,
+        delayChildren: 0.5
+      }
+    }
+  };
+
+  const linkItemVariants = {
+    hidden: { x: -20, opacity: 0 },
+    visible: {
+      x: 0,
+      opacity: 1,
+      transition: { type: 'spring', stiffness: 100 }
+    },
+    hover: { 
+      x: 5, 
+      color: isDark ? '#FF3333' : '#E10600',
+      transition: { duration: 0.2 }
+    }
+  };
+
+  // Header animations for titles - more eye-catching with color pulsing and background effects
+  const headerVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { 
+        type: 'spring', 
+        stiffness: 300,
+        damping: 10,
+      }
+    },
+    animate: {
+      color: [
+        isDark ? '#FFFFFF' : '#FFFFFF',
+        isDark ? '#FF3333' : '#E10600',
+        isDark ? '#FFFFFF' : '#FFFFFF'
+      ],
+      textShadow: [
+        `0 0 0px ${isDark ? 'rgba(255, 51, 51, 0)' : 'rgba(225, 6, 0, 0)'}`,
+        `0 0 10px ${isDark ? 'rgba(255, 51, 51, 0.7)' : 'rgba(225, 6, 0, 0.7)'}`,
+        `0 0 0px ${isDark ? 'rgba(255, 51, 51, 0)' : 'rgba(225, 6, 0, 0)'}`
+      ],
+      scale: [1, 1.05, 1],
+      transition: {
+        duration: 2.5,
+        repeat: Infinity,
+        repeatType: "reverse" as const
+      }
+    }
+  };
+
+  // Gradient animation for the footer background
+  const [gradientPosition, setGradientPosition] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setGradientPosition({ x, y });
+  };
 
   const footerLinks = {
     tr: [
@@ -94,130 +256,245 @@ const Footer = () => {
     );
   }
 
+  // Book Now button component to reuse
+  const BookNowButton = () => (
+    <motion.div
+      whileHover={() => setButtonHovered(true)}
+      onHoverEnd={() => setButtonHovered(false)}
+    >
+      <Link 
+        href="/book" 
+        className={`text-sm px-4 py-2 rounded-md font-['Titillium Web'] font-semibold relative overflow-hidden group`}
+        style={{
+          background: buttonHovered 
+            ? `linear-gradient(${buttonHighlight}deg, ${isDark ? '#FF0000, #FF5555' : '#E10600, #FF3333'})` 
+            : isDark ? '#FF0000' : '#E10600',
+          color: 'white',
+          transition: 'all 0.3s ease',
+          boxShadow: buttonHovered ? `0 0 15px ${isDark ? '#FF0000' : '#E10600'}` : 'none'
+        }}
+      >
+        <motion.span
+          initial={{ width: '0%' }}
+          animate={{ width: buttonHovered ? '200%' : '0%' }}
+          transition={{ duration: 0.5 }}
+          className="absolute top-0 left-[-50%] h-full bg-white/30 transform rotate-45 z-0"
+        />
+        <span className="relative z-10">{language === 'tr' ? 'Rezervasyon Yap' : 'Book Now'}</span>
+      </Link>
+    </motion.div>
+  );
+
   return (
-    <footer className={`${isDark ? 'bg-[#1E1E1E] text-white' : 'bg-gray-900 text-white'}`}>
-      <div className="mx-auto max-w-7xl px-4 pt-12 pb-8">
+    <motion.footer 
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className={`${isDark ? 'bg-[#1E1E1E]' : 'bg-gray-900'} text-white relative overflow-hidden`}
+      onMouseMove={handleMouseMove}
+    >
+      <div 
+        className="absolute inset-0 opacity-10 pointer-events-none z-0"
+        style={{
+          background: `radial-gradient(circle at ${gradientPosition.x}% ${gradientPosition.y}%, ${
+            isDark ? '#FF3333' : '#E10600'
+          } 0%, transparent 40%)`
+        }}
+      />
+      <div className="mx-auto max-w-7xl px-4 pt-12 pb-8 relative z-10">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <div className="mb-6">
+          <motion.div variants={itemVariants}>
+            <motion.div className="mb-6" variants={logoVariants}>
               <Link href="/" locale={undefined} className="inline-block">
-                <Image
-                  className="h-8 w-auto"
-                  src="/images/logodark.png"
-                  alt="PadokClub"
-                  width={80}
-                  height={32}
-                />
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Image
+                    className="h-16 w-auto" /* Increased logo size from h-14 to h-16 */
+                    src="/images/logodark.png"
+                    alt="PadokClub"
+                    width={160} /* Increased from 140 */
+                    height={64} /* Increased from 56 */
+                  />
+                </motion.div>
               </Link>
-            </div>
-            <div className="flex space-x-4 mt-4">
+            </motion.div>
+            <motion.div 
+              className="flex space-x-4 mt-4"
+              variants={linksContainerVariants}
+            >
               {socialLinks.map((social) => (
-                <a
+                <motion.a
                   key={social.name}
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`${isDark ? 'text-gray-300 hover:text-[#FF3333]' : 'text-gray-300 hover:text-[#E10600]'}`}
+                  className={`${isDark ? 'text-gray-300 hover:text-[#FF3333]' : 'text-gray-300 hover:text-[#E10600]'} transition-all duration-300`}
                   aria-label={social.name}
+                  variants={socialItemVariants}
+                  whileHover="hover"
                 >
                   <span className="sr-only">{social.name}</span>
                   {social.icon}
-                </a>
+                </motion.a>
               ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="text-sm font-semibold font-['Titillium Web'] uppercase tracking-wide mb-4">
-                {language === 'tr' ? 'Bağlantılar' : 'LINKS'}
-              </h3>
-              <ul className="space-y-2">
+            </motion.div>
+          </motion.div>
+          
+          <motion.div variants={itemVariants}>
+            <motion.h3 
+              className="text-sm font-semibold font-['Titillium Web'] uppercase tracking-wide mb-4"
+              variants={headerVariants}
+              animate="animate"
+            >
+              {language === 'tr' ? 'Bağlantılar' : 'LINKS'}
+            </motion.h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <motion.ul 
+                className="space-y-2"
+                variants={linksContainerVariants}
+              >
                 {footerLinks[language as 'tr' | 'en'].slice(0, 4).map((link) => (
-                  <li key={link.name}>
+                  <motion.li key={link.name} variants={linkItemVariants} whileHover="hover">
                     <Link 
                       href={link.href}
                       locale={link.useLocale}
-                      className={`text-sm ${isDark ? 'text-gray-300 hover:text-[#FF3333]' : 'text-gray-300 hover:text-[#E10600]'}`}
+                      className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-300'} transition-all duration-300 inline-block`}
                     >
                       {link.name}
                     </Link>
-                  </li>
+                  </motion.li>
                 ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold font-['Titillium Web'] uppercase tracking-wide mb-4 opacity-0">
-                {language === 'tr' ? 'Bağlantılar' : 'Links'}
-              </h3>
-              <ul className="space-y-2">
+              </motion.ul>
+              
+              <motion.ul 
+                className="space-y-2"
+                variants={linksContainerVariants}
+              >
                 {footerLinks[language as 'tr' | 'en'].slice(4).map((link) => (
-                  <li key={link.name}>
+                  <motion.li key={link.name} variants={linkItemVariants} whileHover="hover">
                     <Link 
                       href={link.href}
                       locale={link.useLocale}
-                      className={`text-sm ${isDark ? 'text-gray-300 hover:text-[#FF3333]' : 'text-gray-300 hover:text-[#E10600]'}`}
+                      className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-300'} transition-all duration-300 inline-block`}
                     >
                       {link.name}
                     </Link>
-                  </li>
+                  </motion.li>
                 ))}
-              </ul>
+              </motion.ul>
             </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold font-['Titillium Web'] uppercase tracking-wide mb-4">
+          </motion.div>
+          
+          <motion.div variants={itemVariants}>
+            <motion.h3 
+              className="text-sm font-semibold font-['Titillium Web'] uppercase tracking-wide mb-4"
+              variants={headerVariants}
+              animate="animate"
+            >
               {locationInfo[language as 'tr' | 'en'].title}
-            </h3>
-            <address className="not-italic text-sm text-gray-300 mb-4">
+            </motion.h3>
+            <motion.address 
+              className="not-italic text-sm text-gray-300 mb-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.7 }}
+            >
               {locationInfo[language as 'tr' | 'en'].address}
-            </address>
-            <a 
+            </motion.address>
+            <motion.a 
               href="https://maps.app.goo.gl/epxeP5PZGRGeCkC88" 
               target="_blank"
               rel="noopener noreferrer"
               className={`inline-flex items-center text-sm ${
                 isDark ? 'text-[#FF3333] hover:text-[#FF6666]' : 'text-[#E10600] hover:text-[#E13330]'
               } font-['Inter']`}
+              whileHover={{ scale: 1.05, x: 5 }}
+              variants={floatingVariants}
+              animate="floating"
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <motion.svg 
+                className="w-4 h-4 mr-2" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                animate={{ rotate: [0, 15, 0, -15, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              </svg>
+              </motion.svg>
               {locationInfo[language as 'tr' | 'en'].directions}
-            </a>
-          </div>
-          <div className="w-full h-48 md:h-40 lg:h-52 rounded-lg overflow-hidden">
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3007.502893564132!2d29.0206296!3d41.0798576!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14cab7a49fe953f3%3A0x6bfe4560f584590e!2sOMEN%20CLUB%20TSYD!5e0!3m2!1str!2str!4v1745068634657!5m2!1str!2str" 
-              width="100%" 
-              height="100%" 
-              style={{border: 0}} 
-              allowFullScreen 
-              loading="lazy" 
-              referrerPolicy="no-referrer-when-downgrade"
-              title="PadokClub Location"
-            />
-          </div>
-        </div>
-        <div className="mt-12 pt-8 border-t border-gray-800">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <p className="text-xs text-gray-400 font-['Inter']">
-              &copy; {currentYear} PadokClub. {language === 'tr' ? 'Tüm Hakları Saklıdır.' : 'All Rights Reserved.'}
-            </p>
-            <Link 
-              href="/book" 
-              className={`mt-4 md:mt-0 text-sm px-4 py-2 rounded-md font-['Titillium Web'] font-semibold ${
-                isDark 
-                  ? 'bg-[#FF0000] text-white hover:bg-[#FF3333]' 
-                  : 'bg-[#E10600] text-white hover:bg-[#E10600]/90'
-              }`}
+            </motion.a>
+          </motion.div>
+          
+          <motion.div 
+            className="w-full h-48 md:h-40 lg:h-52 rounded-lg overflow-hidden relative flex flex-col"
+            variants={itemVariants}
+          >
+            <motion.div 
+              className="absolute inset-0 rounded-lg overflow-hidden z-10 h-full"
+              variants={waveVariants}
+              animate="animate"
             >
-              {language === 'tr' ? 'Rezervasyon Yap' : 'Book Now'}
-            </Link>
-          </div>
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3007.502893564132!2d29.0206296!3d41.0798576!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14cab7a49fe953f3%3A0x6bfe4560f584590e!2sOMEN%20CLUB%20TSYD!5e0!3m2!1str!2str!4v1745068634657!5m2!1str!2str" 
+                width="100%" 
+                height="100%" 
+                style={{border: 0}} 
+                allowFullScreen 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+                title="PadokClub Location"
+              />
+            </motion.div>
+            
+            {/* Book Now button for mobile only (below map) */}
+            <div className="mt-4 flex justify-center md:hidden">
+              <BookNowButton />
+            </div>
+          </motion.div>
         </div>
+        
+        <motion.div 
+          className="mt-12 pt-8 border-t border-gray-800"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7, duration: 0.5 }}
+        >
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+            <motion.p 
+              className="text-xs text-gray-400 font-['Inter']"
+              whileHover={{ scale: 1.03 }}
+            >
+              &copy; {currentYear} PadokClub. {language === 'tr' ? 'Tüm Hakları Saklıdır.' : 'All Rights Reserved.'}
+            </motion.p>
+            
+            {/* Book Now button for desktop (hidden on mobile) */}
+            <div className="hidden md:block">
+              <BookNowButton />
+            </div>
+          </div>
+        </motion.div>
       </div>
-    </footer>
+      
+      <motion.div 
+        className="absolute bottom-0 left-0 w-full h-1" 
+        style={{ 
+          background: isDark ? 'linear-gradient(90deg, #FF0000, #FF8888, #FF0000)' : 'linear-gradient(90deg, #E10600, #FF5555, #E10600)',
+        }}
+        animate={{ 
+          backgroundPosition: ['0% 0%', '100% 0%', '0% 0%'],
+        }}
+        transition={{ 
+          duration: 7, 
+          repeat: Infinity,
+          ease: "linear" 
+        }}
+      />
+    </motion.footer>
   );
 };
 
