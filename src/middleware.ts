@@ -79,9 +79,10 @@ export function middleware(request: NextRequest) {
     '/blog', 
     '/contact', 
     '/book',
+    '/payment', // Added payment path to allowed paths
     '/privacy',
     '/terms',
-    '/admin' // Added admin path to allowed paths
+    '/admin'
   ];
   
   // Check if the current path starts with any of the allowed paths

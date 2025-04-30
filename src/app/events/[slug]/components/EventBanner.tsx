@@ -15,6 +15,35 @@ interface EventBannerProps {
 export function EventBanner({ event, eventStatus, pageUrl }: EventBannerProps) {
   const { language, isDark } = useThemeLanguage();
   
+  // Helper function to check if a date is valid
+  const isValidDate = (date: any): boolean => {
+    if (!date) return false;
+    const d = new Date(date);
+    // Check if the date object is valid and not NaN
+    return !isNaN(d.getTime());
+  };
+  
+  // Format date with proper error handling
+  const formatEventDate = (dateString: string): string => {
+    try {
+      if (!isValidDate(dateString)) {
+        return language === 'tr' ? 'Tarih belirtilmedi' : 'Date not specified';
+      }
+      
+      const date = new Date(dateString);
+      return date.toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('Date formatting error:', error);
+      return language === 'tr' ? 'Geçersiz tarih' : 'Invalid date';
+    }
+  };
+  
   // Text translations for dual language support
   const translations = {
     tr: {
@@ -122,7 +151,7 @@ export function EventBanner({ event, eventStatus, pageUrl }: EventBannerProps) {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                 </svg>
-                {event.formattedDate || '15 Haziran 2025 10:00'}
+                {formatEventDate(event.date)}
               </p>
             </div>
             

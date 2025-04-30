@@ -12,15 +12,16 @@ datasource db {
 
 // Kullanıcı modeli
 model User {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  id            String           @id @default(auto()) @map("_id") @db.ObjectId
   name          String
-  email         String    @unique
+  email         String           @unique
   passwordHash  String?
-  role          UserRole  @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  role          UserRole         @default(USER)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
   bookings      Booking[]
   payments      Payment[]
+  ticketPurchases TicketPurchase[]
 }
 
 enum UserRole {
@@ -63,6 +64,7 @@ model Event {
   createdAt   DateTime               @default(now())
   updatedAt   DateTime               @updatedAt
   bookings    Booking[]
+  ticketPurchases TicketPurchase[]
 }
 
 // Blog modeli
@@ -136,4 +138,24 @@ enum PaymentStatus {
   SUCCEEDED
   FAILED
   REFUNDED
+}
+
+// Etkinlik bilet satışları modeli
+model TicketPurchase {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderId     String   @unique
+  eventId     String?  @db.ObjectId
+  event       Event?   @relation(fields: [eventId], references: [id])
+  userId      String?  @db.ObjectId
+  user        User?    @relation(fields: [userId], references: [id])
+  fullName    String
+  email       String
+  phone       String?
+  amount      Float    // Total amount in TRY (Turkish Lira)
+  tickets     Json[]   // [{id: String, name: Object, price: Float, quantity: Int}]
+  status      String   @default("COMPLETED")
+  details     Json     // Full payment details including all information
+  purchaseDate DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

@@ -59,6 +59,9 @@ export interface Event {
       tr: string;
       en: string;
     };
+    maxPerOrder?: number;
+    availableCount?: number;
+    variant?: 'standard' | 'premium' | 'vip';
   }[]; 
   comments?: {
     id: string;
@@ -67,6 +70,14 @@ export interface Event {
     content: string;
   }[];
   rules?: {
+    tr: string[];
+    en: string[];
+  };
+  details?: {
+    tr: string;
+    en: string;
+  };
+  schedule?: {
     tr: string[];
     en: string[];
   };

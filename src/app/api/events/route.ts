@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/mongodb';
 import Event from '@/models/Event';
 import { getEventStatus } from '@/types';
+import { updateEventReservationTracking } from '@/services/event-reservation-service';
 
 export async function GET() {
   try {
@@ -58,6 +59,9 @@ export async function POST(request: Request) {
     const newEvent = new Event(eventData);
     await newEvent.save();
     
+    // Rezervasyon takip veritabanına da kaydet
+    await updateEventReservationTracking(newEvent);
+    
     // Başarılı yanıt döndür
     return NextResponse.json({
       success: true,
@@ -71,6 +75,57 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: false,
       message: 'Etkinlik oluşturulurken bir hata oluştu',
+      error: error.message
+    }, { status: 500 });
+  }
+}
+
+// Etkinlik güncellemek için PUT metodu
+export async function PUT(request: Request) {
+  try {
+    await connectToDatabase();
+    
+    // İstek gövdesini JSON olarak parse et
+    const eventData = await request.json();
+    
+    // ID kontrolü
+    if (!eventData.id) {
+      return NextResponse.json({
+        success: false,
+        message: 'Etkinlik ID\'si gerekli'
+      }, { status: 400 });
+    }
+
+    // MongoDB'de güncelle
+    const updatedEvent = await Event.findOneAndUpdate(
+      { id: eventData.id }, 
+      eventData, 
+      { new: true } // güncellenmiş belgeyi döndür
+    );
+    
+    if (!updatedEvent) {
+      return NextResponse.json({
+        success: false,
+        message: 'Etkinlik bulunamadı'
+      }, { status: 404 });
+    }
+
+    // Rezervasyon takip veritabanında da güncelle
+    await updateEventReservationTracking(updatedEvent);
+    
+    // Başarılı yanıt döndür
+    return NextResponse.json({
+      success: true,
+      message: 'Etkinlik başarıyla güncellendi',
+      event: updatedEvent
+    });
+  } catch (error: any) {
+    console.error('Etkinlik güncelleme hatası:', error);
+    
+    // Hata detaylarını döndür
+    return NextResponse.json({
+      success: false,
+      message: 'Etkinlik güncellenirken bir hata oluştu',
       error: error.message
     }, { status: 500 });
   }

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
 import AdminAuth from '@/components/admin/AdminAuth';
 
@@ -13,6 +14,18 @@ export default function AdminLayout({
   const pathname = usePathname();
   const { isDark } = useThemeLanguage();
   const sidebarOpen = true;
+  // State to track which dropdown menus are open
+  const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({
+    sales: false,
+  });
+
+  // Toggle function for dropdown menus
+  const toggleDropdown = (menuKey: string) => {
+    setOpenMenus((prev) => ({
+      ...prev,
+      [menuKey]: !prev[menuKey],
+    }));
+  };
 
   // Admin sidebar navigation links
   const adminNavItems = [
@@ -65,6 +78,26 @@ export default function AdminLayout({
       )
     },
     { 
+      name: 'Satışlar',
+      key: 'sales',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+          <path d="M3 3v18h18" />
+          <path d="m19 9-5 5-4-4-3 3" />
+        </svg>
+      ),
+      submenu: [
+        { 
+          name: 'Etkinlikler', 
+          href: '/admin/reservations/events',
+        },
+        { 
+          name: 'Rezervasyonlar', 
+          href: '/admin/reservations',
+        },
+      ]
+    },
+    { 
       name: 'Rezervasyonlar',
       href: '/admin/reservations',
       icon: (
@@ -114,22 +147,76 @@ export default function AdminLayout({
             <nav className="p-4 flex-1 overflow-y-auto">
               <ul className="space-y-2">
                 {adminNavItems.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                        pathname === item.href
-                          ? isDark
-                            ? 'bg-carbon-grey text-electric-blue'
-                            : 'bg-light-grey text-f1-red'
-                          : isDark
-                          ? 'text-silver hover:bg-dark-grey'
-                          : 'text-medium-grey hover:bg-very-light-grey'
-                      }`}
-                    >
-                      {item.icon}
-                      <span>{item.name}</span>
-                    </Link>
+                  <li key={item.name}>
+                    {item.submenu ? (
+                      <div>
+                        <button
+                          onClick={() => toggleDropdown(item.key)}
+                          className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-md transition-colors ${
+                            pathname.includes(item.submenu[0].href.split('/')[1] || '')
+                              ? isDark
+                                ? 'bg-carbon-grey text-electric-blue'
+                                : 'bg-light-grey text-f1-red'
+                              : isDark
+                              ? 'text-silver hover:bg-dark-grey'
+                              : 'text-medium-grey hover:bg-very-light-grey'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {item.icon}
+                            <span>{item.name}</span>
+                          </div>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className={`h-4 w-4 transition-transform ${openMenus[item.key] ? 'rotate-180' : ''}`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        
+                        {openMenus[item.key] && (
+                          <ul className="mt-1 ml-6 space-y-1">
+                            {item.submenu.map((subItem) => (
+                              <li key={subItem.href}>
+                                <Link
+                                  href={subItem.href}
+                                  className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                                    pathname === subItem.href
+                                      ? isDark
+                                        ? 'bg-carbon-grey text-electric-blue'
+                                        : 'bg-light-grey text-f1-red'
+                                      : isDark
+                                      ? 'text-silver hover:bg-dark-grey'
+                                      : 'text-medium-grey hover:bg-very-light-grey'
+                                  }`}
+                                >
+                                  <span>{subItem.name}</span>
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                          pathname === item.href
+                            ? isDark
+                              ? 'bg-carbon-grey text-electric-blue'
+                              : 'bg-light-grey text-f1-red'
+                            : isDark
+                            ? 'text-silver hover:bg-dark-grey'
+                            : 'text-medium-grey hover:bg-very-light-grey'
+                        }`}
+                      >
+                        {item.icon}
+                        <span>{item.name}</span>
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

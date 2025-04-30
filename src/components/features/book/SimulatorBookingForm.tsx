@@ -627,8 +627,6 @@ export default function SimulatorBookingForm({ onSuccess, onError }: SimulatorBo
           <div className="flex justify-center space-x-3 my-4">
             <img src="/images/payment/visa.svg" alt="Visa" className="h-8" />
             <img src="/images/payment/mastercard.svg" alt="Mastercard" className="h-8" />
-            <img src="/images/payment/iyzico-logo.png" alt="iyzico" className="h-8" />
-            <img src="/images/payment/garanti-bbva-logo.png" alt="Garanti BBVA" className="h-8" />
           </div>
           
           {/* Butonlar */}
