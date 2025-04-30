@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "mongodb-client-encryption": ["./node_modules/mongodb-client-encryption/lib/index.js"],
+      "mongodb-client-encryption/lib/mongocryptd_manager": ["./src/lib/db/mongodb-browser.ts"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "../blogs.ts", "../events.ts"],

@@ -1,6 +1,7 @@
 'use server';  // This marks the file as server-only code
 
 import mongoose from 'mongoose';
+import { MongoClient as MongoClientOriginal } from 'mongodb';
 
 if (!process.env.MONGODB_URI) {
   throw new Error('MongoDB URI çevre değişkeni tanımlanmamış! .env.local dosyasını kontrol edin.');
@@ -44,4 +45,62 @@ export async function connectToDatabase() {
   }
 
   return cached.conn;
+}
+
+// Raw MongoDB client for GridFS and other operations
+let cachedClient = global.mongoClient;
+let cachedDb = global.mongoDb;
+
+if (!cachedClient) {
+  cachedClient = global.mongoClient = { conn: null, promise: null };
+}
+
+if (!cachedDb) {
+  cachedDb = global.mongoDb = null;
+}
+
+export async function connectMongo() {
+  if (cachedClient.conn) {
+    return {
+      client: cachedClient.conn,
+      db: cachedDb
+    };
+  }
+
+  if (!cachedClient.promise) {
+    const client = new MongoClientOriginal(MONGODB_URI, {
+      // Disable MongoDB features that use Node.js-specific modules
+      monitorCommands: false,
+      serverApi: {
+        version: '1',
+        strict: true,
+        deprecationErrors: true,
+      }
+    });
+
+    cachedClient.promise = client.connect()
+      .then((client) => {
+        const db = client.db();
+        cachedDb = global.mongoDb = db;
+        return client;
+      });
+  }
+
+  try {
+    cachedClient.conn = await cachedClient.promise;
+  } catch (e) {
+    cachedClient.promise = null;
+    throw e;
+  }
+
+  return {
+    client: cachedClient.conn,
+    db: cachedDb
+  };
+}
+
+// Helper to get MongoDB database instance
+export async function getMongoDb() {
+  const { db } = await connectMongo();
+  return db;
 }

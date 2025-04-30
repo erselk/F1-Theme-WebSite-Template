@@ -114,8 +114,8 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
         name: ticket.name[locale] || (locale === 'tr' ? 'Bilet' : 'Ticket'),
         price: ticket.price,
         description: ticket.description?.[locale],
-        maxPerOrder: ticket.maxPerOrder || 5,
-        availableCount: ticket.availableCount || 100,
+        maxPerOrder: 5, // Always limit to 5 tickets per order
+        availableCount: ticket.availableCount ?? -1, // Default to unlimited stock if not specified
         variant: ticket.variant || 'standard',
         originalName: ticket.name // Tüm dil versiyonlarını sakla
       }));
@@ -192,6 +192,20 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
     const ticketType = ticketTypes.find(t => t.id === id);
     if (!ticketType) return;
     
+    // Determine the purchase limit based on given rules:
+    let purchaseLimit: number;
+    
+    if (ticketType.availableCount === -1) {
+      // If availableCount is -1, use maxPerOrder as the limit
+      purchaseLimit = ticketType.maxPerOrder || 5; // Default to 5 if maxPerOrder is not defined
+    } else if ((ticketType.maxPerOrder || 5) > ticketType.availableCount) {
+      // If maxPerOrder is greater than availableCount, use availableCount as the limit
+      purchaseLimit = ticketType.availableCount;
+    } else {
+      // Otherwise, use maxPerOrder as the limit
+      purchaseLimit = ticketType.maxPerOrder || 5; // Default to 5 if maxPerOrder is not defined
+    }
+    
     // Find if this ticket is already in selected tickets
     const existingTicketIndex = selectedTickets.findIndex(t => t.id === id);
     
@@ -201,14 +215,26 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
       const currentQuantity = updatedSelectedTickets[existingTicketIndex].quantity;
       
       if (action === 'increase') {
-        // Check if we've reached the maximum per order
-        if (ticketType.maxPerOrder && currentQuantity >= ticketType.maxPerOrder) {
-          setFormErrors({
-            ...formErrors,
-            [id]: locale === 'tr' 
-              ? `Bir siparişte maksimum ${ticketType.maxPerOrder} adet seçebilirsiniz.`
-              : `You can select maximum ${ticketType.maxPerOrder} per order.`
-          });
+        // Check if we've reached the purchase limit
+        if (currentQuantity >= purchaseLimit) {
+          // Show appropriate error message based on the limitation
+          if (ticketType.availableCount === -1 || ticketType.availableCount > (ticketType.maxPerOrder || 5)) {
+            // Limited by maxPerOrder
+            setFormErrors({
+              ...formErrors,
+              [id]: locale === 'tr'
+                ? `Bir siparişte en fazla ${purchaseLimit} adet bilet satın alabilirsiniz.`
+                : `You can purchase maximum ${purchaseLimit} tickets in a single order.`
+            });
+          } else {
+            // Limited by availableCount
+            setFormErrors({
+              ...formErrors,
+              [id]: locale === 'tr'
+                ? `Bu bilet türü için maksimum ${purchaseLimit} adet bilet kalmıştır.`
+                : `Maximum ${purchaseLimit} tickets are available for this ticket type.`
+            });
+          }
           return;
         }
         
@@ -232,6 +258,17 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
       
       setSelectedTickets(updatedSelectedTickets);
     } else if (action === 'increase') {
+      // Check if the ticket is available in stock before adding
+      if (ticketType.availableCount === 0) {
+        setFormErrors({
+          ...formErrors,
+          [id]: locale === 'tr'
+            ? 'Bu bilet türü tükenmiştir.'
+            : 'This ticket type is out of stock.'
+        });
+        return;
+      }
+      
       // Add new ticket to selection
       setSelectedTickets([
         ...selectedTickets,
@@ -240,7 +277,8 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
           name: ticketType.name,
           quantity: 1,
           price: ticketType.price,
-          variant: ticketType.variant
+          variant: ticketType.variant,
+          originalName: ticketType.originalName
         }
       ]);
     }
@@ -312,6 +350,23 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
       // Create a unique order ID
       const orderId = crypto.randomUUID ? crypto.randomUUID() : `order-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
       
+      // Format the schedule data properly for payment page
+      const formattedSchedule = {
+        tr: [],
+        en: []
+      };
+      
+      // Process schedule data if it exists and is an array
+      if (event.schedule && Array.isArray(event.schedule)) {
+        event.schedule.forEach(item => {
+          // For the Turkish version
+          formattedSchedule.tr.push(`${item.time} - ${item.title?.tr || ''} ${item.description?.tr ? `: ${item.description.tr}` : ''}`);
+          
+          // For the English version
+          formattedSchedule.en.push(`${item.time} - ${item.title?.en || ''} ${item.description?.en ? `: ${item.description.en}` : ''}`);
+        });
+      }
+      
       // Prepare payment data with detailed event information
       const paymentData = {
         orderId,
@@ -327,7 +382,7 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
         bannerImage: event.bannerImage,
         eventDescription: event.description, // Store complete description object with all language versions
         eventDetails: event.details, // Store complete details object with all language versions
-        eventSchedule: event.schedule, // Store complete schedule object with all language versions
+        eventSchedule: formattedSchedule, // Use the formatted schedule with both languages
         eventRules: event.rules, // Store complete rules object with all language versions
         tickets: selectedTickets.map(ticket => {
           const ticketType = ticketTypes.find(t => t.id === ticket.id);
@@ -348,8 +403,23 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
       // Save payment data to localStorage so we can retrieve it when returning from payment page
       localStorage.setItem('pendingPayment', JSON.stringify(paymentData));
       
-      // Redirect to the payment simulation page
-      window.location.href = `/payment/simulate?orderId=${orderId}`;
+      // If total price is 0, skip payment step and go directly to confirmation page
+      if (totalPrice === 0) {
+        // Since the price is 0, we can mark this as a successful payment immediately
+        const successResult = {
+          status: 'success',
+          orderId,
+          paymentId: `free-${orderId}`,
+          timestamp: Date.now()
+        };
+        localStorage.setItem('paymentResult', JSON.stringify(successResult));
+        
+        // Go directly to payment confirmed page
+        window.location.href = `/payment/confirmed?orderId=${orderId}`;
+      } else {
+        // Regular payment flow - redirect to the payment simulation page
+        window.location.href = `/payment/simulate?orderId=${orderId}`;
+      }
       
     } catch (error) {
       console.error('Payment processing error:', error);
@@ -561,7 +631,11 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                           <p className={`text-xs ${textColorClass}`}>{ticket.description}</p>
                         )}
                         <p className="text-electric-blue font-bold mt-1 text-sm flex items-center">
-                          {ticket.price} <span className="ml-1">₺</span>
+                          {ticket.price === 0 ? (locale === 'tr' ? 'Ücretsiz' : 'Free') : (
+                            <>
+                              {ticket.price} <span className="ml-1">₺</span>
+                            </>
+                          )}
                         </p>
                       </div>
                       
@@ -801,7 +875,11 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                     <div key={ticket.id} className={`flex justify-between ${textColorClass} text-xs`}>
                       <span>{`${ticket.quantity}x ${ticket.name}`}</span>
                       <span className="text-electric-blue flex items-center">
-                        {ticket.price * ticket.quantity} <span className="ml-1">₺</span>
+                        {ticket.price === 0 ? (locale === 'tr' ? 'Ücretsiz' : 'Free') : (
+                          <>
+                            {ticket.price * ticket.quantity} <span className="ml-1">₺</span>
+                          </>
+                        )}
                       </span>
                     </div>
                   ))}
@@ -880,17 +958,21 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                     <div key={ticket.id} className="flex justify-between">
                       <span className={textColorClass}>{ticket.quantity}x {ticket.name}</span>
                       <span className="text-electric-blue flex items-center">
-                        {ticket.price * ticket.quantity} <span className="ml-1">₺</span>
+                        {ticket.price === 0 ? (locale === 'tr' ? 'Ücretsiz' : 'Free') : (
+                          <>
+                            {ticket.price * ticket.quantity} <span className="ml-1">₺</span>
+                          </>
+                        )}
                       </span>
                     </div>
                   ))}
-                </div>
-                
-                <div className={`flex justify-between ${headingColorClass} font-bold text-xs`}>
-                  <span>{locale === 'tr' ? 'Toplam' : 'Total'}</span>
-                  <span className="text-neon-green flex items-center">
-                    {totalPrice} <span className="ml-1">₺</span>
-                  </span>
+                  
+                  <div className={`border-t ${borderColorClass} pt-1.5 flex justify-between font-bold ${headingColorClass} text-xs`}>
+                    <span>{locale === 'tr' ? 'Toplam' : 'Total'}</span>
+                    <span className="text-neon-green flex items-center">
+                      {totalPrice} <span className="ml-1">₺</span>
+                    </span>
+                  </div>
                 </div>
               </div>
             )}
@@ -922,7 +1004,7 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                       </>
                     ) : (
                       <>
-                        {locale === 'tr' ? 'Ödemeye Geç' : 'Proceed to Payment'}
+                        {locale === 'tr' ? 'Siparişi Onayla' : 'Confirm Order'}
                       </>
                     )}
                   </button>

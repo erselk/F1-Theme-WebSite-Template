@@ -82,12 +82,19 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
   const defaultBannerImage = '/images/logouzun.png';
   const defaultSquareImage = '/images/logokare.png';
   
-  // Initialize form with default images that actually exist
+  // Initialize form with default images that actually exist and set default date
   useEffect(() => {
-    setFormData(prev => ({
+    // Set default date as current date with time 00:00
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const formattedDate = today.toISOString().slice(0, 16); // Format as YYYY-MM-DDThh:mm
+    setDateInputValue(formattedDate);
+    
+    setFormData((prev: Partial<Event>) => ({
       ...prev,
       bannerImage: defaultBannerImage,
-      squareImage: defaultSquareImage
+      squareImage: defaultSquareImage,
+      date: today.toISOString()
     }));
   }, []);
 
@@ -115,7 +122,9 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
         id: 'standard',
         name: { tr: 'Standart Bilet', en: 'Standard Ticket' },
         price: event.price || 0,
-        description: { tr: 'Etkinlik girişi', en: 'Event entry' }
+        description: { tr: 'Etkinlik girişi', en: 'Event entry' },
+        maxPerOrder: 5, // Default to 5 tickets per order
+        availableCount: -1 // Default to unlimited stock
       }];
       
       // Debug - Log initial event data received by the form
@@ -220,8 +229,17 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
     
     if (name === 'date') {
       // Special handling for date field
+      // Validate date input to prevent invalid date values
+      if (e.target instanceof HTMLInputElement && e.target.type === 'datetime-local') {
+        // Prevent year from having more than 4 digits
+        const datePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+        if (!datePattern.test(value)) {
+          return; // Reject inputs that don't match the expected pattern
+        }
+      }
+      
       setDateInputValue(value);
-      setFormData(prev => ({
+      setFormData((prev: Partial<Event>) => ({
         ...prev,
         date: value ? new Date(value).toISOString() : ''
       }));
@@ -230,7 +248,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
     
     if (name === 'title') {
       // Direct handling for title field
-      setFormData(prev => ({
+      setFormData((prev: Partial<Event>) => ({
         ...prev,
         title: {
           ...prev.title!,
@@ -239,7 +257,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
       }));
     } else if (name === 'location') {
       // Direct handling for location field
-      setFormData(prev => ({
+      setFormData((prev: Partial<Event>) => ({
         ...prev,
         location: {
           ...prev.location!,
@@ -248,7 +266,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
       }));
     } else if (name === 'description') {
       // Direct handling for description field
-      setFormData(prev => ({
+      setFormData((prev: Partial<Event>) => ({
         ...prev,
         description: {
           ...prev.description!,
@@ -261,7 +279,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
       
       if (parts.length === 2) {
         // For other nested properties that don't need translation
-        setFormData(prev => ({
+        setFormData((prev: Partial<Event>) => ({
           ...prev,
           [parts[0]]: {
             ...prev[parts[0]],
@@ -270,7 +288,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
         }));
       }
     } else {
-      setFormData(prev => ({
+      setFormData((prev: Partial<Event>) => ({
         ...prev,
         [name]: value
       }));
@@ -280,7 +298,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
   // Checkbox changes handler
   const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev: Partial<Event>) => ({
       ...prev,
       [name]: checked
     }));
@@ -289,7 +307,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
   // Numeric value handler
   const handleNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev: Partial<Event>) => ({
       ...prev,
       [name]: parseFloat(value)
     }));
@@ -297,7 +315,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
 
   // Ticket changes handlers - Modified for single language input
   const handleTicketChange = (index: number, field: string, value: string | number) => {
-    setFormData(prev => {
+    setFormData((prev: Partial<Event>) => {
       const updatedTickets = [...(prev.tickets || [])];
       
       if (field.includes('.')) {
@@ -363,7 +381,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
 
   // Handle ticket price increase
   const increaseTicketPrice = (index: number) => {
-    setFormData(prev => {
+    setFormData((prev: Partial<Event>) => {
       const updatedTickets = [...(prev.tickets || [])];
       updatedTickets[index] = {
         ...updatedTickets[index],
@@ -375,7 +393,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
 
   // Handle ticket price decrease
   const decreaseTicketPrice = (index: number) => {
-    setFormData(prev => {
+    setFormData((prev: Partial<Event>) => {
       const updatedTickets = [...(prev.tickets || [])];
       updatedTickets[index] = {
         ...updatedTickets[index],
@@ -387,7 +405,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
 
   const addTicket = () => {
     const ticketId = `ticket-${Date.now()}`;
-    setFormData(prev => ({
+    setFormData((prev: Partial<Event>) => ({
       ...prev,
       tickets: [
         ...(prev.tickets || []),
@@ -395,14 +413,16 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
           id: ticketId,
           name: { tr: 'Yeni Bilet', en: 'New Ticket' },
           price: 0,
-          description: { tr: '', en: '' }
+          description: { tr: '', en: '' },
+          maxPerOrder: 5, // Default to 5 tickets per order
+          availableCount: -1 // Default to unlimited stock
         }
       ]
     }));
   };
 
   const removeTicket = (index: number) => {
-    setFormData(prev => {
+    setFormData((prev: Partial<Event>) => {
       const updatedTickets = [...(prev.tickets || [])];
       updatedTickets.splice(index, 1);
       return { ...prev, tickets: updatedTickets };
@@ -411,19 +431,23 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
 
   // Rules change handlers - Modified for single language input
   const handleRuleChange = (index: number, value: string) => {
-    setFormData(prev => {
+    setFormData((prev: Partial<Event>) => {
       const updatedRules = [...(prev.rules || [])];
       updatedRules[index] = {
         ...updatedRules[index],
         [formLanguage]: value
       };
       
+      // Ensure both languages have at least an empty string to prevent undefined errors
+      if (!updatedRules[index].tr) updatedRules[index].tr = '';
+      if (!updatedRules[index].en) updatedRules[index].en = '';
+      
       return { ...prev, rules: updatedRules };
     });
   };
 
   const addRule = () => {
-    setFormData(prev => ({
+    setFormData((prev: Partial<Event>) => ({
       ...prev,
       rules: [
         ...(prev.rules || []),
@@ -433,7 +457,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
   };
 
   const removeRule = (index: number) => {
-    setFormData(prev => {
+    setFormData((prev: Partial<Event>) => {
       const updatedRules = [...(prev.rules || [])];
       updatedRules.splice(index, 1);
       return { ...prev, rules: updatedRules };
@@ -442,7 +466,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
 
   // Schedule handlers
   const handleProgramChange = (index: number, field: string, value: string) => {
-    setFormData(prev => {
+    setFormData((prev: Partial<Event>) => {
       const updatedSchedule = [...(prev.schedule || [])];
       
       if (field === 'time') {
@@ -465,7 +489,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
   };
 
   const addProgramItem = () => {
-    setFormData(prev => ({
+    setFormData((prev: Partial<Event>) => ({
       ...prev,
       schedule: [
         ...(prev.schedule || []),
@@ -479,7 +503,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
   };
 
   const removeProgramItem = (index: number) => {
-    setFormData(prev => {
+    setFormData((prev: Partial<Event>) => {
       const updatedSchedule = [...(prev.schedule || [])];
       updatedSchedule.splice(index, 1);
       return { ...prev, schedule: updatedSchedule };
@@ -491,7 +515,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
     if (formData.title?.en && !isEditMode) {
       const slug = generateSlugFromEnglishTitle(formData.title.en);
       
-      setFormData(prev => ({
+      setFormData((prev: Partial<Event>) => ({
         ...prev,
         slug
       }));
@@ -571,7 +595,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
     }
   };
 
-  // Modified form submission to use the fixed translation function
+  // Modified form submission to properly handle rule translations
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
@@ -625,9 +649,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
         date: updatedData.date ? new Date(updatedData.date).toISOString() : new Date().toISOString(),
       };
       
-      // Schedule data is already in the correct format, no need to convert program to schedule
-      
-      // Convert rules format to match MongoDB schema
+      // Convert rules format to match MongoDB schema, ensuring both languages are properly set
       if (updatedData.rules && Array.isArray(updatedData.rules)) {
         // Doğru formatta rules yapısı oluştur
         const formattedRules = {
@@ -636,9 +658,17 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
         };
         
         updatedData.rules.forEach(rule => {
-          if (rule.tr && typeof rule.tr === 'string') formattedRules.tr.push(rule.tr);
-          if (rule.en && typeof rule.en === 'string') formattedRules.en.push(rule.en);
+          // Only add non-empty rules
+          if (rule.tr && typeof rule.tr === 'string' && rule.tr.trim()) 
+            formattedRules.tr.push(rule.tr.trim());
+          
+          if (rule.en && typeof rule.en === 'string' && rule.en.trim()) 
+            formattedRules.en.push(rule.en.trim());
         });
+        
+        // Rules arrays should be complete at this point because we already called translateAllFields()
+        // This ensures both tr and en have corresponding values
+        // No need to add placeholder text anymore
         
         // Doğrudan değer atama
         updatedData.rules = formattedRules;
@@ -972,6 +1002,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
     setSquarePreview(null);
   };
   
+  // Handle gallery image selection
   const handleGalleryImageSelection = (image: ImageFile) => {
     // Add the selected image to the gallery
     const defaultImagePath = '/images/logouzun.png';
@@ -1355,24 +1386,17 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                       </p>
                     </div>
                     
-                    {/* Bilet açıklaması - başlangıçta bilet adı ile aynı boyutta */}
-                    <div>
+                    {/* Bilet açıklaması - MD Grid span 2 ile tüm satırı kaplasın */}
+                    <div className="md:col-span-2">
                       <label 
                         className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
                       >
                         {formLanguage === 'tr' ? 'Açıklama' : 'Description'}
                       </label>
                       <textarea
-                        rows={1}
+                        rows={2}
                         value={ticket.description?.[formLanguage] || ''}
                         onChange={(e) => handleTicketChange(index, 'description', e.target.value)}
-                        style={{ minHeight: '38px', height: 'auto' }}
-                        onInput={(e) => {
-                          // Otomatik büyüme için textarea yüksekliğini ayarla
-                          const target = e.target as HTMLTextAreaElement;
-                          target.style.height = 'auto';
-                          target.style.height = target.scrollHeight + 'px';
-                        }}
                         className={`w-full px-3 py-2 rounded-md ${
                           isDark
                             ? 'bg-carbon-grey border border-dark-grey text-white'
@@ -1384,18 +1408,18 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                       />
                     </div>
                     
-                    {/* Maximum Sales Count */}
-                    <div>
+                    {/* Stock field - availableCount */}
+                    <div className="md:col-span-2">
                       <label 
                         className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
                       >
-                        {formLanguage === 'tr' ? 'Maksimum Satış Sayısı' : 'Maximum Sales Count'}
+                        {formLanguage === 'tr' ? 'Stok' : 'Stock'}
                       </label>
                       <input
                         type="number"
-                        min="0"
-                        value={ticket.maxSalesCount || 0}
-                        onChange={(e) => handleTicketChange(index, 'maxSalesCount', e.target.value)}
+                        min="-1"
+                        value={ticket.availableCount || 0}
+                        onChange={(e) => handleTicketChange(index, 'availableCount', e.target.value)}
                         className={`w-full px-3 py-2 rounded-md ${
                           isDark
                             ? 'bg-carbon-grey border border-dark-grey text-white'
@@ -1403,7 +1427,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                         }`}
                       />
                       <p className="text-sm mt-1 italic text-green-500">
-                        {formLanguage === 'tr' ? '0 seçilirse satış limiti olmayacaktır' : 'If 0 is selected, there will be no sales limit'}
+                        {formLanguage === 'tr' ? '-1 seçilirse stok limiti olmayacaktır' : 'If 0 is selected, there will be no stock limit'}
                       </p>
                     </div>
                     
@@ -1796,7 +1820,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                         src={preview} 
                         alt={formLanguage === 'tr' 
                           ? `Galeri görseli ${index + 1}` 
-                          : `Gallery image ${index + 1}`} 
+                          : `Gallery image ${index + 1}`}
                         fill
                         style={{ objectFit: 'cover' }}
                       />
@@ -1824,14 +1848,14 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                         src={imagePath} 
                         alt={formLanguage === 'tr' 
                           ? `Galeri görseli ${index + 1}` 
-                          : `Gallery image ${index + 1}`} 
+                          : `Gallery image ${index + 1}`}
                         fill
                         style={{ objectFit: 'cover' }}
                       />
                     </div>
                     <button
                       type="button"
-                      onClick={() => removeGalleryImage(index)}
+                      onClick={() =>removeGalleryImage(index)}
                       className={`absolute top-1 right-1 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${
                         isDark ? 'bg-carbon-grey text-white' : 'bg-white text-dark-grey'
                       }`}
@@ -1841,13 +1865,12 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                     </button>
                   </div>
                 ))
-              ) : (
-                <div className={`col-span-full py-6 text-center ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+              ) :                <div className={`col-span-full py-6 text-center ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                   {formLanguage === 'tr' 
                     ? 'Henüz galeri görseli eklenmemiş. Görsel seçmek veya yüklemek için butonları kullanın.'
                     : 'No gallery images added yet. Use the buttons to select or upload images.'}
                 </div>
-              )}
+              }
             </div>
             
             {/* Gallery Image Selector Modal */}
@@ -1856,7 +1879,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
               onClose={() => setGallerySelectorOpen(false)}
               onSelect={handleGalleryImageSelection}
               category="gallery"
-              currentImage=""
+              currentImage={formData.gallery?.[0] || ''}
             />
           </div>
         </div>
@@ -1881,7 +1904,6 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
             disabled={isSubmitting}
             className={`px-4 py-2 rounded-md ${
               isDark
-               
                 ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
                 : 'bg-race-blue text-white hover:bg-race-blue/80'
             } ${(isSubmitting) ? 'opacity-50 cursor-not-allowed' : ''}`}

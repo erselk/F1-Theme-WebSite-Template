@@ -62,6 +62,9 @@ importers:
       boolean:
         specifier: ^3.2.0
         version: 3.2.0
+      child_process:
+        specifier: ^1.0.2
+        version: 1.0.2
       clock:
         specifier: ^1.0.2
         version: 1.0.2
@@ -104,6 +107,9 @@ importers:
       jspdf:
         specifier: ^3.0.1
         version: 3.0.1
+      jspdf-autotable:
+        specifier: ^5.0.2
+        version: 5.0.2(jspdf@3.0.1)
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -1886,6 +1892,9 @@ packages:
   cheap-ruler@4.0.0:
     resolution: {integrity: sha512-0BJa8f4t141BYKQyn9NSQt1PguFQXMXwZiA5shfoaBYHAb2fFk2RAX+tiWMoQU+Agtzt3mdt0JtuyshAXqZ+Vw==}
 
+  child_process@1.0.2:
+    resolution: {integrity: sha512-Wmza/JzL0SiWz7kl6MhIKT5ceIlnFPJX+lwUGj7Clhy5MMldsSoJR0+uvRzOS5Kv45Mq7t1PoE8TsOA9bzvb6g==}
+
   chokidar@4.0.3:
     resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
     engines: {node: '>= 14.16.0'}
@@ -3015,6 +3024,11 @@ packages:
 
   jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
+
+  jspdf-autotable@5.0.2:
+    resolution: {integrity: sha512-YNKeB7qmx3pxOLcNeoqAv3qTS7KuvVwkFe5AduCawpop3NOkBUtqDToxNc225MlNecxT4kP2Zy3z/y/yvGdXUQ==}
+    peerDependencies:
+      jspdf: ^2 || ^3
 
   jspdf@3.0.1:
     resolution: {integrity: sha512-qaGIxqxetdoNnFQQXxTKUD9/Z7AloLaw94fFsOiJMxbfYdBbrBuhWmbzI8TVjrw7s3jBY1PFHofBKMV/wZPapg==}
@@ -6493,6 +6507,8 @@ snapshots:
 
   cheap-ruler@4.0.0: {}
 
+  child_process@1.0.2: {}
+
   chokidar@4.0.3:
     dependencies:
       readdirp: 4.1.2
@@ -7784,6 +7800,10 @@ snapshots:
   jsonfile@4.0.0:
     optionalDependencies:
       graceful-fs: 4.2.11
+
+  jspdf-autotable@5.0.2(jspdf@3.0.1):
+    dependencies:
+      jspdf: 3.0.1
 
   jspdf@3.0.1:
     dependencies:

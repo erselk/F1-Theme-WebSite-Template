@@ -368,9 +368,15 @@ export default function ReservationForm({
   };
 
   // Final form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    
+    // Clear any previous payment errors
+    localStorage.removeItem('payment_error');
+    
+    // Generate a unique reservation reference number
+    const reservationRef = `PDK${Math.random().toString(36).substring(2, 6).toUpperCase()}${Date.now().toString().substring(9, 13)}`;
     
     // Store reservation data in localStorage for confirmation page
     const venueName = getVenueName(formData.venue);
@@ -378,45 +384,79 @@ export default function ReservationForm({
     const formattedTime = timeRange ? `${timeRange[0]} - ${timeRange[1]}` : '';
     const fullName = `${formData.name} ${formData.surname}`;
     
+    localStorage.setItem('reservation_ref', reservationRef);
     localStorage.setItem('reservation_venue', venueName);
     localStorage.setItem('reservation_name', fullName);
     localStorage.setItem('reservation_date', formattedDate);
     localStorage.setItem('reservation_time', formattedTime);
     localStorage.setItem('reservation_people', formData.people);
-    localStorage.setItem('reservation_price', `${price} TL`);
+    localStorage.setItem('reservation_price', venueNeedsPayment() ? `${price} TL` : language === 'tr' ? 'Ücretsiz' : 'Free');
     localStorage.setItem('reservation_phone', formData.phone);
     localStorage.setItem('reservation_date_raw', formData.date);
     localStorage.setItem('reservation_startTime', timeRange ? timeRange[0] : '');
     localStorage.setItem('reservation_endTime', timeRange ? timeRange[1] : '');
-    localStorage.setItem('reservation_ref', Math.random().toString(36).substring(2, 10).toUpperCase());
+    
+    // Create payment data for confirmed page
+    const paymentData = {
+      orderId: reservationRef,
+      eventTitle: {
+        tr: venueName,
+        en: venueName
+      },
+      fullName: fullName,
+      email: `${formData.phone.replace(/\D/g, '')}@anonymous.user`,
+      phone: formData.phone,
+      amount: venueNeedsPayment() ? price * 100 : 0, // Ücretsiz etkinlikler için 0
+      venue: venueName,
+      people: formData.people,
+      timestamp: new Date().toISOString(),
+      eventDate: new Date(formData.date).toISOString(),
+      eventLocation: {
+        tr: 'Padok Club',
+        en: 'Padok Club'
+      },
+      refNumber: reservationRef,
+      date: formData.date,
+      startTime: timeRange ? timeRange[0] : '',
+      endTime: timeRange ? timeRange[1] : '',
+      totalPrice: venueNeedsPayment() ? price : 0, // Ücretsiz etkinlikler için 0
+      isFree: !venueNeedsPayment() // Ücretsiz etkinlik kontrolü
+    };
+    
+    localStorage.setItem('pendingPayment', JSON.stringify(paymentData));
     
     // For venues that need payment (f1, vr, computers)
-    if (["f1", "vr", "computers"].includes(formData.venue)) {
-      setTimeout(() => {
-        setShowPaymentRedirect(true);
-        
-        // After "redirect", show payment success
-        setTimeout(() => {
-          setShowPaymentSuccess(true);
-          
-          // After showing success, submit form
-          setTimeout(() => {
-            console.log("Form data submitted:", formData);
-            onSubmit();
-          }, 2000);
-        }, 2000);
-      }, 1000);
+    if (venueNeedsPayment()) {
+      // Redirect to payment page
+      window.location.href = `/payment/paymentbook?ref=${reservationRef}&venue=${encodeURIComponent(venueName)}&name=${encodeURIComponent(fullName)}&date=${encodeURIComponent(formattedDate)}&time=${encodeURIComponent(formattedTime)}&people=${formData.people}&price=${encodeURIComponent(price + " TL")}&phone=${encodeURIComponent(formData.phone)}&dateRaw=${encodeURIComponent(formData.date)}&startTime=${encodeURIComponent(timeRange ? timeRange[0] : '')}&endTime=${encodeURIComponent(timeRange ? timeRange[1] : '')}`;
     } else {
-      // For cafe and boardgames, directly confirm with success animation
-      setTimeout(() => {
-        setShowPaymentSuccess(true);
-        
-        // After showing success, submit form
-        setTimeout(() => {
-          console.log("Form data submitted:", formData);
-          onSubmit();
-        }, 2000);
-      }, 1000);
+      // Ücretsiz etkinlikler için direkt veritabanına kaydet
+      try {
+        const response = await fetch('/api/bookings/create-free', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            refNumber: reservationRef,
+            name: fullName,
+            phone: formData.phone,
+            date: formData.date,
+            startTime: timeRange ? timeRange[0] : '',
+            endTime: timeRange ? timeRange[1] : '',
+            people: parseInt(formData.people, 10) || 1,
+            venue: venueName
+          })
+        });
+
+        // Fetch API kullanmış olsak da, localStorage'daki veri confirmed sayfasına aktarılacak
+        // For venues that don't need payment, directly redirect to the paymentbook confirmed page
+        window.location.href = `/payment/paymentbook/confirmed?ref=${reservationRef}&free=true`;
+      } catch (error) {
+        console.error('Error saving free booking:', error);
+        // Hata olsa bile devam et ve confirmed sayfasına yönlendir
+        window.location.href = `/payment/paymentbook/confirmed?ref=${reservationRef}&free=true`;
+      }
     }
   };
 
@@ -539,6 +579,73 @@ export default function ReservationForm({
 
   // Use the correct language based on locale
   const t = translations[language === 'en' ? 'en' : 'tr'];
+
+  // URL'den ?step=confirmation parametresini veya localStorage'dan form_step değerini kontrol et
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const stepParam = urlParams.get('step');
+    const savedStep = localStorage.getItem('form_step');
+    
+    if (stepParam === 'confirmation' || savedStep === '4') {
+      // Önceden kaydedilmiş form bilgilerini al
+      const savedVenue = localStorage.getItem('reservation_venue');
+      const savedPeople = localStorage.getItem('reservation_people');
+      const savedDate = localStorage.getItem('reservation_date_raw');
+      const savedStartTime = localStorage.getItem('reservation_startTime');
+      const savedEndTime = localStorage.getItem('reservation_endTime');
+      const savedName = localStorage.getItem('reservation_name');
+      const savedPhone = localStorage.getItem('reservation_phone');
+      
+      // İsim ve soyisimi parçala
+      let firstName = '';
+      let lastName = '';
+      if (savedName) {
+        const nameParts = savedName.split(' ');
+        if (nameParts.length > 1) {
+          firstName = nameParts[0];
+          lastName = nameParts.slice(1).join(' ');
+        } else {
+          firstName = savedName;
+        }
+      }
+      
+      // Kaydedilmiş bilgilerden venue ID'sini bul
+      const getVenueId = (venueName: string) => {
+        const venue = venueOptions.find(v => v.title === venueName);
+        return venue ? venue.id : '';
+      };
+      
+      // Form verilerini güncelle
+      setFormData(prev => ({
+        ...prev,
+        venue: selectedVenue || (savedVenue ? getVenueId(savedVenue) : prev.venue),
+        people: savedPeople || prev.people,
+        date: savedDate || prev.date,
+        startHour: savedStartTime ? savedStartTime.split(':')[0] : prev.startHour,
+        startMinute: savedStartTime ? savedStartTime.split(':')[1] : prev.startMinute,
+        endHour: savedEndTime ? savedEndTime.split(':')[0] : prev.endHour,
+        endMinute: savedEndTime ? savedEndTime.split(':')[1] : prev.endMinute,
+        name: firstName || prev.name,
+        surname: lastName || prev.surname,
+        phone: savedPhone || prev.phone
+      }));
+      
+      // Saat aralığını güncelle
+      if (savedStartTime && savedEndTime) {
+        setTimeRange([savedStartTime, savedEndTime]);
+      }
+      
+      // Doğrudan onaylama adımına git
+      setCurrentStep(4);
+      setContactStep(1); // İletişim adımını tamamlanmış olarak işaretle
+      
+      // URL parametresini temizle (history API kullanarak)
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Kullanılan form_step değerini temizleme
+      localStorage.removeItem('form_step');
+    }
+  }, [selectedVenue, venueOptions]);
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -876,57 +983,23 @@ export default function ReservationForm({
                   <div className="font-bold text-primary">{price} TL</div>
                 </div>
               )}
+
+              {/* Display payment error if exists */}
+              {localStorage.getItem('payment_error') && (
+                <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-3 rounded mt-4">
+                  <p>{localStorage.getItem('payment_error')}</p>
+                </div>
+              )}
             </div>
             
             {isSubmitting ? (
               <div className="text-center py-8">
-                {showPaymentSuccess ? (
-                  <motion.div 
-                    className="flex flex-col items-center justify-center"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <motion.svg 
-                      className="w-16 h-16 text-race-green mb-4" 
-                      viewBox="0 0 50 50"
-                      initial="hidden"
-                      animate="visible"
-                    >
-                      <motion.circle
-                        cx="25"
-                        cy="25"
-                        r="20"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        fill="none"
-                      />
-                      <motion.path
-                        d="M15 25 L23 33 L35 17"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        variants={checkmarkVariants}
-                      />
-                    </motion.svg>
-                    <p className="text-xl font-medium text-primary">
-                      {venueNeedsPayment() ? t.paymentSuccessful : t.reservationConfirmed}
-                    </p>
-                  </motion.div>
-                ) : showPaymentRedirect ? (
-                  <div className="text-primary font-medium">
-                    {t.confirmingReservation}
+                <div>
+                  <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
+                  <div className="text-muted-foreground">
+                    {t.redirectingToPayment}
                   </div>
-                ) : (
-                  <div>
-                    <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
-                    <div className="text-muted-foreground">
-                      {venueNeedsPayment() ? t.redirectingToPayment : t.confirmingReservation}
-                    </div>
-                  </div>
-                )}
+                </div>
               </div>
             ) : (
               <div className="pt-4 text-center">

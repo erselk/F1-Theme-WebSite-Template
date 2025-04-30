@@ -9,7 +9,14 @@ function normalizeOrderData(order: any) {
   if (!order) return null;
 
   // MongoDB ObjectId'leri ile ilgili sorunları önlemek için düz objeye çeviriyoruz
-  const normalizedOrder = JSON.parse(JSON.stringify(order));
+  // toObject metodu varsa Mongoose dökümanını düz objeye çevir
+  const rawOrder = order.toObject ? order.toObject({ getters: true }) : order;
+  
+  // _id alanını doğrudan string'e çeviriyoruz
+  const normalizedOrder = {
+    ...rawOrder,
+    _id: rawOrder._id ? rawOrder._id.toString() : null,
+  };
 
   // Temel alanlar için kontroller
   const tickets = Array.isArray(normalizedOrder.tickets) ? normalizedOrder.tickets.map((ticket: any) => ({

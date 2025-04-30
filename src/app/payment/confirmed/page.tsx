@@ -705,12 +705,14 @@ export default function PaymentConfirmedPage() {
                     </h3>
                     {paymentData.eventSchedule && (
                       <div className="space-y-2">
-                        <ul className="space-y-1">
-                          {typeof paymentData.eventSchedule === 'object' ? 
-                            (paymentData.eventSchedule[locale]?.map((item: string, index: number) => (
+                        <ul className="space-y-2">
+                          {Array.isArray(paymentData.eventSchedule[locale]) && paymentData.eventSchedule[locale].length > 0 ? 
+                            paymentData.eventSchedule[locale].map((item: string, index: number) => (
                               <li key={index} className={`${secondaryTextClass} text-sm`}>{item}</li>
-                            ))) : 
-                            (<li className={`${secondaryTextClass} text-sm`}>{paymentData.eventSchedule}</li>)
+                            )) : 
+                            <li className={`${secondaryTextClass} text-sm`}>
+                              {locale === 'tr' ? 'Program bilgisi bulunamadı' : 'Schedule information not available'}
+                            </li>
                           }
                         </ul>
                       </div>

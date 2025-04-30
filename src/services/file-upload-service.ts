@@ -1,23 +1,16 @@
-import { MongoClient, GridFSBucket, ObjectId } from 'mongodb';
+'use server';  // Mark as server-only code
+
+import { GridFSBucket, ObjectId } from 'mongodb';
 import { Readable } from 'stream';
-
-// MongoDB bağlantı URI'si
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-const DB_NAME = process.env.DB_NAME || 'padokclub';
-
-// MongoDB bağlantısı için bir istemci oluştur
-let client: MongoClient | null = null;
+import { connectMongo, getMongoDb } from '@/lib/db/mongodb';
+import { getFileUrl } from '@/lib/file-utils';
 
 /**
  * MongoDB'ye bağlanır ve GridFS bucket oluşturur
  */
 export async function connectToGridFS() {
-  if (!client) {
-    client = new MongoClient(MONGODB_URI);
-    await client.connect();
-  }
+  const { client, db } = await connectMongo();
   
-  const db = client.db(DB_NAME);
   const bucket = new GridFSBucket(db, {
     bucketName: 'uploads'
   });
@@ -123,38 +116,86 @@ export async function deleteFileFromGridFS(fileId: string): Promise<void> {
 }
 
 /**
- * Dosya URL'i oluştur
- * @param fileId Dosya ID'si
- * @returns Dosya URL'i
- */
-export function getFileUrl(fileId: string): string {
-  return `/api/files/${fileId}`;
-}
-
-/**
  * List files by category
- * @param category File category (banner, square, gallery, all)
+ * @param category File category (all, banner, event, blog, other)
  * @returns Array of file info objects
  */
 export async function listFilesByCategory(category: string): Promise<any[]> {
-  const { db } = await connectToGridFS();
+  const db = await getMongoDb();
+  
+  // Step 1: Get files from both collections
+  const results = await Promise.all([
+    // Get files from uploads.files (GridFS)
+    getGridFSFiles(db, category),
+    // Get files from images collection (base64)
+    getDirectImages(db, category)
+  ]);
+  
+  // Combine and sort by creation date (newest first)
+  const combinedFiles = [...results[0], ...results[1]].sort((a, b) => {
+    const dateA = new Date(a.createdAt);
+    const dateB = new Date(b.createdAt);
+    return dateB.getTime() - dateA.getTime();
+  });
+  
+  return combinedFiles;
+}
+
+/**
+ * Get files from GridFS by category
+ */
+async function getGridFSFiles(db: any, category: string): Promise<any[]> {
   const bucket = db.collection('uploads.files');
   
   let query = {};
   
-  // If category is specified and not 'all', filter by category
+  // Apply category filtering
   if (category && category !== 'all') {
-    // In a production environment, you'd store category in metadata
-    // For now we'll use this simple approach based on the file structure
-    query = { filename: { $regex: category, $options: 'i' } };
+    switch(category) {
+      case 'banner':
+        query = { 
+          filename: { 
+            $regex: '(banner|header|carousel|slider)', 
+            $options: 'i' 
+          } 
+        };
+        break;
+      case 'event':
+        query = { 
+          filename: { 
+            $regex: '(event|etkinlik)', 
+            $options: 'i' 
+          } 
+        };
+        break;
+      case 'blog':
+        query = { 
+          filename: { 
+            $regex: '(blog|article|makale)', 
+            $options: 'i' 
+          } 
+        };
+        break;
+      case 'other':
+        // Files that don't match the above categories
+        query = { 
+          filename: { 
+            $not: { 
+              $regex: '(banner|header|carousel|slider|event|etkinlik|blog|article|makale)', 
+              $options: 'i' 
+            } 
+          } 
+        };
+        break;
+    }
   }
   
   const files = await bucket.find(query).sort({ uploadDate: -1 }).toArray();
   
   // Map the files to a simpler format with URLs
-  const mappedFiles = files.map(file => {
+  return files.map(file => {
     const fileId = file._id.toString();
-    const url = `/api/files/${fileId}`;
+    const url = getFileUrl(fileId);
     const publicPath = `/images/${fileId}`;
     
     return {
@@ -165,9 +206,79 @@ export async function listFilesByCategory(category: string): Promise<any[]> {
       createdAt: file.uploadDate,
       url,
       publicPath,
-      thumbnailUrl: url
+      thumbnailUrl: url,
+      source: 'gridfs'
     };
   });
+}
+
+/**
+ * Get images directly from the images collection by category
+ */
+async function getDirectImages(db: any, category: string): Promise<any[]> {
+  const imagesCollection = db.collection('images');
   
-  return mappedFiles;
+  let query = {};
+  
+  // Apply category filtering for direct images
+  if (category && category !== 'all') {
+    switch(category) {
+      case 'banner':
+        query = { 
+          name: { 
+            $regex: '(banner|header|carousel|slider)', 
+            $options: 'i' 
+          } 
+        };
+        break;
+      case 'event':
+        query = { 
+          name: { 
+            $regex: '(event|etkinlik)', 
+            $options: 'i' 
+          } 
+        };
+        break;
+      case 'blog':
+        query = { 
+          name: { 
+            $regex: '(blog|article|makale)', 
+            $options: 'i' 
+          } 
+        };
+        break;
+      case 'other':
+        // Images that don't match the above categories
+        query = { 
+          name: { 
+            $not: { 
+              $regex: '(banner|header|carousel|slider|event|etkinlik|blog|article|makale)', 
+              $options: 'i' 
+            } 
+          } 
+        };
+        break;
+    }
+  }
+  
+  const images = await imagesCollection.find(query).sort({ createdAt: -1 }).toArray();
+  
+  // Map the direct images to match the same format as GridFS files
+  return images.map(image => {
+    const fileId = image._id.toString();
+    // For direct images, the data is already stored as base64
+    const url = image.data || `/api/images/${fileId}`;
+    
+    return {
+      id: fileId,
+      filename: image.name,
+      contentType: image.type,
+      size: image.size,
+      createdAt: image.createdAt,
+      url: url,
+      publicPath: url,
+      thumbnailUrl: url,
+      source: 'direct'
+    };
+  });
 }

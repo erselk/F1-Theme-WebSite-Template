@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['mongodb'],
+  // Remove MongoDB from transpilePackages to avoid conflict
+  // transpilePackages: ['mongodb'],
   sassOptions: {
     includePaths: [path.join(process.cwd(), "src/styles")],
   },
@@ -32,7 +33,7 @@ const nextConfig: NextConfig = {
   },
   
   // MongoDB için Node.js modüllerini webpack ile yapılandırma
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     // MongoDB ve diğer Node.js modülleri için browser uyumsuzluklarını çözmek için
     config.resolve.fallback = {
       ...config.resolve.fallback,
@@ -45,8 +46,26 @@ const nextConfig: NextConfig = {
       path: false,
     };
     
+    // MongoDB client-side encryption'ı client tarafında devre dışı bırak
+    if (!isServer) {
+      // MongoDB işlemcisini client tarafında boş modül ile değiştir
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'mongodb-client-encryption': false,
+        'kerberos': false,
+        'aws4': false,
+        'mongodb-client-encryption/lib/mongocryptd_manager': false
+      };
+    }
+    
     return config;
   },
+
+  // Use experimental.serverComponentsExternalPackages instead of experimental.serverExternalPackages
+  experimental: {
+    // Remove the conflicting serverComponentsExternalPackages configuration
+    // serverComponentsExternalPackages: ['mongodb'],
+  }
 };
 
 export default nextConfig;

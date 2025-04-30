@@ -23,6 +23,24 @@ export async function saveEventOrder(orderData: {
     // MongoDB bağlantısı
     await connectToDatabase();
     
+    console.log('Checking if event order exists with ID:', orderData.orderId);
+    
+    // Check if this order already exists in the database
+    const existingOrder = await EventOrder.findOne({ orderId: orderData.orderId });
+    
+    if (existingOrder) {
+      console.log('Order already exists, skipping save operation');
+      // Still revalidate paths to ensure up-to-date data
+      revalidatePath(`/events/${orderData.eventSlug}`);
+      revalidatePath('/admin/reservations');
+      revalidatePath(`/admin/reservations/events/${orderData.eventSlug}`);
+      
+      return { 
+        success: true,
+        message: 'Order already exists' 
+      };
+    }
+    
     console.log('Creating event order with ID:', orderData.orderId);
     
     // EventOrder modeline uygun veri hazırlama
