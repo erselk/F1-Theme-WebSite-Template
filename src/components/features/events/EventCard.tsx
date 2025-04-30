@@ -19,9 +19,22 @@ export function EventCard({ event }: EventCardProps) {
     squareImage,
     date, 
     description, 
-    price,
+    tickets,
     status
   } = event;
+
+  // Find minimum price from tickets array
+  const getMinPrice = () => {
+    if (!tickets || tickets.length === 0) return 0;
+    
+    // Extract all price values from tickets
+    const prices = tickets.map(ticket => ticket.price);
+    
+    // Find the minimum price
+    return Math.min(...prices);
+  };
+  
+  const minPrice = getMinPrice();
 
   // EventCard için özel tarih formatı - yıl ve saat bilgisi olmadan
   const formatCardDate = (dateString: string, lang: LanguageType): string => {
@@ -37,7 +50,7 @@ export function EventCard({ event }: EventCardProps) {
 
   // Status label styles - Fiyat badge'i ile aynı stil
   const getStatusClasses = () => {
-    const baseClasses = "absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-medium z-10 shadow-md";
+    const baseClasses = "absolute top-2 left-2 md:top-4 md:left-4 px-1.5 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-medium z-10 shadow-md";
     
     if (status === 'past') {
       return `${baseClasses} bg-gray-400 text-white`;
@@ -100,7 +113,7 @@ export function EventCard({ event }: EventCardProps) {
   return (
     <Link href={`/events/${slug}`} className="block group">
       <div className={`rounded-lg overflow-hidden shadow-md transition-shadow hover:shadow-lg ${getCardBackgroundStyle()}`}>
-        <div className="relative aspect-video">
+        <div className="relative aspect-square">
           {/* Status Badge */}
           <div className={getStatusClasses()}>
             {getStatusLabel()}
@@ -108,14 +121,14 @@ export function EventCard({ event }: EventCardProps) {
           
           {/* Price Badge - Geçmiş etkinlikler için gösterme */}
           {status !== 'past' && (
-            <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold z-10 shadow-md ${
+            <div className={`absolute top-2 right-2 md:top-4 md:right-4 px-1.5 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-bold z-10 shadow-md ${
               isDark 
                 ? 'bg-[#FF0000]/70 text-white shadow-[#FF0000]/30 border border-[#FF0000]/50' 
                 : 'bg-[#E10600]/70 text-white shadow-[#E10600]/30 border border-[#E10600]/50'
             }`}>
-              {price === 0 
+              {minPrice === 0 
                 ? (language === 'tr' ? 'Ücretsiz' : 'Free') 
-                : `${price} ₺`
+                : `${minPrice} ₺`
               }
             </div>
           )}
@@ -134,9 +147,9 @@ export function EventCard({ event }: EventCardProps) {
           </div>
         </div>
         
-        <div className="p-3">
+        <div className="p-2 sm:p-3">
           {/* Title */}
-          <h3 className={`font-semibold text-base mb-1 line-clamp-1 ${
+          <h3 className={`font-semibold text-sm sm:text-base mb-1 line-clamp-1 ${
             isDark ? 'text-light-grey' : 'text-dark-grey'
           }`}>
             {title[language]}

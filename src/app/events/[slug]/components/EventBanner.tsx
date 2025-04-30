@@ -77,7 +77,7 @@ export function EventBanner({ event, eventStatus, pageUrl }: EventBannerProps) {
   const categoryBgClass = isDark ? 'bg-[#00D766]' : 'bg-[#00A14B]';  // Green like in ContactContent
   
   return (
-    <div className="relative w-full h-[45vh] md:h-[60vh]">
+    <div className="relative w-full aspect-video overflow-hidden">
       {/* Banner görseli */}
       <Image 
         src={event.bannerImage || "/images/logouzun.png"} 
@@ -102,7 +102,7 @@ export function EventBanner({ event, eventStatus, pageUrl }: EventBannerProps) {
       
       {/* İçerik katmanı */}
       <div className="absolute inset-0 flex items-end">
-        <div className="container mx-auto p-4 md:p-8 pl-16 md:pl-24">
+        <div className="container mx-auto p-4 md:p-8 pl-4 sm:pl-8 md:pl-24">
           {/* Etkinlik durum göstergesi ve geri sayım */}
           <div className="flex flex-wrap items-center gap-3 mb-3">
             {eventStatus === 'upcoming' && (

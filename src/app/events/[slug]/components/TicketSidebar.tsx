@@ -125,7 +125,7 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
       setTicketTypes([]);
     }
   }, [event.tickets, event.price, locale]);
-  
+
   // Selected ticket quantities
   const [selectedTickets, setSelectedTickets] = useState<{
     id: string;
@@ -173,7 +173,7 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
   
   // Total price
   const totalPrice = selectedTickets.reduce((sum, ticket) => sum + (ticket.price * ticket.quantity), 0);
-  
+
   // Check if form is complete for the current step
   const isStepComplete = () => {
     switch (currentStep) {
@@ -543,12 +543,12 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
 
   return (
     <div 
-      className={`rounded-lg border ${borderColorClass} p-4 shadow-lg ${bgColorClass} flex flex-col h-auto overflow-hidden
+      className={`rounded-lg border ${borderColorClass} p-3 shadow-lg ${bgColorClass} flex flex-col h-auto overflow-hidden
         ${isSticky ? 'lg:sticky lg:top-24 transition-all duration-300' : ''}`}
     >
-      {/* Progress Steps */}
+      {/* Progress Steps - Reduced spacing for mobile */}
       {currentStep < 4 && (
-        <div className="mb-3">
+        <div className="mb-2">
           <div className="flex justify-between items-center relative">
             {/* Show only 2 steps now - Tickets and Personal Details */}
             {[1, 2].map((step) => (
@@ -557,7 +557,7 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                 className="flex flex-col items-center relative z-10"
               >
                 <div 
-                  className={`w-6 h-6 rounded-full flex items-center justify-center border-2 text-xs 
+                  className={`w-5 h-5 rounded-full flex items-center justify-center border-2 text-xs 
                     ${currentStep === step 
                       ? 'border-electric-blue bg-electric-blue/20 text-electric-blue' 
                       : currentStep > step 
@@ -567,7 +567,7 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                           : 'border-gray-300 bg-gray-100 text-gray-500'}`}
                 >
                   {currentStep > step ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   ) : (
@@ -584,7 +584,7 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
             {/* Progress line - Improved visibility in both light and dark mode */}
             <div className="absolute left-0 right-0 w-full">
               <div 
-                className={`h-0.5 absolute top-3 left-[25%] right-[25%] w-1/2 ${currentStep >= 2 ? 'bg-neon-green' : isDark ? 'bg-carbon-grey' : 'bg-gray-300'}`}
+                className={`h-0.5 absolute top-2.5 left-[25%] right-[25%] w-1/2 ${currentStep >= 2 ? 'bg-neon-green' : isDark ? 'bg-carbon-grey' : 'bg-gray-300'}`}
                 style={{zIndex: 0}}
               />
             </div>
@@ -592,9 +592,9 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
         </div>
       )}
       
-      {/* Event header info */}
+      {/* Event header info - Reduced spacing for mobile */}
       <div className={`mb-2 border-b ${borderColorClass} pb-2`}>
-        <h2 className={`text-lg font-bold ${headingColorClass}`}>{event.title[locale]}</h2>
+        <h2 className={`text-base font-bold ${headingColorClass}`}>{event.title[locale]}</h2>
         <p className={`${textColorClass} text-xs flex items-center mt-0.5`}>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1 text-neon-red" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
@@ -612,74 +612,75 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
       <form onSubmit={handleSubmit} className="flex flex-col h-auto">
         <div className="flex-grow">
           {currentStep === 1 && (
-            <div className="step-select-tickets space-y-4">
+            <div className="step-select-tickets space-y-3">
               {/* Heading renk düzeltmesi */}
-              <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-very-dark-grey'}`}>
+              <h3 className={`text-sm font-bold mb-1 ${isDark ? 'text-white' : 'text-very-dark-grey'}`}>
                 {locale === 'tr' ? 'Bilet Seçin' : 'Select Tickets'}
               </h3>
               
+              {/* Mobile optimized ticket display - horizontal row layout */}
               {ticketTypes.length > 0 ? (
-                <>
+                <div className="flex flex-row gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-x-visible">
                   {ticketTypes.map((ticket) => (
                     <div 
                       key={ticket.id}
-                      className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 ${cardBgClass} rounded-lg border ${borderColorClass}`}
+                      className={`flex flex-col justify-between p-2 ${cardBgClass} rounded-lg border ${borderColorClass} min-w-[120px] shrink-0 lg:flex-row lg:items-center lg:min-w-0 lg:shrink lg:p-3`}
                     >
-                      <div className="mb-2 sm:mb-0">
-                        <h4 className={`font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'} text-sm`}>{ticket.name}</h4>
+                      <div className="mb-1.5 lg:mb-0">
+                        <h4 className={`font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'} text-xs truncate`}>{ticket.name}</h4>
                         {ticket.description && (
-                          <p className={`text-xs ${textColorClass}`}>{ticket.description}</p>
+                          <p className={`text-[10px] ${textColorClass} truncate hidden lg:block`}>{ticket.description}</p>
                         )}
-                        <p className="text-electric-blue font-bold mt-1 text-sm flex items-center">
+                        <p className="text-electric-blue font-bold mt-0.5 text-xs flex items-center">
                           {ticket.price === 0 ? (locale === 'tr' ? 'Ücretsiz' : 'Free') : (
                             <>
-                              {ticket.price} <span className="ml-1">₺</span>
+                              {ticket.price} <span className="ml-0.5">₺</span>
                             </>
                           )}
                         </p>
                       </div>
                       
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center justify-between lg:justify-end lg:space-x-3">
                         <button 
                           type="button" 
-                          className={`w-7 h-7 rounded-full ${buttonBgClass} ${headingColorClass} hover:bg-neon-red hover:text-white flex items-center justify-center transition-colors`}
+                          className={`w-6 h-6 rounded-full ${buttonBgClass} ${headingColorClass} hover:bg-neon-red hover:text-white flex items-center justify-center transition-colors`}
                           onClick={() => updateTicketQuantity(ticket.id, 'decrease')}
                           aria-label={locale === 'tr' ? 'Azalt' : 'Decrease'}
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" />
                           </svg>
                         </button>
                         
-                        <span className={`min-w-6 text-center ${isDark ? 'text-gray-100' : 'text-gray-900'} text-sm`}>
+                        <span className={`min-w-6 text-center ${isDark ? 'text-gray-100' : 'text-gray-900'} text-xs`}>
                           {selectedTickets.find(t => t.id === ticket.id)?.quantity || 0}
                         </span>
                         
                         <button 
                           type="button" 
-                          className={`w-7 h-7 rounded-full ${buttonBgClass} ${headingColorClass} hover:bg-electric-blue hover:text-white flex items-center justify-center transition-colors`}
+                          className={`w-6 h-6 rounded-full ${buttonBgClass} ${headingColorClass} hover:bg-electric-blue hover:text-white flex items-center justify-center transition-colors`}
                           onClick={() => updateTicketQuantity(ticket.id, 'increase')}
                           aria-label={locale === 'tr' ? 'Arttır' : 'Increase'}
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
                           </svg>
                         </button>
                       </div>
                     </div>
                   ))}
-                </>
+                </div>
               ) : (
-                <div className={`p-4 rounded-lg border ${borderColorClass} ${cardBgClass} text-center`}>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto mb-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className={`p-3 rounded-lg border ${borderColorClass} ${cardBgClass} text-center`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mx-auto mb-2 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p className={`${textColorClass} text-sm mb-1`}>
+                  <p className={`${textColorClass} text-xs mb-1`}>
                     {locale === 'tr' 
                       ? 'Biletler henüz satışa çıkmadı.' 
                       : 'Tickets are not available for sale yet.'}
                   </p>
-                  <p className={`${isDark ? 'text-gray-400' : 'text-gray-500'} text-xs`}>
+                  <p className={`${isDark ? 'text-gray-400' : 'text-gray-500'} text-[10px]`}>
                     {locale === 'tr' 
                       ? 'Lütfen daha sonra tekrar kontrol ediniz.' 
                       : 'Please check back later.'}
@@ -688,7 +689,7 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
               )}
               
               {Object.keys(formErrors).length > 0 && (
-                <div className="text-neon-red text-xs mt-2">
+                <div className="text-neon-red text-xs mt-1">
                   {Object.values(formErrors).map((error, index) => (
                     <p key={index}>{error}</p>
                   ))}
@@ -698,15 +699,15 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
           )}
           
           {currentStep === 2 && (
-            <div className="step-details space-y-3">
+            <div className="step-details space-y-2">
               {/* Heading renk düzeltmesi */}
-              <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-very-dark-grey'}`}>
+              <h3 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-very-dark-grey'}`}>
                 {locale === 'tr' ? 'Kişisel Bilgiler' : 'Personal Details'}
               </h3>
               
               {reservationStartTime && (
-                <div className="flex items-center bg-neon-red/10 p-2 rounded-md text-xs text-neon-red mb-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <div className="flex items-center bg-neon-red/10 p-1.5 rounded-md text-xs text-neon-red">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                   </svg>
                   <ReservationTimer 
@@ -718,10 +719,10 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                 </div>
               )}
               
-              {/* Personal Details Form */}
-              <div className="space-y-3">
+              {/* Personal Details Form - More compact for mobile */}
+              <div className="space-y-2">
                 <div>
-                  <label htmlFor="fullName" className={`block text-xs font-medium ${textColorClass} mb-1`}>
+                  <label htmlFor="fullName" className={`block text-xs font-medium ${textColorClass} mb-0.5`}>
                     {locale === 'tr' ? 'Ad Soyad' : 'Full Name'}
                   </label>
                   <input
@@ -729,13 +730,13 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                     id="fullName"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
+                    className={`w-full px-2.5 py-1 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
                     required
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="email" className={`block text-xs font-medium ${textColorClass} mb-1`}>
+                  <label htmlFor="email" className={`block text-xs font-medium ${textColorClass} mb-0.5`}>
                     {locale === 'tr' ? 'E-posta' : 'Email'}
                   </label>
                   <input
@@ -743,13 +744,13 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                     id="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
+                    className={`w-full px-2.5 py-1 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
                     required
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="phone" className={`block text-xs font-medium ${textColorClass} mb-1`}>
+                  <label htmlFor="phone" className={`block text-xs font-medium ${textColorClass} mb-0.5`}>
                     {locale === 'tr' ? 'Telefon' : 'Phone'}
                   </label>
                   <input
@@ -757,13 +758,13 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                     id="phone"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className={`w-full px-3 py-1.5 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
+                    className={`w-full px-2.5 py-1 ${inputBgClass} border ${inputBorderClass} rounded-md focus:outline-none focus:border-electric-blue ${headingColorClass} text-xs`}
                     required
                   />
                 </div>
                 
                 {/* Terms acceptance checkbox */}
-                <div className="flex items-start mt-4">
+                <div className="flex items-start mt-2">
                   <input
                     type="checkbox"
                     id="acceptTerms"
@@ -772,7 +773,7 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                     className="mt-1 mr-2"
                     required
                   />
-                  <label htmlFor="acceptTerms" className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <label htmlFor="acceptTerms" className={`text-[10px] ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                     {locale === 'tr'
                       ? 'Ödeme yaparak, satın alma koşullarını ve gizlilik politikasını kabul etmiş oluyorum.'
                       : 'By making payment, I agree to the purchase terms and privacy policy.' 
@@ -782,23 +783,23 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                 
                 {/* Ödeme hatası - gradyan arkaplan ve dikkat çekici tasarım ile */}
                 {formErrors.paymentError && (
-                  <div className="mt-4 animate-pulse-slow relative overflow-hidden">
+                  <div className="mt-2 animate-pulse-slow relative overflow-hidden">
                     {/* Üçgen uyarı ikon içeren gradyan arkaplan */}
-                    <div className={`p-3.5 rounded-md shadow-md 
+                    <div className={`p-2 rounded-md shadow-md 
                       ${isDark ? 'bg-gradient-to-r from-red-900/80 via-red-800/80 to-red-900/80' : 'bg-gradient-to-r from-red-100 via-red-50 to-red-100'} 
                       border-l-4 ${isDark ? 'border-red-500' : 'border-red-500'}`}
                     >
                       <div className="flex items-start">
                         <div className="flex-shrink-0 mt-0.5">
-                          <svg className={`h-4 w-4 ${isDark ? 'text-red-400' : 'text-red-500'}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <svg className={`h-3.5 w-3.5 ${isDark ? 'text-red-400' : 'text-red-500'}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <div className="ml-2.5">
-                          <h3 className={`text-xs font-semibold ${isDark ? 'text-red-300' : 'text-red-800'}`}>
+                        <div className="ml-2">
+                          <h3 className={`text-[10px] font-semibold ${isDark ? 'text-red-300' : 'text-red-800'}`}>
                             {locale === 'tr' ? 'Ödeme Reddedildi' : 'Payment Rejected'}
                           </h3>
-                          <p className={`text-xs ${isDark ? 'text-red-300/90' : 'text-red-700'} mt-0.5`}>
+                          <p className={`text-[10px] ${isDark ? 'text-red-300/90' : 'text-red-700'}`}>
                             {formErrors.paymentError}
                           </p>
                         </div>
@@ -809,24 +810,10 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                     <div className="absolute inset-0 rounded-md border border-red-500/50 animate-pulse pointer-events-none"></div>
                   </div>
                 )}
-                
-                {/* Seat selection if required */}
-                {requiresSeatSelection && (
-                  <div className="mt-4">
-                    <h4 className={`font-medium ${headingColorClass} text-xs mb-2`}>
-                      {locale === 'tr' ? 'Koltuk Seçimi' : 'Seat Selection'}
-                    </h4>
-                    <SeatSelector 
-                      event={event} 
-                      selectedTickets={selectedTickets} 
-                      locale={locale}
-                    />
-                  </div>
-                )}
 
                 {/* Secure payment info */}
-                <div className="text-center mt-4">
-                  <p className="whitespace-nowrap text-[10px] inline-flex items-center justify-center flex-wrap">
+                <div className="text-center mt-2">
+                  <p className="whitespace-nowrap text-[9px] inline-flex items-center justify-center flex-wrap">
                     <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>
                       {locale === 'tr' 
                         ? 'Ödeme işleminiz ' 
@@ -847,18 +834,18 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
           )}
           
           {currentStep === 4 && (
-            <div className="step-confirmation text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-neon-green/20 flex items-center justify-center mx-auto">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-neon-green" viewBox="0 0 20 20" fill="currentColor">
+            <div className="step-confirmation text-center space-y-3">
+              <div className="w-14 h-14 rounded-full bg-neon-green/20 flex items-center justify-center mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-neon-green" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               </div>
               
-              <h3 className={`text-xl font-bold ${headingColorClass}`}>
+              <h3 className={`text-lg font-bold ${headingColorClass}`}>
                 {locale === 'tr' ? 'Ödeme Başarılı!' : 'Payment Successful!'}
               </h3>
               
-              <p className={`${textColorClass} text-sm`}>
+              <p className={`${textColorClass} text-xs`}>
                 {locale === 'tr' 
                   ? 'Biletleriniz e-posta adresinize gönderildi.' 
                   : 'Your tickets have been sent to your email address.'
@@ -884,7 +871,7 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                     </div>
                   ))}
                   
-                  <div className={`border-t ${borderColorClass} pt-1.5 flex justify-between font-bold ${headingColorClass} text-xs`}>
+                  <div className={`border-t ${borderColorClass} pt-1 flex justify-between font-bold ${headingColorClass} text-xs`}>
                     <span>{locale === 'tr' ? 'Toplam' : 'Total'}</span>
                     <span className="text-neon-green flex items-center">
                       {totalPrice} <span className="ml-1">₺</span>
@@ -943,17 +930,17 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
           )}
         </div>
         
-        {/* Summary and actions */}
+        {/* Summary and actions - Reduced spacing for mobile */}
         {currentStep < 4 && (
-          <div className={`mt-3 pt-2 border-t ${isDark ? 'border-gray-700/50' : borderColorClass}`}>
-            {/* Order Summary */}
+          <div className={`mt-2.5 pt-2 border-t ${isDark ? 'border-gray-700/50' : borderColorClass}`}>
+            {/* Order Summary - More compact for mobile */}
             {selectedTickets.length > 0 && (
-              <div className="mb-2.5">
-                <h4 className={`text-[10px] font-medium ${textColorClass} mb-1.5`}>
+              <div className="mb-2">
+                <h4 className={`text-[10px] font-medium ${textColorClass} mb-1`}>
                   {locale === 'tr' ? 'Sipariş Özeti' : 'Order Summary'}
                 </h4>
                 
-                <div className="space-y-0.5 mb-1.5 text-xs">
+                <div className="space-y-0.5 mb-1 text-xs">
                   {selectedTickets.map((ticket) => (
                     <div key={ticket.id} className="flex justify-between">
                       <span className={textColorClass}>{ticket.quantity}x {ticket.name}</span>
@@ -967,7 +954,7 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                     </div>
                   ))}
                   
-                  <div className={`border-t ${borderColorClass} pt-1.5 flex justify-between font-bold ${headingColorClass} text-xs`}>
+                  <div className={`border-t ${borderColorClass} pt-1 flex justify-between font-bold ${headingColorClass} text-xs`}>
                     <span>{locale === 'tr' ? 'Toplam' : 'Total'}</span>
                     <span className="text-neon-green flex items-center">
                       {totalPrice} <span className="ml-1">₺</span>
@@ -978,13 +965,13 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
             )}
             
             {/* Action buttons with better alignment and consistent coloring */}
-            <div className="flex items-center justify-center mt-2.5">
+            <div className="flex items-center justify-center mt-2">
               {currentStep > 1 ? (
                 <div className="flex justify-center w-full">
                   <button
                     type="button"
                     onClick={goBack}
-                    className={`px-3 py-1.5 ${buttonBgClass} ${buttonTextClass} rounded hover:opacity-80 transition-colors text-xs font-medium border ${borderColorClass} mr-2`}
+                    className={`px-3 py-1 ${buttonBgClass} ${buttonTextClass} rounded hover:opacity-80 transition-colors text-xs font-medium border ${borderColorClass} mr-2`}
                   >
                     {locale === 'tr' ? 'Geri' : 'Back'}
                   </button>
@@ -992,7 +979,7 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                   <button
                     type="submit"
                     disabled={!isStepComplete() || isProcessing}
-                    className={`px-3 py-1.5 rounded text-xs font-medium flex justify-center items-center transition-colors ${getPaymentButtonClass()}`}
+                    className={`px-3 py-1 rounded text-xs font-medium flex justify-center items-center transition-colors ${getPaymentButtonClass()}`}
                   >
                     {isProcessing ? (
                       <>
@@ -1013,7 +1000,7 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                 <button
                   type="submit"
                   disabled={!isStepComplete()}
-                  className={`w-full px-3 py-1.5 rounded text-xs font-medium flex justify-center items-center transition-colors ${getContinueButtonClass()}`}
+                  className={`w-full px-3 py-1 rounded text-xs font-medium flex justify-center items-center transition-colors ${getContinueButtonClass()}`}
                 >
                   {locale === 'tr' ? 'Devam Et' : 'Continue'}
                 </button>
@@ -1021,7 +1008,7 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
             </div>
 
             {formErrors.payment && (
-              <div className="mt-2 bg-neon-red/10 border border-neon-red text-neon-red p-2 rounded-md text-xs">
+              <div className="mt-2 bg-neon-red/10 border border-neon-red text-neon-red p-1.5 rounded-md text-xs">
                 {formErrors.payment}
               </div>
             )}

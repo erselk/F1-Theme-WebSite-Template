@@ -47,7 +47,7 @@ export interface Event {
     en: string;
   };
   category: 'workshop' | 'meetup' | 'conference' | 'race' | 'other';
-  status?: 'today' | 'tomorrow' | 'this-week' | 'upcoming' | 'past';
+  status?: EventStatus;
   tickets?: {
     id: string;
     name: {
@@ -84,7 +84,9 @@ export interface Event {
   gallery?: string[];
 }
 
-export const getEventStatus = (date: string): 'today' | 'tomorrow' | 'this-week' | 'upcoming' | 'past' => {
+export type EventStatus = 'today' | 'tomorrow' | 'this-week' | 'this-month' | 'upcoming' | 'past';
+
+export const getEventStatus = (date: string): EventStatus => {
   // Use timezone-aware date creation
   const eventDate = createTimezoneDate(date);
   const now = createTimezoneDate();
@@ -95,17 +97,25 @@ export const getEventStatus = (date: string): 'today' | 'tomorrow' | 'this-week'
   const tomorrow = createTimezoneDate(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
   
+  const nextDay = createTimezoneDate(tomorrow);
+  nextDay.setDate(nextDay.getDate() + 1);
+  
   const endOfWeek = createTimezoneDate(today);
   endOfWeek.setDate(endOfWeek.getDate() + 7);
   
-  if (eventDate < now) {
+  const endOfMonth = createTimezoneDate(today);
+  endOfMonth.setDate(endOfMonth.getDate() + 30);
+  
+  if (eventDate < today) {
     return 'past';
   } else if (eventDate.toDateString() === today.toDateString()) {
     return 'today';
   } else if (eventDate.toDateString() === tomorrow.toDateString()) {
     return 'tomorrow';
-  } else if (eventDate <= endOfWeek) {
+  } else if (eventDate >= nextDay && eventDate < endOfWeek) {
     return 'this-week';
+  } else if (eventDate >= endOfWeek && eventDate < endOfMonth) {
+    return 'this-month';
   } else {
     return 'upcoming';
   }

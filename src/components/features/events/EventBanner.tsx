@@ -30,16 +30,12 @@ export function EventBanner({ events }: EventBannerProps) {
     setCurrentSlide((prev) => (prev - 1 + events.length) % events.length);
   };
 
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-  };
-
   if (!events.length) return null;
 
   return (
     <div className="relative w-full">
-      {/* Main Banner */}
-      <div className="relative w-full h-[300px] md:h-[380px] overflow-hidden rounded-lg">
+      {/* Main Banner - maintaining 16:9 aspect ratio */}
+      <div className="relative w-full overflow-hidden rounded-lg aspect-video">
         {events.map((event, index) => (
           <div 
             key={event.id}
@@ -55,8 +51,8 @@ export function EventBanner({ events }: EventBannerProps) {
               priority={index === currentSlide}
             />
             <div className={`absolute inset-0 ${isDark ? 'bg-gradient-to-t from-graphite via-transparent to-transparent' : 'bg-gradient-to-t from-dark-grey/70 via-transparent to-transparent'}`}></div>
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <div className={`inline-block px-3 py-1 mb-3 rounded-full shadow-md ${
+            <div className="absolute bottom-0 left-0 right-0 p-3 md:p-6 text-white">
+              <div className={`inline-block px-2 py-1 mb-2 md:px-3 md:py-1 md:mb-3 text-xs md:text-sm rounded-full shadow-md ${
                 isDark 
                   ? 'bg-neon-red shadow-neon-red/20' 
                   : 'bg-f1-red shadow-f1-red/20'
@@ -67,11 +63,11 @@ export function EventBanner({ events }: EventBannerProps) {
                 {event.status === 'upcoming' && (language === 'tr' ? 'Yakında' : 'Upcoming')}
                 {event.status === 'past' && (language === 'tr' ? 'Geçmiş Etkinlik' : 'Past Event')}
               </div>
-              <h2 className="text-2xl md:text-4xl font-bold mb-2 drop-shadow-lg">{event.title[language]}</h2>
-              <p className="text-sm md:text-base mb-4 max-w-2xl drop-shadow-md">{event.description[language]}</p>
+              <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-1 md:mb-2 drop-shadow-lg truncate">{event.title[language]}</h2>
+              <p className="text-xs sm:text-sm md:text-base mb-2 md:mb-4 max-w-2xl drop-shadow-md line-clamp-2 md:line-clamp-3">{event.description[language]}</p>
               <Link 
                 href={`/events/${event.slug}`} 
-                className={`inline-block px-4 py-2 rounded-md transition-colors shadow-md ${
+                className={`inline-block px-3 py-1 md:px-4 md:py-2 text-sm md:text-base rounded-md transition-colors shadow-md ${
                   isDark 
                     ? 'bg-electric-blue hover:bg-electric-blue/80 shadow-electric-blue/20' 
                     : 'bg-race-blue hover:bg-race-blue/90 shadow-race-blue/20'
@@ -84,51 +80,28 @@ export function EventBanner({ events }: EventBannerProps) {
         ))}
       </div>
 
-      {/* Slider Controls */}
+      {/* Slider Controls - positioned correctly for 16:9 layout */}
       <button 
         onClick={prevSlide}
-        className="absolute left-4 top-[150px] md:top-[190px] -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
+        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
         aria-label={language === 'tr' ? 'Önceki Slayt' : 'Previous Slide'}
       >
         {/* Left chevron SVG */}
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="15 18 9 12 15 6"></polyline>
         </svg>
       </button>
       
       <button 
         onClick={nextSlide}
-        className="absolute right-4 top-[150px] md:top-[190px] -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
+        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
         aria-label={language === 'tr' ? 'Sonraki Slayt' : 'Next Slide'}
       >
         {/* Right chevron SVG */}
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="9 18 15 12 9 6"></polyline>
         </svg>
       </button>
-
-      {/* Thumbnail Navigation */}
-      <div className="flex justify-center mt-4 space-x-2 overflow-x-auto py-2">
-        {events.map((event, index) => (
-          <button
-            key={event.id}
-            onClick={() => goToSlide(index)}
-            className={`relative w-16 h-16 rounded-full overflow-hidden transition-all ${
-              index === currentSlide 
-                ? 'ring-4 ring-offset-2 ' + (isDark ? 'ring-electric-blue' : 'ring-race-blue')
-                : 'opacity-70'
-            }`}
-            aria-label={`${language === 'tr' ? 'Slayta git' : 'Go to slide'} ${index + 1}`}
-          >
-            <Image
-              src={event.squareImage || '/images/logokare.png'}
-              alt=""
-              fill
-              className="object-cover"
-            />
-          </button>
-        ))}
-      </div>
     </div>
   );
 }

@@ -94,16 +94,16 @@ const ServicesContent = () => {
   };
 
   return (
-    <div className={`py-8 px-6 sm:px-8 md:px-12 ${isDark ? 'bg-very-dark-grey text-light-grey' : 'bg-very-light-grey text-dark-grey'}`}>
+    <div className={`py-6 sm:py-8 px-3 sm:px-6 md:px-8 lg:px-12 ${isDark ? 'bg-very-dark-grey text-light-grey' : 'bg-very-light-grey text-dark-grey'}`}>
       <div className="container mx-auto">        
         <motion.div 
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mt-2"
+          className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 md:gap-6 lg:gap-8 mt-2 text-[13px] sm:text-base"
           style={{
-            gridAutoRows: "1fr", // Her hücrenin kendi içeriğine göre yükseklik ayarlaması için
-            alignItems: "stretch" // Hücrelerin içeriklerini dikey olarak genişletmek için
+            gridAutoRows: "1fr",
+            alignItems: "stretch"
           }}
         >
           {servicesList.map((service, index) => (
@@ -120,12 +120,12 @@ const ServicesContent = () => {
           ))}
         </motion.div>
 
-        <div className="mt-20 flex justify-center">
+        <div className="mt-12 sm:mt-16 md:mt-20 flex justify-center">
           <motion.div 
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ duration: 1, ease: "easeInOut" }}
-            className={`h-1 w-32 rounded ${
+            className={`h-0.5 sm:h-1 w-24 sm:w-32 rounded ${
               isDark ? 'bg-f1-red-bright' : 'bg-f1-red'
             }`}
           ></motion.div>

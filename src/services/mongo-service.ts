@@ -73,8 +73,11 @@ export async function getBlogBySlug(slug: string): Promise<BlogPost | null> {
 
 export async function getAllEvents(): Promise<Event[]> {
   try {
+    // Use caching instead of 'no-store' to prevent frequent refreshes
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/events`, {
-      cache: 'no-store'
+      next: {
+        revalidate: 3600 // Cache for 1 hour
+      }
     });
 
     if (!res.ok) {
@@ -91,8 +94,11 @@ export async function getAllEvents(): Promise<Event[]> {
 
 export async function getEventBySlug(slug: string): Promise<Event | null> {
   try {
+    // Use caching instead of 'no-store' to prevent frequent refreshes
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/events/${slug}`, {
-      cache: 'no-store'
+      next: {
+        revalidate: 3600 // Cache for 1 hour
+      }
     });
 
     if (!res.ok) {

@@ -22,7 +22,7 @@ const ServicesPageHeader: React.FC = () => {
           className="mb-0"
         >
           <h1 
-            className={`text-4xl font-bold mb-1 font-titillium-web ${
+            className={`text-3xl md:text-4xl font-bold mb-1 font-titillium-web ${
               isDark ? 'text-white' : 'text-dark-grey'
             }`}
           >
@@ -47,7 +47,7 @@ const ServicesPageHeader: React.FC = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7, duration: 0.5 }}
-          className={`max-w-3xl mx-auto text-xl leading-tight font-inter ${
+          className={`max-w-3xl mx-auto text-base md:text-xl leading-tight font-inter ${
             isDark ? 'text-light-grey' : 'text-medium-grey'
           }`}
         >
