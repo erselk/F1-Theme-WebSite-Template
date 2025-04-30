@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
 import Link from 'next/link';
@@ -12,7 +12,8 @@ import { saveEventOrder } from './actions';
 // PDF için Türkçe karakter ve ₺ sembolü desteği için font yükleme
 import 'jspdf/dist/polyfills.es.js';
 
-export default function PaymentConfirmedPage() {
+// SearchParams wrapper component to handle useSearchParams with Suspense
+function PaymentConfirmedContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { language: locale, isDark } = useThemeLanguage();
@@ -884,5 +885,23 @@ export default function PaymentConfirmedPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Main component that wraps the content with Suspense
+export default function PaymentConfirmedPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 dark:bg-graphite flex items-center justify-center p-4">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-16 h-16 border-4 border-electric-blue border-t-transparent rounded-full animate-spin"></div>
+          <p className="font-medium text-gray-900 dark:text-white">
+            Yükleniyor... / Loading...
+          </p>
+        </div>
+      </div>
+    }>
+      <PaymentConfirmedContent />
+    </Suspense>
   );
 }

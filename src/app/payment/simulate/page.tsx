@@ -1,10 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
 
-export default function PaymentSimulationPage() {
+// Loading component
+function PaymentSimulationLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="flex items-center justify-center flex-col">
+        <div className="w-12 h-12 border-4 border-t-electric-blue border-r-electric-blue border-b-transparent border-l-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-lg">Yükleniyor / Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main component content
+function PaymentSimulationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { language: locale, isDark } = useThemeLanguage();
@@ -170,5 +183,14 @@ export default function PaymentSimulationPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Export the page component with Suspense boundary
+export default function PaymentSimulationPage() {
+  return (
+    <Suspense fallback={<PaymentSimulationLoading />}>
+      <PaymentSimulationContent />
+    </Suspense>
   );
 }

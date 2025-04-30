@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
 import Link from 'next/link';
@@ -10,7 +10,20 @@ import { jsPDF } from 'jspdf';
 // PDF'lerde Türkçe karakter desteği için font ekleme
 import 'jspdf-autotable';
 
-export default function PaymentBookConfirmed() {
+// Loading fallback component
+function PaymentConfirmationLoading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="w-16 h-16 border-4 border-electric-blue border-t-transparent rounded-full animate-spin"></div>
+        <p className="font-medium">Yükleniyor / Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main component content
+function PaymentBookConfirmedContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { language: locale, isDark } = useThemeLanguage();
@@ -473,5 +486,14 @@ export default function PaymentBookConfirmed() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Export the page component with Suspense boundary
+export default function PaymentBookConfirmed() {
+  return (
+    <Suspense fallback={<PaymentConfirmationLoading />}>
+      <PaymentBookConfirmedContent />
+    </Suspense>
   );
 }

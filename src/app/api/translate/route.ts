@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-// Fix the import to use the correct method from Azure SDK
-import { createClient } from "@azure-rest/ai-translation-text";
+// Correct import for Azure Translation API client
+import { TranslationClient, AzureKeyCredential } from '@azure-rest/ai-translation-text';
 
 // Desteklenen diller
 type SupportedLanguage = 'en' | 'tr';
@@ -48,43 +48,32 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      // Azure SDK ile çeviri istemcisi oluştur
-      const credential = {
-        key: MS_TRANSLATOR_API_KEY,
-        region: MS_TRANSLATOR_REGION
-      };
+      // Create client with Azure Key Credential
+      const client = new TranslationClient(
+        MS_TRANSLATOR_REGION,
+        new AzureKeyCredential(MS_TRANSLATOR_API_KEY)
+      );
       
-      const client = createClient(credential);
-      
-      // Çeviri işlemini gerçekleştir
-      const translateResponse = await client.path("/translate").post({
-        body: [{ text }],
-        queryParameters: {
-          from: from,
-          to: [to]
-        }
+      // Perform translation
+      const response = await client.translate([text], [to], {
+        from: from,
+        textType: "plain"
       });
       
-      if (translateResponse.status !== "200") {
-        throw new Error(`Translation API error: ${translateResponse.status}`);
+      if (!response || !response[0] || !response[0].translations || response[0].translations.length === 0) {
+        throw new Error("Empty translations response from API");
       }
       
-      const responseBody = translateResponse.body;
+      // Get translation result
+      const translatedText = response[0].translations[0].text || '';
+      const detectedLanguage = response[0].detectedLanguage || { language: from, score: 1 };
       
-      if (!responseBody || !Array.isArray(responseBody) || responseBody.length === 0) {
-        throw new Error("Empty response from Translator API");
-      }
-      
-      // Çeviri sonucunu al
-      const translatedText = responseBody[0].translations[0].text;
-      const detectedLanguage = responseBody[0].detectedLanguage || { language: from, score: 1 };
-      
-      // Çeviri sonucunu formatla ve geri dön
+      // Return formatted translation result
       return NextResponse.json({
         translatedText,
         detectedLanguage: {
-          language: detectedLanguage.language,
-          confidence: detectedLanguage.score * 100
+          language: detectedLanguage.language || from,
+          confidence: (detectedLanguage.score || 1) * 100
         },
         success: true
       });

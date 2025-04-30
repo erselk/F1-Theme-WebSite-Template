@@ -1,13 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
 import { motion } from 'framer-motion';
 import { createBookingRecord } from './actions';
 
-export default function PaymentBookPage() {
+// Loading fallback component
+function PaymentBookLoading() {
+  return (
+    <div className="flex min-h-[calc(100vh-200px)] items-center justify-center px-4 py-12">
+      <div className="flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-t-f1-red border-r-f1-red border-b-transparent border-l-transparent rounded-full animate-spin mr-3"></div>
+        <span className="text-lg">Yükleniyor / Loading...</span>
+      </div>
+    </div>
+  );
+}
+
+// Main component
+function PaymentBookContent() {
   const { isDark, language: locale } = useThemeLanguage();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -299,5 +312,14 @@ export default function PaymentBookPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Export the page component with Suspense boundary
+export default function PaymentBookPage() {
+  return (
+    <Suspense fallback={<PaymentBookLoading />}>
+      <PaymentBookContent />
+    </Suspense>
   );
 }
