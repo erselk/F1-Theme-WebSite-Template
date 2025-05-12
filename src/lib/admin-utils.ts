@@ -1,0 +1,198 @@
+import { useState, useEffect, useMemo } from 'react';
+
+/**
+ * Admin theme class utilities
+ */
+export const getAdminThemeClasses = (isDark: boolean) => {
+  return {
+    bgClass: isDark ? 'bg-graphite' : 'bg-white',
+    textClass: isDark ? 'text-white' : 'text-gray-800',
+    textSecondaryClass: isDark ? 'text-gray-300' : 'text-gray-500',
+    borderClass: isDark ? 'border-carbon-grey' : 'border-gray-200',
+    cardClass: isDark ? 'bg-dark-grey' : 'bg-white',
+    tableHeaderClass: isDark ? 'bg-carbon-grey text-silver' : 'bg-gray-50 text-gray-600',
+    tableRowHoverClass: isDark ? 'hover:bg-graphite' : 'hover:bg-gray-50',
+    buttonPrimaryClass: 'bg-electric-blue hover:bg-blue-600 text-white',
+    buttonSecondaryClass: isDark
+      ? 'bg-carbon-grey hover:bg-graphite text-white'
+      : 'bg-gray-100 hover:bg-gray-200 text-gray-700',
+    buttonDangerClass: 'bg-red-600 hover:bg-red-700 text-white',
+  };
+};
+
+/**
+ * Format price with proper Turkish/English formatting
+ */
+export const formatPrice = (amount: number, language: string) => {
+  // Kuruş kısmı olmayan fiyatlar için minimumFractionDigits: 0 kullanıyoruz
+  // Tam sayı değerlerde kuruş göstermeyen, ondalıklı değerlerde gösterecek şekilde ayarlıyoruz
+  const hasDecimal = amount % 1 !== 0;
+  
+  return new Intl.NumberFormat(language === 'tr' ? 'tr-TR' : 'en-US', {
+    style: 'currency',
+    currency: 'TRY',
+    minimumFractionDigits: hasDecimal ? 2 : 0,
+    maximumFractionDigits: 2,
+  }).format(amount);
+};
+
+/**
+ * Format date based on language
+ */
+export const formatDate = (dateString: string, language: string) => {
+  return new Date(dateString).toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+/**
+ * Format time range for reservations
+ */
+export const formatTimeRange = (startTime: string, endTime: string, language: string) => {
+  const start = new Date(startTime);
+  const end = new Date(endTime);
+  
+  const options: Intl.DateTimeFormatOptions = {
+    hour: '2-digit',
+    minute: '2-digit',
+  };
+  
+  const locale = language === 'tr' ? 'tr-TR' : 'en-US';
+  return `${start.toLocaleTimeString(locale, options)} - ${end.toLocaleTimeString(locale, options)}`;
+};
+
+/**
+ * Custom hook for filtering and pagination
+ */
+export function useFilteredData<T>({
+  data,
+  searchTerm,
+  searchFields,
+  sortField = '',
+  sortDirection = 'desc',
+  itemsPerPage = 10,
+}: {
+  data: T[];
+  searchTerm: string;
+  searchFields: (keyof T | string)[];
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+  itemsPerPage?: number;
+}) {
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Filter and sort data - memoize to prevent unnecessary recalculation
+  const filteredData = useMemo(() => {
+    if (!data || !data.length) return [];
+    
+    // Apply search filter if searchTerm exists
+    let result = data;
+    
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      
+      result = data.filter((item: any) => {
+        try {
+          return searchFields.some(field => {
+            const fieldPath = String(field).split('.');
+            let value = item;
+            
+            // Handle nested fields like 'customerInfo.fullName'
+            for (const key of fieldPath) {
+              if (value === null || value === undefined) return false;
+              value = value[key];
+            }
+            
+            if (value === null || value === undefined) return false;
+            
+            // Handle object values like {tr: 'value', en: 'value'}
+            if (typeof value === 'object') {
+              return Object.values(value).some(v => 
+                v !== null && 
+                v !== undefined && 
+                String(v).toLowerCase().includes(searchLower)
+              );
+            }
+            
+            return String(value).toLowerCase().includes(searchLower);
+          });
+        } catch (err) {
+          console.error("Error filtering data:", err);
+          return false;
+        }
+      });
+    }
+    
+    // Sort the results if sortField is provided
+    if (sortField) {
+      result.sort((a: any, b: any) => {
+        let fieldA = getNestedValue(a, sortField);
+        let fieldB = getNestedValue(b, sortField);
+        
+        // Handle date fields
+        if (fieldA instanceof Date || (typeof fieldA === 'string' && !isNaN(Date.parse(fieldA)))) {
+          fieldA = new Date(fieldA).getTime();
+          fieldB = new Date(fieldB).getTime();
+        }
+        
+        // Handle undefined values
+        if (fieldA === undefined && fieldB === undefined) return 0;
+        if (fieldA === undefined) return 1;
+        if (fieldB === undefined) return -1;
+        
+        // Sorting direction
+        const comparison = fieldA > fieldB ? 1 : -1;
+        return sortDirection === 'asc' ? comparison : -comparison;
+      });
+    }
+    
+    return result;
+  }, [data, searchTerm, searchFields, sortField, sortDirection]);
+  
+  // Get nested value from object
+  function getNestedValue(obj: any, path: string) {
+    const keys = path.split('.');
+    let value = obj;
+    
+    for (const key of keys) {
+      if (value === null || value === undefined) return undefined;
+      value = value[key];
+    }
+    
+    return value;
+  }
+  
+  // Calculate pagination
+  const totalItems = filteredData.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  
+  // Get current items
+  const currentItems = useMemo(() => {
+    try {
+      return filteredData.slice(indexOfFirstItem, indexOfLastItem);
+    } catch (err) {
+      console.error("Error getting current items:", err);
+      return [];
+    }
+  }, [filteredData, indexOfFirstItem, indexOfLastItem]);
+  
+  // Change page
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+  
+  return {
+    filteredData,
+    currentItems,
+    currentPage,
+    totalPages,
+    totalItems,
+    indexOfFirstItem,
+    indexOfLastItem,
+    paginate,
+  };
+} 

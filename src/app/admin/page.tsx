@@ -1,39 +1,54 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
-import { useEffect, useState } from 'react';
-import { getDashboardStats, getTodayEvents, getTodayBookings } from '@/services/admin-service';
 import Link from 'next/link';
+import { getDashboardStats, getTodayEvents, getTodayBookings } from '@/services/admin-service';
 import { formatDistanceToNow } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
+import { formatPrice } from '@/lib/admin-utils';
+
+type DashboardStats = {
+  totalEvents: number;
+  totalReservations: number;
+  totalBlogs: number;
+  totalPeople: number;
+  totalRevenue?: number;
+  recentEvents?: any[];
+  recentBookings?: any[];
+};
+
+type TodayEvent = {
+  title: string | { [key: string]: string };
+  date: string;
+  totalTickets: number;
+  totalRevenue: number;
+};
+
+type TodayBooking = {
+  refNumber: string;
+  venue: string;
+  startTime: string;
+  name: string;
+  people: number;
+  totalPrice: number;
+};
 
 export default function AdminDashboard() {
   const { isDark, language } = useThemeLanguage();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     totalEvents: 0,
     totalReservations: 0,
     totalBlogs: 0,
     totalPeople: 0,
   });
-  const [todayEvents, setTodayEvents] = useState([]);
-  const [todayBookings, setTodayBookings] = useState([]);
-  const [error, setError] = useState(null);
-
-  // Format price based on language
-  const formatPrice = (amount) => {
-    const hasDecimal = amount % 1 !== 0;
-    
-    return new Intl.NumberFormat(language === 'tr' ? 'tr-TR' : 'en-US', {
-      style: 'currency',
-      currency: 'TRY',
-      minimumFractionDigits: hasDecimal ? 2 : 0,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
+  const [todayEvents, setTodayEvents] = useState<TodayEvent[]>([]);
+  const [todayBookings, setTodayBookings] = useState<TodayBooking[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   // Format date based on language
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', {
       hour: '2-digit',
       minute: '2-digit'
@@ -41,7 +56,7 @@ export default function AdminDashboard() {
   };
 
   // Format relative time (e.g., "2 hours from now")
-  const formatRelativeTime = (date) => {
+  const formatRelativeTime = (date: string) => {
     return formatDistanceToNow(new Date(date), { 
       addSuffix: true,
       locale: language === 'tr' ? tr : enUS
@@ -61,25 +76,26 @@ export default function AdminDashboard() {
           getTodayBookings()
         ]);
 
-        if (statsResult.success) {
+        if (statsResult.success && statsResult.data) {
           setStats({
-            totalEvents: statsResult.data.totalEvents,
-            totalReservations: statsResult.data.totalReservations,
-            totalBlogs: statsResult.data.totalBlogs,
-            totalPeople: statsResult.data.totalPeople
+            totalEvents: statsResult.data.totalEvents || 0,
+            totalReservations: statsResult.data.totalBookings || 0, // Renamed from backend
+            totalBlogs: statsResult.data.totalBlogs || 0,
+            totalPeople: statsResult.data.totalPeople || 0,
+            totalRevenue: statsResult.data.totalRevenue || 0,
           });
         }
 
         if (eventsResult.success) {
-          setTodayEvents(eventsResult.data);
+          setTodayEvents(eventsResult.data || []);
         }
 
         if (bookingsResult.success) {
-          setTodayBookings(bookingsResult.data);
+          setTodayBookings(bookingsResult.data || []);
         }
 
         setLoading(false);
-      } catch (err) {
+      } catch (err: any) {
         setError(err.message || 'Veriler yüklenirken bir hata oluştu');
         setLoading(false);
       }
@@ -205,7 +221,9 @@ export default function AdminDashboard() {
                 >
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
                     <h3 className={`text-sm md:text-base font-semibold truncate ${isDark ? 'text-white' : 'text-dark-grey'}`}>
-                      {event.title}
+                      {typeof event.title === 'object' 
+                        ? (event.title[language] || event.title.en || event.title.tr) 
+                        : event.title}
                     </h3>
                     <span className={`text-xs md:text-sm font-medium px-2 py-1 rounded mt-1 md:mt-0 inline-block ${
                       isDark ? 'bg-carbon-grey text-electric-blue' : 'bg-light-grey text-race-blue'
@@ -228,7 +246,7 @@ export default function AdminDashboard() {
                         {language === 'tr' ? 'Toplam Gelir' : 'Total Revenue'}
                       </p>
                       <p className={`text-base md:text-lg font-bold ${isDark ? 'text-neon-green' : 'text-race-green'}`}>
-                        {formatPrice(event.totalRevenue || 0)}
+                        {formatPrice(event.totalRevenue || 0, language)}
                       </p>
                     </div>
                   </div>
@@ -274,7 +292,7 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <p className={`text-xs md:text-sm font-medium ${isDark ? 'text-neon-green' : 'text-race-green'}`}>
-                        {formatPrice(booking.totalPrice || 0)}
+                        {formatPrice(booking.totalPrice || 0, language)}
                       </p>
                     </div>
                   </div>

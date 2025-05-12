@@ -1,15 +1,26 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Event } from '@/types';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
+import { getAllEvents, deleteEvent } from '@/services/admin-service';
 import { EyeIcon, PencilSquareIcon, TrashIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { formatDate } from '@/lib/admin-utils';
+
+// Event tipi
+type Event = {
+  id: string;
+  slug: string;
+  title: { [key: string]: string };
+  date: string;
+  category: string;
+  price?: number;
+  tickets?: { name: string | { [key: string]: string }; price: number }[];
+  squareImage: string;
+};
 
 export default function EventsListPage() {
-  const router = useRouter();
   const { isDark, language } = useThemeLanguage();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,10 +33,9 @@ export default function EventsListPage() {
     const fetchEvents = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/events');
-        const data = await response.json();
+        const result = await getAllEvents();
         
-        if (response.ok && data.events) {
+        if (result.success && result.data) {
           // Bugünün tarihini alıyoruz (saat, dakika, saniye olmadan)
           const today = new Date();
           today.setHours(0, 0, 0, 0);
@@ -34,7 +44,7 @@ export default function EventsListPage() {
           const futureEvents: Event[] = [];
           const pastEvents: Event[] = [];
           
-          data.events.forEach((event: Event) => {
+          result.data.forEach((event: Event) => {
             const eventDate = new Date(event.date);
             if (eventDate >= today) {
               futureEvents.push(event);
@@ -52,10 +62,10 @@ export default function EventsListPage() {
           // İki listeyi birleştiriyoruz: önce gelecek sonra geçmiş etkinlikler
           setEvents([...futureEvents, ...pastEvents]);
         } else {
-          throw new Error(data.error || 'Etkinlikler yüklenirken bir hata oluştu');
+          throw new Error(result.error || 'Etkinlikler yüklenirken bir hata oluştu');
         }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Etkinlikler yüklenirken bir hata oluştu');
+      } catch (err: any) {
+        setError(err.message || 'Etkinlikler yüklenirken bir hata oluştu');
         console.error('Etkinlik yükleme hatası:', err);
       } finally {
         setLoading(false);
@@ -66,7 +76,7 @@ export default function EventsListPage() {
   }, []);
 
   // Etkinlik silme işlemi
-  const deleteEvent = async (slug: string) => {
+  const handleDeleteEvent = async (slug: string) => {
     if (!confirm('Bu etkinliği silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
       return;
     }
@@ -75,39 +85,20 @@ export default function EventsListPage() {
       setIsDeleting(slug);
       setDeleteError(null);
       
-      const response = await fetch(`/api/events/${slug}`, {
-        method: 'DELETE',
-      });
+      const result = await deleteEvent(slug);
       
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Etkinlik silinirken bir hata oluştu');
+      if (!result.success) {
+        throw new Error(result.error || 'Etkinlik silinirken bir hata oluştu');
       }
       
       // Başarılı ise listeden kaldır
       setEvents(events.filter(event => event.slug !== slug));
-    } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : 'Etkinlik silinirken bir hata oluştu');
+    } catch (err: any) {
+      setDeleteError(err.message || 'Etkinlik silinirken bir hata oluştu');
       console.error('Etkinlik silme hatası:', err);
     } finally {
       setIsDeleting(null);
     }
-  };
-
-  // Tarih formatını yerelleştir
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    
-    const options: Intl.DateTimeFormatOptions = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    };
-    
-    return date.toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', options);
   };
   
   // Mobil için kısaltılmış tarih formatı
@@ -124,7 +115,7 @@ export default function EventsListPage() {
 
   // Kategori adını yerelleştir
   const getCategoryName = (category: string) => {
-    const categories = {
+    const categories: { [key: string]: { tr: string; en: string } } = {
       workshop: { tr: 'Atölye Çalışması', en: 'Workshop' },
       meetup: { tr: 'Buluşma', en: 'Meetup' },
       conference: { tr: 'Konferans', en: 'Conference' },
@@ -132,16 +123,16 @@ export default function EventsListPage() {
       other: { tr: 'Diğer', en: 'Other' }
     };
     
-    return categories[category as keyof typeof categories]?.[language as 'tr' | 'en'] || category;
+    return categories[category]?.[language as 'tr' | 'en'] || category;
   };
 
   // Etkinliğin en düşük bilet fiyatını bul
-  const getMinTicketPrice = (event: any) => {
+  const getMinTicketPrice = (event: Event) => {
     if (!event.tickets || !event.tickets.length) {
       return event.price || 0;
     }
     
-    const prices = event.tickets.map((ticket: any) => ticket.price);
+    const prices = event.tickets.map((ticket) => ticket.price);
     return Math.min(...prices);
   };
 
@@ -307,6 +298,9 @@ export default function EventsListPage() {
                     </div>
                   </td>
                   <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-xs md:text-sm hidden md:table-cell">
+                    {formatDate(event.date, language)}
+                  </td>
+                  <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-xs md:text-sm hidden md:table-cell">
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                       {getCategoryName(event.category)}
                     </span>
@@ -343,7 +337,7 @@ export default function EventsListPage() {
                         <PencilSquareIcon className="w-4 h-4 md:w-5 md:h-5" />
                       </Link>
                       <button
-                        onClick={() => deleteEvent(event.slug)}
+                        onClick={() => handleDeleteEvent(event.slug)}
                         disabled={isDeleting === event.slug}
                         className="text-f1-red hover:text-f1-red-dark disabled:opacity-50"
                         title="Sil"

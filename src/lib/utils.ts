@@ -6,6 +6,30 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Admin API istekleri için kimlik doğrulama başlıklarıyla fetch işlemi yapar
+ * @param url İstek yapılacak URL
+ * @param options Fetch options
+ * @returns Fetch response
+ */
+export async function fetchWithAuth(url: string, options: RequestInit = {}) {
+  // Auth token'ı session'dan al (gerekirse cookie'den vb. alınabilir)
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('adminToken') : null;
+  
+  // URL'nin tam URL olup olmadığını kontrol et
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || window.location.origin;
+  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
+  
+  return fetch(fullUrl, {
+    ...options,
+    headers: {
+      ...options.headers,
+      'Authorization': token ? `Bearer ${token}` : '',
+      'Content-Type': 'application/json',
+    },
+  });
+}
+
+/**
  * Para birimini belirli bir dile göre formatlar
  * @param amount Formatlanacak miktar
  * @param currency Para birimi kodu (TRY, USD, vb.)
