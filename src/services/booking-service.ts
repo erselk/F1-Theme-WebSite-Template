@@ -3,44 +3,29 @@
 import { connectToDatabase } from '@/lib/db/mongodb';
 import Booking from '@/models/Booking';
 import { revalidatePath } from 'next/cache';
+import { serializeMongoData } from '@/lib/utils';
 
 // Mongoose nesnelerini düz JSON'a dönüştüren ve veriyi normalize eden yardımcı fonksiyon
 function normalizeBookingData(booking: any) {
   if (!booking) return null;
 
-  // MongoDB ObjectId'leri ile ilgili sorunları önlemek için düz objeye çeviriyoruz
-  // MongoDB ObjectId'yi doğrudan string olarak çeviriyoruz
-  const rawBooking = booking.toObject ? booking.toObject({ getters: true }) : booking;
+  // Yeni genel serileştirme fonksiyonunu kullan - buffer sorununu çözer
+  const serializedBooking = serializeMongoData(booking);
   
-  // _id alanını doğrudan string'e çeviriyoruz
-  const normalizedBooking = {
-    ...rawBooking,
-    _id: rawBooking._id ? rawBooking._id.toString() : null,
+  // İsteğe bağlı alanlar için varsayılan değerler ekle
+  return {
+    ...serializedBooking,
+    refNumber: serializedBooking.refNumber || 'unknown',
+    name: serializedBooking.name || 'Bilinmeyen Müşteri',
+    email: serializedBooking.email || '',
+    phone: serializedBooking.phone || '',
+    venue: serializedBooking.venue || 'Bilinmeyen Alan',
+    people: typeof serializedBooking.people === 'number' ? serializedBooking.people : 1,
+    status: serializedBooking.status || 'CONFIRMED',
+    totalPrice: typeof serializedBooking.totalPrice === 'number' ? serializedBooking.totalPrice : 0,
+    notes: serializedBooking.notes || '',
+    paymentId: serializedBooking.paymentId || ''
   };
-  
-  // Tutarı numeric olduğundan emin olalım
-  const totalPrice = typeof normalizedBooking.totalPrice === 'number' ? normalizedBooking.totalPrice : 0;
-  
-  // İsteğe bağlı alanlar için varsayılan değerler
-  const result = {
-    ...normalizedBooking,
-    refNumber: normalizedBooking.refNumber || 'unknown',
-    name: normalizedBooking.name || 'Bilinmeyen Müşteri',
-    email: normalizedBooking.email || '',
-    phone: normalizedBooking.phone || '',
-    venue: normalizedBooking.venue || 'Bilinmeyen Alan',
-    startTime: normalizedBooking.startTime || new Date(),
-    endTime: normalizedBooking.endTime || new Date(),
-    people: typeof normalizedBooking.people === 'number' ? normalizedBooking.people : 1,
-    status: normalizedBooking.status || 'CONFIRMED',
-    totalPrice: totalPrice,
-    notes: normalizedBooking.notes || '',
-    paymentId: normalizedBooking.paymentId || '',
-    createdAt: normalizedBooking.createdAt || new Date(),
-    updatedAt: normalizedBooking.updatedAt || new Date()
-  };
-
-  return result;
 }
 
 /**

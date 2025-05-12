@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/services/mongo-service';
-import { ObjectId } from 'mongodb';
+import { uploadFileToGridFS } from '@/lib/file-uploader';
 
 // POST /api/upload - Dosya yüklemek için endpoint
 export async function POST(request: NextRequest) {
@@ -23,29 +22,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Dosya boyutu 2MB\'dan küçük olmalıdır' }, { status: 400 });
     }
     
-    const buffer = await file.arrayBuffer();
-    const bytes = new Uint8Array(buffer);
-    const base64data = Buffer.from(bytes).toString('base64');
-    const fileData = `data:${file.type};base64,${base64data}`;
+    // Dosyayı buffer'a dönüştür
+    const buffer = Buffer.from(await file.arrayBuffer());
     
-    // MongoDB'ye bağlan
-    const db = await connectToDatabase();
+    // Kategoriye ait bilgi ekle (opsiyonel)
+    const category = formData.get('category') as string || 'other';
     
-    // images koleksiyonuna kaydet
-    const result = await db.collection('images').insertOne({
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      data: fileData,
-      createdAt: new Date()
-    });
+    // Kategori bilgisini dosya adına ekle
+    const filename = `${category}_${file.name}`;
     
-    const imageUrl = `/api/images/${result.insertedId}`;
+    // GridFS'e yükle
+    const fileId = await uploadFileToGridFS(buffer, filename, file.type);
+    
+    // API URL'sini oluştur
+    const imageUrl = `/api/files/${fileId}`;
     
     return NextResponse.json({ 
       success: true, 
       url: imageUrl,
-      id: result.insertedId 
+      id: fileId 
     }, { status: 200 });
   } catch (error) {
     console.error('Error uploading file:', error);

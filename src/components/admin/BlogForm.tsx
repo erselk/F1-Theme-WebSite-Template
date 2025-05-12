@@ -28,19 +28,6 @@ interface ImageFile {
   contentType: string;
 }
 
-// Function to generate ID in the format ddmmyyxxx
-const generateBlogId = () => {
-  const now = createTimezoneDate(null, DEFAULT_TIMEZONE);
-  const day = String(now.getDate()).padStart(2, '0');
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const year = String(now.getFullYear()).slice(2);
-  
-  // Random number between 001-999 for the last part
-  const randomNum = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
-  
-  return `${day}${month}${year}${randomNum}`;
-};
-
 interface BlogFormProps {
   blog?: BlogPost;
   onSubmit: (blogData: Partial<BlogPost>) => void;
@@ -49,7 +36,7 @@ interface BlogFormProps {
 }
 
 export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: BlogFormProps) {
-  const { isDark, language, setLanguage } = useThemeLanguage();
+  const { isDark, language } = useThemeLanguage();
   const isEditMode = !!blog;
 
   // Image selector modals state
@@ -59,6 +46,8 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
   // State for authors from server
   const [authors, setAuthors] = useState<Array<{_id: string, name: string, profileImage: string}>>([]);
   const [isLoadingAuthors, setIsLoadingAuthors] = useState(false);
+  const [isAuthorsLoaded, setIsAuthorsLoaded] = useState(false);
+  const [authorSelectorOpen, setAuthorSelectorOpen] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<Partial<BlogPost>>({
@@ -106,13 +95,13 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
     // Format the current date/time for input field
     const formattedDate = now.toISOString().slice(0, 16); // Format as YYYY-MM-DDThh:mm
     setDateInputValue(formattedDate);
-    
-    // Fetch authors from server
-    fetchAuthors();
   }, []);
   
   // Fetch authors from the server
   const fetchAuthors = async () => {
+    // Eğer yazarlar zaten yüklendiyse tekrar yükleme
+    if (isAuthorsLoaded || isLoadingAuthors) return;
+    
     try {
       setIsLoadingAuthors(true);
       const response = await fetch('/api/authors');
@@ -132,6 +121,9 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
         console.error('Expected authors data to be an array, but got:', data);
         setAuthors([]);
       }
+      
+      // Yazarların yüklendiğini işaretleyelim
+      setIsAuthorsLoaded(true);
     } catch (error) {
       console.error('Error fetching authors:', error);
       setAuthors([]);
@@ -299,12 +291,6 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
     if (!formData.category?.trim()) {
       errors['category'] = true;
     }
-
-    console.log('Validation results:', {
-      errors,
-      hasErrors: Object.keys(errors).length > 0,
-      formData: JSON.stringify(formData)
-    });
     
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -349,8 +335,9 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
       let updatedData = {...formData};
       
       if (!isEditMode) {
-        // Generate ID in format ddmmyyxxx
-        updatedData.id = generateBlogId();
+        // Generate a unique ID using timestamp
+        const timestamp = Date.now();
+        updatedData.id = `blog-${timestamp}`;
         
         // Ensure publish date is current if not set
         if (!updatedData.publishDate) {
@@ -364,16 +351,13 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
       if (!slug || slug.trim() === '' || slug === 'undefined' || slug.includes('undefined')) {
         if (updatedData.title?.en) {
           slug = generateSlugFromEnglishTitle(updatedData.title.en);
-          console.log('Auto-generated slug from English title:', slug);
         } else if (updatedData.title?.tr) {
           // İngilizce başlık yoksa Türkçeyi kullan
           slug = generateSlugFromEnglishTitle(updatedData.title.tr);
-          console.log('Auto-generated slug from Turkish title:', slug);
         } else {
           // Fallback olarak random bir slug oluştur
           const randomPart = Math.random().toString(36).substring(2, 8);
           slug = `blog-${randomPart}`;
-          console.log('Generated random fallback slug:', slug);
         }
       }
       
@@ -386,8 +370,6 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
       
       // Deep clone the data to avoid any reference issues
       const finalData = JSON.parse(JSON.stringify(updatedData));
-      
-      console.log('Submitting form data:', finalData);
       
       onSubmit(finalData);
     } catch (error) {
@@ -455,7 +437,6 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
             ...prev,
             [name]: result.publicPath
           }));
-          console.log(`${name} MongoDB'ye başarıyla yüklendi:`, result.publicPath);
         } else {
           console.error('Görsel yükleme hatası:', result.error);
           alert(formLanguage === 'tr' 
@@ -484,8 +465,6 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
         const { translateChangedFields } = await import('@/services/translation-service');
         
         try {
-          console.log('Sadece değişen alanlar çevriliyor:', fromLang, 'dilinden', toLang, 'diline');
-          
           // Orijinal blog ile karşılaştırarak sadece değişen alanları çevir
           const translatedFormData = await translateChangedFields(formData, blog, fromLang, toLang);
           
@@ -508,8 +487,6 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
         const { translateMultiLangObject } = await import('@/services/translation-service');
         
         try {
-          console.log('Tüm alanlar çevriliyor:', fromLang, 'dilinden', toLang, 'diline');
-          
           // Tüm form verilerini çevirip güncelle
           const translatedFormData = await translateMultiLangObject(formData, fromLang, toLang);
           
@@ -561,6 +538,12 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
       thumbnailImage: imageUrl
     }));
     setThumbnailPreview(null);
+  };
+
+  // Yazar seçici açıldığında yazarları yükle
+  const handleAuthorSelectorOpen = () => {
+    setAuthorSelectorOpen(true);
+    fetchAuthors();
   };
 
   return (
@@ -677,30 +660,39 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
                 {formLanguage === 'tr' ? 'Yazar *' : 'Author *'}
               </label>
               <div className="flex space-x-2">
-                <select
-                  id="author"
-                  name="author"
-                  required
-                  value={authors.find(a => a.name === formData.author?.name)?._id || ''}
-                  onChange={handleAuthorSelect}
-                  className={`flex-1 px-3 py-2 rounded-md ${
-                    isDark
-                      ? 'bg-carbon-grey border border-dark-grey text-white [&>option]:bg-carbon-grey'
-                      : 'bg-white border border-light-grey text-dark-grey'
-                  } ${hasError('author.name') ? 'border-f1-red ring-1 ring-f1-red' : ''}`}
-                  disabled={isLoadingAuthors}
-                >
-                  <option value="">
-                    {isLoadingAuthors 
-                      ? (formLanguage === 'tr' ? 'Yükleniyor...' : 'Loading...') 
-                      : (formLanguage === 'tr' ? '-- Yazar Seçin --' : '-- Select Author --')}
-                  </option>
-                  {authors.map(author => (
-                    <option key={author._id} value={author._id}>
-                      {author.name}
+                <div className={`form-group ${hasError('author.name') ? 'has-error' : ''}`}>
+                  <select
+                    id="author"
+                    name="author.name"
+                    value={authors.find(a => a.name === formData.author?.name)?._id || ''}
+                    onChange={handleAuthorSelect}
+                    onClick={handleAuthorSelectorOpen}
+                    className={`form-input ${isDark ? 'dark' : ''}`}
+                    required
+                  >
+                    <option value="">
+                      {language === 'tr' ? '-- Yazar Seçin --' : '-- Select Author --'}
                     </option>
-                  ))}
-                </select>
+                    
+                    {isLoadingAuthors && (
+                      <option value="" disabled>
+                        {language === 'tr' ? 'Yazarlar yükleniyor...' : 'Loading authors...'}
+                      </option>
+                    )}
+                    
+                    {!isLoadingAuthors && authors.map(author => (
+                      <option key={author._id} value={author._id}>
+                        {author.name}
+                      </option>
+                    ))}
+                  </select>
+                  
+                  {isLoadingAuthors && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <div className="w-4 h-4 border-2 border-electric-blue border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                </div>
                 <a 
                   href="/admin/authors/add"
                   className={`px-3 py-2 rounded-md whitespace-nowrap ${
@@ -713,7 +705,9 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
                   {formLanguage === 'tr' ? 'Yeni' : 'New'}
                 </a>
               </div>
-              <ErrorMessage show={hasError('author.name')} />
+              {hasError('author.name') && showValidationErrors && 
+                <ErrorMessage show={showValidationErrors} />
+              }
             </div>
 
             {/* Category */}

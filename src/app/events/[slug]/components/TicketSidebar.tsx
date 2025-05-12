@@ -19,8 +19,9 @@ interface TicketType {
   price: number;
   description?: string;
   maxPerOrder?: number;
-  availableCount?: number;
   variant?: 'standard' | 'premium' | 'vip';
+  isSoldOut?: boolean;
+  isComingSoon?: boolean;
 }
 
 export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarProps) {
@@ -114,10 +115,11 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
         name: ticket.name[locale] || (locale === 'tr' ? 'Bilet' : 'Ticket'),
         price: ticket.price,
         description: ticket.description?.[locale],
-        maxPerOrder: 5, // Always limit to 5 tickets per order
-        availableCount: ticket.availableCount ?? -1, // Default to unlimited stock if not specified
+        maxPerOrder: ticket.maxPerOrder || 5, // Always limit to 5 tickets per order
         variant: ticket.variant || 'standard',
-        originalName: ticket.name // Tüm dil versiyonlarını sakla
+        originalName: ticket.name, // Tüm dil versiyonlarını sakla
+        isSoldOut: ticket.isSoldOut || false,
+        isComingSoon: ticket.isComingSoon || false
       }));
       setTicketTypes(formattedTickets);
     } else {
@@ -192,19 +194,20 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
     const ticketType = ticketTypes.find(t => t.id === id);
     if (!ticketType) return;
     
-    // Determine the purchase limit based on given rules:
-    let purchaseLimit: number;
-    
-    if (ticketType.availableCount === -1) {
-      // If availableCount is -1, use maxPerOrder as the limit
-      purchaseLimit = ticketType.maxPerOrder || 5; // Default to 5 if maxPerOrder is not defined
-    } else if ((ticketType.maxPerOrder || 5) > ticketType.availableCount) {
-      // If maxPerOrder is greater than availableCount, use availableCount as the limit
-      purchaseLimit = ticketType.availableCount;
-    } else {
-      // Otherwise, use maxPerOrder as the limit
-      purchaseLimit = ticketType.maxPerOrder || 5; // Default to 5 if maxPerOrder is not defined
+    // Eğer bilet tükendiyse veya yakında durumundaysa, satın alıma izin verme
+    if (ticketType.isSoldOut || ticketType.isComingSoon) {
+      // Hata mesajı gösteriyoruz
+      setFormErrors({
+        ...formErrors,
+        [id]: locale === 'tr'
+          ? ticketType.isSoldOut ? 'Bu bilet tükenmiştir.' : 'Bu bilet yakında satışa çıkacaktır.'
+          : ticketType.isSoldOut ? 'This ticket is sold out.' : 'This ticket is coming soon.'
+      });
+      return;
     }
+    
+    // Sadece maxPerOrder ile sınırlama yapacağız
+    const purchaseLimit = ticketType.maxPerOrder || 5; // Default to 5 if maxPerOrder is not defined
     
     // Find if this ticket is already in selected tickets
     const existingTicketIndex = selectedTickets.findIndex(t => t.id === id);
@@ -217,24 +220,13 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
       if (action === 'increase') {
         // Check if we've reached the purchase limit
         if (currentQuantity >= purchaseLimit) {
-          // Show appropriate error message based on the limitation
-          if (ticketType.availableCount === -1 || ticketType.availableCount > (ticketType.maxPerOrder || 5)) {
-            // Limited by maxPerOrder
-            setFormErrors({
-              ...formErrors,
-              [id]: locale === 'tr'
-                ? `Bir siparişte en fazla ${purchaseLimit} adet bilet satın alabilirsiniz.`
-                : `You can purchase maximum ${purchaseLimit} tickets in a single order.`
-            });
-          } else {
-            // Limited by availableCount
-            setFormErrors({
-              ...formErrors,
-              [id]: locale === 'tr'
-                ? `Bu bilet türü için maksimum ${purchaseLimit} adet bilet kalmıştır.`
-                : `Maximum ${purchaseLimit} tickets are available for this ticket type.`
-            });
-          }
+          // Limited by maxPerOrder
+          setFormErrors({
+            ...formErrors,
+            [id]: locale === 'tr'
+              ? `Bir siparişte en fazla ${purchaseLimit} adet bilet satın alabilirsiniz.`
+              : `You can purchase maximum ${purchaseLimit} tickets in a single order.`
+          });
           return;
         }
         
@@ -258,17 +250,6 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
       
       setSelectedTickets(updatedSelectedTickets);
     } else if (action === 'increase') {
-      // Check if the ticket is available in stock before adding
-      if (ticketType.availableCount === 0) {
-        setFormErrors({
-          ...formErrors,
-          [id]: locale === 'tr'
-            ? 'Bu bilet türü tükenmiştir.'
-            : 'This ticket type is out of stock.'
-        });
-        return;
-      }
-      
       // Add new ticket to selection
       setSelectedTickets([
         ...selectedTickets,
@@ -624,7 +605,13 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                   {ticketTypes.map((ticket) => (
                     <div 
                       key={ticket.id}
-                      className={`flex flex-col justify-between p-2 ${cardBgClass} rounded-lg border ${borderColorClass} min-w-[120px] shrink-0 lg:flex-row lg:items-center lg:min-w-0 lg:shrink lg:p-3`}
+                      className={`flex flex-col justify-between p-2 ${
+                        ticket.isSoldOut 
+                          ? 'bg-gradient-to-r from-gray-300 to-gray-200 dark:from-gray-700 dark:to-gray-800' 
+                          : ticket.isComingSoon 
+                            ? 'bg-gradient-to-r from-amber-100 to-amber-200 dark:from-amber-900/40 dark:to-amber-800/40' 
+                            : cardBgClass
+                      } rounded-lg border ${borderColorClass} min-w-[120px] shrink-0 lg:flex-row lg:items-center lg:min-w-0 lg:shrink lg:p-3 relative ${ticket.isSoldOut || ticket.isComingSoon ? 'opacity-80' : ''}`}
                     >
                       <div className="mb-1.5 lg:mb-0">
                         <h4 className={`font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'} text-xs truncate`}>{ticket.name}</h4>
@@ -640,33 +627,44 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
                         </p>
                       </div>
                       
-                      <div className="flex items-center justify-between lg:justify-end lg:space-x-3">
-                        <button 
-                          type="button" 
-                          className={`w-6 h-6 rounded-full ${buttonBgClass} ${headingColorClass} hover:bg-neon-red hover:text-white flex items-center justify-center transition-colors`}
-                          onClick={() => updateTicketQuantity(ticket.id, 'decrease')}
-                          aria-label={locale === 'tr' ? 'Azalt' : 'Decrease'}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" />
-                          </svg>
-                        </button>
-                        
-                        <span className={`min-w-6 text-center ${isDark ? 'text-gray-100' : 'text-gray-900'} text-xs`}>
-                          {selectedTickets.find(t => t.id === ticket.id)?.quantity || 0}
-                        </span>
-                        
-                        <button 
-                          type="button" 
-                          className={`w-6 h-6 rounded-full ${buttonBgClass} ${headingColorClass} hover:bg-electric-blue hover:text-white flex items-center justify-center transition-colors`}
-                          onClick={() => updateTicketQuantity(ticket.id, 'increase')}
-                          aria-label={locale === 'tr' ? 'Arttır' : 'Increase'}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                          </svg>
-                        </button>
-                      </div>
+                      {/* Bilet durumuna göre farklı içerik gösterimi */}
+                      {ticket.isSoldOut ? (
+                        <div className="flex items-center justify-center bg-gray-200/50 dark:bg-gray-700/50 rounded-md py-1 px-2 text-xs font-medium">
+                          {locale === 'tr' ? 'Tükendi' : 'Sold Out'}
+                        </div>
+                      ) : ticket.isComingSoon ? (
+                        <div className="flex items-center justify-center bg-amber-200/50 dark:bg-amber-700/50 rounded-md py-1 px-2 text-xs font-medium">
+                          {locale === 'tr' ? 'Yakında' : 'Coming Soon'}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between lg:justify-end lg:space-x-3">
+                          <button 
+                            type="button" 
+                            className={`w-6 h-6 rounded-full ${buttonBgClass} ${headingColorClass} hover:bg-neon-red hover:text-white flex items-center justify-center transition-colors`}
+                            onClick={() => updateTicketQuantity(ticket.id, 'decrease')}
+                            aria-label={locale === 'tr' ? 'Azalt' : 'Decrease'}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                          
+                          <span className={`min-w-6 text-center ${isDark ? 'text-gray-100' : 'text-gray-900'} text-xs`}>
+                            {selectedTickets.find(t => t.id === ticket.id)?.quantity || 0}
+                          </span>
+                          
+                          <button 
+                            type="button" 
+                            className={`w-6 h-6 rounded-full ${buttonBgClass} ${headingColorClass} hover:bg-electric-blue hover:text-white flex items-center justify-center transition-colors`}
+                            onClick={() => updateTicketQuantity(ticket.id, 'increase')}
+                            aria-label={locale === 'tr' ? 'Arttır' : 'Increase'}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

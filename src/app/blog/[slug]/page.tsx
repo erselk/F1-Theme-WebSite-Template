@@ -1,52 +1,73 @@
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { getBlogBySlug, getAllBlogs } from '@/services/mongo-service';
+'use client';
+
+import { useEffect } from 'react';
+import { notFound, useParams } from 'next/navigation';
+import useSWRFetch from '@/hooks/useSWRFetch';
 import BlogDetail from '@/components/features/blog/BlogDetail';
+import { BlogPost } from '@/types';
 
-type Props = {
-  params: { slug: string }
-}
-
-// Generate metadata for each blog page
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const blog = await getBlogBySlug(params.slug);
+export default function BlogPostPage() {
+  const { slug } = useParams();
   
-  if (!blog) {
-    return {
-      title: 'Blog Not Found | PadokClub',
-    };
+  // SWR ile tek blog verisi çekme
+  const { data, error, isLoading } = useSWRFetch<{ blog: BlogPost, success: boolean }>(`/api/blogs/${slug}`);
+  
+  // Sayfa başlığını güncelle
+  useEffect(() => {
+    if (data?.blog) {
+      document.title = `${data.blog.title.en} | PadokClub Blog`;
+    }
+  }, [data?.blog]);
+  
+  // Hata durumunu kontrol et
+  if (error || (data && !data.success)) {
+    notFound();
   }
   
-  return {
-    title: `${blog.title.en} | PadokClub Blog`,
-    description: blog.excerpt.en,
-    openGraph: {
-      title: blog.title.en,
-      description: blog.excerpt.en,
-      images: [{ url: blog.coverImage }],
-    },
-  };
-}
-
-// Generate static paths for all blogs
-export async function generateStaticParams() {
-  const blogs = await getAllBlogs();
+  // Yükleme durumu için
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto animate-pulse">
+          {/* Back button skeleton */}
+          <div className="mb-8 w-36 h-5 bg-gray-300 dark:bg-graphite rounded"></div>
+          
+          {/* Title skeleton */}
+          <div className="h-9 bg-gray-300 dark:bg-graphite rounded w-3/4 mb-4"></div>
+          <div className="h-9 bg-gray-300 dark:bg-graphite rounded w-2/3 mb-6"></div>
+          
+          {/* Meta information skeleton */}
+          <div className="flex gap-4 mb-8">
+            <div className="w-40 h-6 bg-gray-300 dark:bg-graphite rounded"></div>
+            <div className="w-32 h-6 bg-gray-300 dark:bg-graphite rounded"></div>
+            <div className="w-24 h-6 bg-gray-300 dark:bg-graphite rounded"></div>
+          </div>
+          
+          {/* Cover image skeleton */}
+          <div className="aspect-video w-full rounded-lg bg-gray-300 dark:bg-graphite mb-10"></div>
+          
+          {/* Content skeleton */}
+          <div className="space-y-4">
+            <div className="h-4 bg-gray-300 dark:bg-graphite rounded w-full"></div>
+            <div className="h-4 bg-gray-300 dark:bg-graphite rounded w-full"></div>
+            <div className="h-4 bg-gray-300 dark:bg-graphite rounded w-3/4"></div>
+            <div className="h-4 bg-gray-300 dark:bg-graphite rounded w-5/6"></div>
+            <div className="h-4 bg-gray-300 dark:bg-graphite rounded w-full"></div>
+            <div className="h-4 bg-gray-300 dark:bg-graphite rounded w-4/5"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
-  return blogs.map((blog) => ({
-    slug: blog.slug,
-  }));
-}
-
-export default async function BlogPostPage({ params }: Props) {
-  const blog = await getBlogBySlug(params.slug);
-  
-  if (!blog) {
+  // Blog verisi yoksa 404 göster
+  if (!data?.blog) {
     notFound();
   }
   
   return (
     <div className="container mx-auto px-4 py-8">
-      <BlogDetail blog={blog} />
+      <BlogDetail blog={data.blog} />
     </div>
   );
 }

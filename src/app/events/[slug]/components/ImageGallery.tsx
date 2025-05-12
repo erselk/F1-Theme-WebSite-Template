@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { LanguageType } from '@/lib/ThemeLanguageContext';
 
@@ -13,6 +13,32 @@ interface ImageGalleryProps {
 export function ImageGallery({ images, title, locale }: ImageGalleryProps) {
   const [activeImage, setActiveImage] = useState<string | null>(images.length > 0 ? images[0] : null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  // Lightbox açıldığında body scrolling'i devre dışı bırak
+  useEffect(() => {
+    if (lightboxOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    
+    // Cleanup function
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [lightboxOpen]);
+
+  // Resim sayısına göre grid yapısını belirleme
+  const gridConfig = useMemo(() => {
+    const totalImages = images.length;
+    
+    if (totalImages === 0) return { cols: 1, rows: 1 };
+    if (totalImages === 1) return { cols: 1, rows: 1 };
+    if (totalImages <= 4) return { cols: 2, rows: 2 };
+    if (totalImages <= 9) return { cols: 3, rows: 3 };
+    if (totalImages <= 16) return { cols: 4, rows: 4 };
+    return { cols: 5, rows: 5 }; // 17-25 resim
+  }, [images.length]);
 
   if (!images.length) {
     return (
@@ -31,19 +57,27 @@ export function ImageGallery({ images, title, locale }: ImageGalleryProps) {
 
   return (
     <div>
-      {/* Thumbnail grid */}
-      <div className="grid grid-cols-2 gap-2">
-        {images.map((image, index) => (
+      {/* Kare galeri alanı */}
+      <div 
+        className="w-full aspect-square"
+        style={{ 
+          display: 'grid',
+          gridTemplateColumns: `repeat(${gridConfig.cols}, 1fr)`,
+          gridTemplateRows: `repeat(${gridConfig.rows}, 1fr)`,
+          gap: '2px',
+        }}
+      >
+        {images.slice(0, gridConfig.cols * gridConfig.rows).map((image, index) => (
           <div 
             key={index} 
-            className={`relative overflow-hidden rounded-lg cursor-pointer ${index >= 4 ? 'hidden md:block' : ''}`}
+            className="relative overflow-hidden rounded-lg cursor-pointer"
             onClick={() => openLightbox(index)}
           >
-            <div className="aspect-w-1 aspect-h-1 w-full">
+            <div className="w-full h-full relative">
               <Image 
                 src={image} 
                 alt={`${title} - ${index + 1}`}
-                className="object-cover transition-transform hover:scale-110 duration-300"
+                className="object-cover transition-transform hover:scale-110 duration-300 absolute inset-0 w-full h-full"
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                 unoptimized={image.startsWith('/api/files/')}
@@ -53,8 +87,8 @@ export function ImageGallery({ images, title, locale }: ImageGalleryProps) {
         ))}
       </div>
 
-      {/* Show all photos button if more than 8 */}
-      {images.length > 8 && (
+      {/* Show all photos button if more than grid capacity */}
+      {images.length > (gridConfig.cols * gridConfig.rows) && (
         <button 
           className="w-full mt-3 py-2 text-center bg-dark-grey hover:bg-carbon-grey text-light-grey rounded-lg transition-colors"
           onClick={() => setLightboxOpen(true)}
@@ -67,8 +101,14 @@ export function ImageGallery({ images, title, locale }: ImageGalleryProps) {
 
       {/* Lightbox */}
       {lightboxOpen && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4">
-          <div className="max-w-4xl w-full">
+        <div 
+          className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <div 
+            className="max-w-4xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-end mb-2">
               <button
                 onClick={() => setLightboxOpen(false)}

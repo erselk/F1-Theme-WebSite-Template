@@ -12,6 +12,8 @@ interface ImageFile {
   publicPath: string;
   createdAt: string;
   contentType: string;
+  source?: string;
+  thumbnailUrl?: string;
 }
 
 interface ImageSelectorProps {
@@ -35,6 +37,7 @@ export default function ImageSelector({
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [failedImages, setFailedImages] = useState<string[]>([]);
   
   // File input ref for upload button
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,18 +66,75 @@ export default function ImageSelector({
       setLoading(true);
       setError(null);
       
-      // Artık kategori parametresini göndermiyoruz
-      const response = await fetch(`/api/files/list`);
-      const data = await response.json();
+      // Sayfalama için başlangıç değerleri
+      const page = 1;
+      const pageSize = 20;
       
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to load images');
+      const response = await fetch(`/api/files/list?category=all&page=${page}&pageSize=${pageSize}`);
+      
+      const responseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        throw new Error('Invalid JSON response from server');
       }
       
-      setImages(data.files || []);
+      if (!response.ok) {
+        throw new Error(data.error || `API error: ${response.status}`);
+      }
+      
+      // Eğer data.files yoksa boş dizi kullan
+      if (!data.files || !Array.isArray(data.files)) {
+        setImages([]);
+        setError('Görsel verisi alınamadı veya hatalı format.');
+        return;
+      }
+      
+      setImages(data.files);
     } catch (err) {
-      console.error('Error loading images:', err);
       setError(err instanceof Error ? err.message : 'Failed to load images');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Daha fazla görsel yükleme fonksiyonu
+  const loadMoreImages = async () => {
+    if (loading) return;
+    
+    try {
+      setLoading(true);
+      
+      // Mevcut görsel sayısına göre sonraki sayfa
+      const currentPage = Math.ceil(images.length / 20);
+      const nextPage = currentPage + 1;
+      const pageSize = 20;
+      
+      const response = await fetch(`/api/files/list?category=all&page=${nextPage}&pageSize=${pageSize}`);
+      
+      const responseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        throw new Error('Invalid JSON response from server');
+      }
+      
+      if (!response.ok) {
+        throw new Error(data.error || `API error: ${response.status}`);
+      }
+      
+      // Eğer data.files yoksa boş dizi kullan
+      if (!data.files || !Array.isArray(data.files)) {
+        // Yeni görsel yok, mevcut görselleri koru
+        return;
+      }
+      
+      // Yeni görselleri mevcut diziye ekle
+      setImages(prevImages => [...prevImages, ...data.files]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load more images');
     } finally {
       setLoading(false);
     }
@@ -102,15 +162,14 @@ export default function ImageSelector({
         const result = await response.json();
         
         if (result.success) {
-          // Refresh the image list
-          await loadImages();
-          
-          // Başarı bildirimini kaldırdık
+          // Kısa bir bekleme süresi sonra görselleri yeniden yükle
+          setTimeout(() => {
+            loadImages();
+          }, 500);
         } else {
           throw new Error(result.error || 'Unknown error');
         }
       } catch (error) {
-        console.error('Upload error:', error);
         alert(currentLanguage === 'tr'
           ? `Yükleme hatası: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
           : `Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -130,6 +189,14 @@ export default function ImageSelector({
     setSelectedImage(image.id);
     onSelect(image);
     onClose();
+  };
+
+  const handleImageError = (imageId: string) => {
+    // Update the failed state to exclude the image that failed to load
+    setFailedImages(prev => [...prev, imageId]);
+    
+    // Log the error
+    setError(prev => prev ? `${prev}, Failed to load some images` : 'Failed to load some images');
   };
 
   // Render nothing if modal is not open
@@ -211,11 +278,11 @@ export default function ImageSelector({
           
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-4">
-            {loading ? (
+            {loading && images.length === 0 ? (
               <div className="flex justify-center items-center h-40">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-electric-blue"></div>
               </div>
-            ) : error ? (
+            ) : error && images.length === 0 ? (
               <div className="text-center text-f1-red p-4">
                 <p>{error}</p>
                 <button
@@ -226,48 +293,66 @@ export default function ImageSelector({
                   {currentLanguage === 'tr' ? 'Tekrar Dene' : 'Try Again'}
                 </button>
               </div>
-            ) : images.length === 0 ? (
-              <div className="text-center p-4">
-                <p className={isDark ? 'text-silver' : 'text-medium-grey'}>
-                  {currentLanguage === 'tr' 
-                    ? 'Henüz yüklenmiş görsel yok. Yeni görsel yüklemek için "Yükle" butonunu kullanabilirsiniz.' 
-                    : 'No images uploaded yet. You can use the "Upload" button to add new images.'}
-                </p>
-              </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {images.map((image) => (
-                  <div 
-                    key={image.id}
-                    onClick={() => handleSelect(image)}
-                    className={`relative cursor-pointer group rounded-md overflow-hidden border-2 ${
-                      selectedImage === image.id 
-                        ? 'border-electric-blue' 
-                        : isDark ? 'border-dark-grey hover:border-silver' : 'border-light-grey hover:border-medium-grey'
-                    } transition-colors`}
-                  >
-                    <div className="relative aspect-square w-full">
-                      <Image 
-                        src={image.url}
+              <>
+                {/* Image grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {images.filter(img => !failedImages.includes(img.id)).map(image => (
+                    <div 
+                      key={image.id}
+                      onClick={() => handleSelect(image)}
+                      className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
+                        selectedImage === image.id 
+                          ? isDark ? 'border-electric-blue' : 'border-race-blue'
+                          : isDark ? 'border-dark-grey hover:border-electric-blue/50' : 'border-light-grey hover:border-race-blue/50'
+                      }`}
+                    >
+                      <Image
+                        src={image.thumbnailUrl || image.url}
                         alt={image.filename}
                         fill
-                        style={{ objectFit: 'cover' }}
-                        className="transition-opacity group-hover:opacity-90"
+                        sizes="(max-width: 640px) 150px, 200px"
+                        className="object-cover"
+                        onError={() => handleImageError(image.id)}
                       />
+                      
+                      {selectedImage === image.id && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                          <CheckCircleIcon className="h-8 w-8 text-white" />
+                        </div>
+                      )}
                     </div>
-                    
-                    {selectedImage === image.id && (
-                      <div className="absolute top-2 right-2">
-                        <CheckCircleIcon className="w-6 h-6 text-electric-blue" />
-                      </div>
-                    )}
-                    
-                    <div className="absolute inset-x-0 bottom-0 bg-black bg-opacity-50 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <p className="text-white text-xs truncate">{image.filename}</p>
-                    </div>
+                  ))}
+                </div>
+                
+                {/* Load more button */}
+                {images.length > 0 && (
+                  <div className="mt-6 text-center">
+                    <button
+                      type="button"
+                      onClick={loadMoreImages}
+                      disabled={loading}
+                      className={`px-4 py-2 rounded-md ${
+                        isDark 
+                          ? 'bg-electric-blue text-white hover:bg-electric-blue/80' 
+                          : 'bg-race-blue text-white hover:bg-race-blue/80'
+                      } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      {loading ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4 mr-2 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          {currentLanguage === 'tr' ? 'Yükleniyor...' : 'Loading...'}
+                        </>
+                      ) : (
+                        currentLanguage === 'tr' ? 'Daha Fazla Görsel' : 'Load More Images'
+                      )}
+                    </button>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </div>
           

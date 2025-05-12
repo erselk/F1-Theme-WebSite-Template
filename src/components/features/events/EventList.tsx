@@ -6,115 +6,141 @@ import { EventFilter, EventFilters } from './EventFilter';
 import { EventBanner } from './EventBanner';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
 import { Event, getEventStatus } from '@/types';
-import { getAllEvents, getFeaturedEvents, getSortedEvents } from '@/services/mongo-service';
+import useSWRFetch from '@/hooks/useSWRFetch';
 
 export function EventList() {
   const { language } = useThemeLanguage();
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
-  const [allEvents, setAllEvents] = useState<Event[]>([]);
-  const [featuredEvents, setFeaturedEvents] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [currentFilters, setCurrentFilters] = useState<EventFilters>({});
 
-  // Fetch events from MongoDB only once on initial load
-  const fetchEvents = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      
-      // Get all events from MongoDB
-      const sortedEvents = await getSortedEvents();
+  // SWR ile etkinlik verilerini çek
+  const { data: eventsData, error: eventsError, isLoading: eventsLoading, mutate: refreshEvents } = 
+    useSWRFetch<{ events: Event[], success: boolean }>('/api/events');
+  
+  // SWR ile öne çıkan etkinlikleri çek
+  const { data: featuredData, isLoading: featuredLoading } = 
+    useSWRFetch<{ events: Event[], success: boolean }>('/api/events?featured=true');
 
-      // Set initial status for each event
-      const updatedEvents = sortedEvents.map(event => {
-        const currentStatus = getEventStatus(event.date);
-        return { ...event, status: currentStatus };
-      });
-
-      setAllEvents(updatedEvents);
-      setFilteredEvents(updatedEvents);
-      
-      // Get featured events
-      const featured = await getFeaturedEvents();
-      setFeaturedEvents(featured);
-    } catch (error) {
-      console.error("Error fetching events:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Update event statuses without making additional MongoDB requests
-  const updateEventStatuses = useCallback(() => {
-    setAllEvents(prevEvents => {
-      const updatedEvents = prevEvents.map(event => {
-        const currentStatus = getEventStatus(event.date);
-        return { ...event, status: currentStatus };
-      });
-      return updatedEvents;
-    });
+  // Tüm etkinlikler için durum güncellemesi
+  const updateEventStatuses = useCallback((events: Event[] = []) => {
+    if (!events || events.length === 0) return [];
     
-    setFilteredEvents(prevFilteredEvents => {
-      return prevFilteredEvents.map(event => {
-        const currentStatus = getEventStatus(event.date);
-        return { ...event, status: currentStatus };
-      });
-    });
-    
-    setFeaturedEvents(prevFeaturedEvents => {
-      return prevFeaturedEvents.map(event => {
-        const currentStatus = getEventStatus(event.date);
-        return { ...event, status: currentStatus };
-      });
+    return events.map(event => {
+      const currentStatus = getEventStatus(event.date);
+      return { ...event, status: currentStatus };
     });
   }, []);
 
+  // Etkinliklere filtre uygula
   useEffect(() => {
-    // Fetch events only once on component mount
-    fetchEvents();
+    if (eventsData?.events) {
+      // Etkinliklere durum güncellemeyi uygula
+      const eventsWithStatuses = updateEventStatuses(eventsData.events);
+      
+      // Filtreleri uygula
+      let result = eventsWithStatuses;
+      
+      // Arama filtresi uygula
+      if (currentFilters.search) {
+        const searchLower = currentFilters.search.toLowerCase();
+        result = result.filter(event => 
+          event.title[language].toLowerCase().includes(searchLower) || 
+          event.description[language].toLowerCase().includes(searchLower)
+        );
+      }
+      
+      // Kategori filtresi uygula
+      if (currentFilters.category) {
+        result = result.filter(event => event.category === currentFilters.category);
+      }
+      
+      // Durum filtresi uygula
+      if (currentFilters.status) {
+        result = result.filter(event => event.status === currentFilters.status);
+      }
+      
+      // Özel sıralama: Şu anki saatten geleceğe ve sonra geçmişe doğru sırala
+      const now = new Date();
+      const futureEvents = result
+        .filter(event => new Date(event.date) >= now)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      const pastEvents = result
+        .filter(event => new Date(event.date) < now)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
+      // Önce gelecek sonra geçmiş etkinlikler
+      result = [...futureEvents, ...pastEvents];
+      
+      setFilteredEvents(result);
+    }
+  }, [eventsData, currentFilters, language, updateEventStatuses]);
 
-    // Update statuses every minute without making MongoDB requests
+  // Her dakikada bir durum güncelle
+  useEffect(() => {
     const statusInterval = setInterval(() => {
-      updateEventStatuses();
-    }, 60000); // Update every minute
+      setFilteredEvents(prev => updateEventStatuses(prev));
+    }, 60000); // Her dakika güncelle
 
     return () => clearInterval(statusInterval);
-  }, [fetchEvents, updateEventStatuses]);
+  }, [updateEventStatuses]);
 
+  // Filtreleme değişiklikleri
   const handleFilterChange = (filters: EventFilters) => {
-    // Apply filters to the already loaded events
-    let result = [...allEvents];
-    
-    // Apply search filter
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      result = result.filter(event => 
-        event.title[language].toLowerCase().includes(searchLower) || 
-        event.description[language].toLowerCase().includes(searchLower)
-      );
-    }
-    
-    // Apply category filter
-    if (filters.category) {
-      result = result.filter(event => event.category === filters.category);
-    }
-    
-    // Apply status filter
-    if (filters.status) {
-      result = result.filter(event => event.status === filters.status);
-    }
-    
-    setFilteredEvents(result);
+    setCurrentFilters(filters);
   };
 
-  if (isLoading) {
+  // Verileri yenile
+  const handleRefresh = () => {
+    refreshEvents();
+  };
+
+  // Hata mesajı
+  if (eventsError) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-500 mb-4">
+          {language === 'tr' 
+            ? 'Etkinlikleri yüklerken bir hata oluştu.' 
+            : 'An error occurred while loading events.'}
+        </p>
+        <button 
+          onClick={handleRefresh}
+          className="px-4 py-2 rounded bg-red-500 text-white"
+        >
+          {language === 'tr' ? 'Tekrar Dene' : 'Try Again'}
+        </button>
+      </div>
+    );
+  }
+
+  // Yükleme durumu
+  if (eventsLoading || featuredLoading) {
     return <EventListSkeleton />;
   }
 
+  // Öne çıkan etkinlikleri hazırla
+  const featuredEvents = featuredData?.events 
+    ? updateEventStatuses(featuredData.events)
+    : [];
+
   return (
     <div className="space-y-4 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">
+      {/* Yenileme butonu */}
+      <div className="flex justify-end">
+        <button 
+          onClick={handleRefresh}
+          className="text-xs sm:text-sm text-medium-grey dark:text-silver hover:underline flex items-center"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          {language === 'tr' ? 'Yenile' : 'Refresh'}
+        </button>
+      </div>
+      
       {/* Featured Events Banner */}
       {featuredEvents.length > 0 && <EventBanner events={featuredEvents} />}
-      
-      {/* Removed duplicated title/subtitle section - will use the one from page.tsx */}
       
       {/* Filters */}
       <EventFilter onFilterChange={handleFilterChange} />
@@ -146,6 +172,11 @@ export function EventList() {
 function EventListSkeleton() {
   return (
     <div className="space-y-4 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">
+      {/* Yükleme animasyonu */}
+      <div className="flex justify-end">
+        <div className="w-16 h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+      </div>
+      
       {/* Banner Loading Skeleton - 16:9 aspect ratio */}
       <div className="w-full aspect-video bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse" />
       

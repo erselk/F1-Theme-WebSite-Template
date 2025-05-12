@@ -4,6 +4,10 @@ import Event from '@/models/Event';
 import { getEventStatus } from '@/types';
 import { updateEventReservationTracking } from '@/services/event-reservation-service';
 
+// Cache kontrollerini ayarla - önbelleğe almayı engelle
+export const dynamic = 'force-dynamic'; // Statik önbelleğe almayı devre dışı bırak
+export const revalidate = 0; // Her istekte yeniden doğrulama yap
+
 export async function GET() {
   try {
     await connectToDatabase();
@@ -20,6 +24,12 @@ export async function GET() {
     return NextResponse.json({
       events: eventsWithStatus,
       success: true
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
     });
   } catch (error) {
     console.error('Etkinlik verilerini getirme hatası:', error);

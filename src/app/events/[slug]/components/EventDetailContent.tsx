@@ -141,10 +141,10 @@ export function EventDetailContent({ event, eventStatus, pageUrl, locale }: Even
                     </h2>
                     
                     {/* Check if rules exists and has the current language data */}
-                    {event.rules && event.rules[language] && Array.isArray(event.rules[language]) && event.rules[language].length > 0 ? (
+                    {event.rules && Array.isArray(event.rules) && event.rules.length > 0 ? (
                       <ul className={`list-disc pl-4 lg:pl-5 space-y-1.5 lg:space-y-2 ${textColorClass}`}>
-                        {event.rules[language].map((rule, index) => (
-                          <li key={index} className="text-sm lg:text-base">{rule}</li>
+                        {event.rules.map((rule, index) => (
+                          <li key={rule.id || index} className="text-sm lg:text-base">{rule.content?.[language] || ""}</li>
                         ))}
                       </ul>
                     ) : (

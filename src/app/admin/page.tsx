@@ -156,29 +156,29 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <h1 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+      <h1 className={`text-xl md:text-2xl font-bold mb-4 md:mb-6 ${isDark ? 'text-white' : 'text-dark-grey'} mt-6 md:mt-4`}>
         {language === 'tr' ? 'Yönetim Paneli' : 'Admin Dashboard'}
       </h1>
 
       {/* İstatistik Kartları */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 mb-6 md:mb-8">
         {statCards.map((stat, index) => (
           <div
             key={index}
-            className={`p-6 rounded-lg shadow-md ${
+            className={`p-4 md:p-6 rounded-lg shadow-md ${
               isDark ? 'bg-graphite' : 'bg-white'
             }`}
           >
             <div className="flex items-center justify-between">
               <div>
-                <h2 className={`text-sm font-medium ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+                <h2 className={`text-xs md:text-sm font-medium ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                   {stat.title}
                 </h2>
-                <p className={`text-3xl font-bold mt-1 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+                <p className={`text-2xl md:text-3xl font-bold mt-1 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
                   {stat.value}
                 </p>
               </div>
-              <div className={`p-3 rounded-full ${stat.color} bg-opacity-20`}>
+              <div className={`p-2 md:p-3 rounded-full ${stat.color} bg-opacity-20`}>
                 <div className={stat.color.replace('bg-', 'text-')}>
                   {stat.icon}
                 </div>
@@ -189,37 +189,37 @@ export default function AdminDashboard() {
       </div>
 
       {/* Today's Events and Reservations */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Today's Events */}
-        <div className={`p-6 rounded-lg shadow-md ${isDark ? 'bg-graphite' : 'bg-white'}`}>
-          <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+        <div className={`p-4 md:p-6 rounded-lg shadow-md ${isDark ? 'bg-graphite' : 'bg-white'}`}>
+          <h2 className={`text-lg md:text-xl font-bold mb-3 md:mb-4 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
             {language === 'tr' ? 'Bugünkü Etkinlikler' : 'Today\'s Events'}
           </h2>
           
           {todayEvents.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {todayEvents.map((event, index) => (
                 <div 
                   key={index} 
-                  className={`p-4 rounded-lg border ${isDark ? 'border-carbon-grey bg-dark-grey' : 'border-light-grey bg-very-light-grey'}`}
+                  className={`p-3 md:p-4 rounded-lg border ${isDark ? 'border-carbon-grey bg-dark-grey' : 'border-light-grey bg-very-light-grey'}`}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
+                    <h3 className={`text-sm md:text-base font-semibold truncate ${isDark ? 'text-white' : 'text-dark-grey'}`}>
                       {event.title}
                     </h3>
-                    <span className={`text-sm font-medium px-2 py-1 rounded ${
+                    <span className={`text-xs md:text-sm font-medium px-2 py-1 rounded mt-1 md:mt-0 inline-block ${
                       isDark ? 'bg-carbon-grey text-electric-blue' : 'bg-light-grey text-race-blue'
                     }`}>
                       {formatRelativeTime(event.date)}
                     </span>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4 mt-3">
+                  <div className="grid grid-cols-2 gap-2 md:gap-4 mt-2 md:mt-3">
                     <div>
                       <p className={`text-xs ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                         {language === 'tr' ? 'Satılan Bilet' : 'Tickets Sold'}
                       </p>
-                      <p className={`text-lg font-bold ${isDark ? 'text-electric-blue' : 'text-race-blue'}`}>
+                      <p className={`text-base md:text-lg font-bold ${isDark ? 'text-electric-blue' : 'text-race-blue'}`}>
                         {event.totalTickets || 0}
                       </p>
                     </div>
@@ -227,7 +227,7 @@ export default function AdminDashboard() {
                       <p className={`text-xs ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                         {language === 'tr' ? 'Toplam Gelir' : 'Total Revenue'}
                       </p>
-                      <p className={`text-lg font-bold ${isDark ? 'text-neon-green' : 'text-race-green'}`}>
+                      <p className={`text-base md:text-lg font-bold ${isDark ? 'text-neon-green' : 'text-race-green'}`}>
                         {formatPrice(event.totalRevenue || 0)}
                       </p>
                     </div>
@@ -236,7 +236,7 @@ export default function AdminDashboard() {
               ))}
             </div>
           ) : (
-            <div className={`p-8 text-center rounded-lg ${
+            <div className={`p-6 md:p-8 text-center rounded-lg ${
               isDark ? 'bg-dark-grey text-silver' : 'bg-very-light-grey text-medium-grey'
             }`}>
               <p>{language === 'tr' ? 'Bugün etkinlik bulunmuyor' : 'No events today'}</p>
@@ -245,35 +245,35 @@ export default function AdminDashboard() {
         </div>
 
         {/* Today's Reservations */}
-        <div className={`p-6 rounded-lg shadow-md ${isDark ? 'bg-graphite' : 'bg-white'}`}>
-          <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+        <div className={`p-4 md:p-6 rounded-lg shadow-md ${isDark ? 'bg-graphite' : 'bg-white'}`}>
+          <h2 className={`text-lg md:text-xl font-bold mb-3 md:mb-4 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
             {language === 'tr' ? 'Bugünkü Rezervasyonlar' : 'Today\'s Reservations'}
           </h2>
           
           {todayBookings.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {todayBookings.map((booking, index) => (
                 <div 
                   key={booking.refNumber || index} 
-                  className={`p-4 rounded-lg border ${isDark ? 'border-carbon-grey bg-dark-grey' : 'border-light-grey bg-very-light-grey'}`}
+                  className={`p-3 md:p-4 rounded-lg border ${isDark ? 'border-carbon-grey bg-dark-grey' : 'border-light-grey bg-very-light-grey'}`}
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-1">
+                    <h3 className={`text-sm md:text-base font-semibold truncate ${isDark ? 'text-white' : 'text-dark-grey'}`}>
                       {booking.venue}
                     </h3>
-                    <span className={`text-sm ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+                    <span className={`text-xs md:text-sm ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                       {formatDate(booking.startTime)}
                     </span>
                   </div>
                   
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mt-1">
                     <div>
-                      <p className={`text-sm ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+                      <p className={`text-xs md:text-sm truncate ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                         {booking.name} · {booking.people} {language === 'tr' ? 'kişi' : 'people'}
                       </p>
                     </div>
                     <div>
-                      <p className={`font-medium ${isDark ? 'text-neon-green' : 'text-race-green'}`}>
+                      <p className={`text-xs md:text-sm font-medium ${isDark ? 'text-neon-green' : 'text-race-green'}`}>
                         {formatPrice(booking.totalPrice || 0)}
                       </p>
                     </div>
@@ -282,7 +282,7 @@ export default function AdminDashboard() {
               ))}
             </div>
           ) : (
-            <div className={`p-8 text-center rounded-lg ${
+            <div className={`p-6 md:p-8 text-center rounded-lg ${
               isDark ? 'bg-dark-grey text-silver' : 'bg-very-light-grey text-medium-grey'
             }`}>
               <p>{language === 'tr' ? 'Bugün rezervasyon bulunmuyor' : 'No reservations today'}</p>

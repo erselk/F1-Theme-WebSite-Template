@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { connectToDatabase } from '@/lib/db/mongodb';
 import EventOrder from '@/models/EventOrder';
+import Event from '@/models/Event';
 
 export async function saveEventOrder(orderData: {
   orderId: string;
@@ -95,6 +96,7 @@ export async function savePurchaseData(purchaseData: {
   tickets: any[];
   amount: number;
   timestamp: string;
+  eventTitle?: any;
 }) {
   // Bu fonksiyon artık kullanılmıyor, yeni saveEventOrder fonksiyonu kullanılıyor
   console.log('savePurchaseData is deprecated, redirecting to saveEventOrder');

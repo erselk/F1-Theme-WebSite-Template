@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
 import AdminAuth from '@/components/admin/AdminAuth';
 
@@ -13,11 +13,36 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const { isDark } = useThemeLanguage();
-  const sidebarOpen = true;
+  
+  // State for sidebar visibility on mobile
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
   // State to track which dropdown menus are open
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({
     sales: false,
   });
+
+  // Check if on mobile device
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Initial check
+    checkIfMobile();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkIfMobile);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
+
+  // Toggle sidebar function
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
 
   // Toggle function for dropdown menus
   const toggleDropdown = (menuKey: string) => {
@@ -102,11 +127,20 @@ export default function AdminLayout({
   return (
     <AdminAuth>
       <div className="flex min-h-screen">
-        {/* Sidebar - always visible now */}
+        {/* Mobile Sidebar Backdrop - only visible when sidebar is open on mobile */}
+        {isMobile && sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-30"
+            onClick={toggleSidebar}
+          />
+        )}
+        
+        {/* Sidebar */}
         <aside
-          className={`fixed left-0 top-0 z-40 h-screen transition-transform translate-x-0
-          ${isDark ? 'bg-graphite border-r border-carbon-grey' : 'bg-white border-r border-light-grey'}`}
-          style={{ width: '16rem' }}
+          className={`fixed left-0 top-0 z-40 h-screen transition-transform duration-300 
+          ${isDark ? 'bg-graphite border-r border-carbon-grey' : 'bg-white border-r border-light-grey'}
+          ${isMobile && !sidebarOpen ? '-translate-x-full' : 'translate-x-0'}
+          ${isMobile ? 'w-64' : 'w-64'}`}
         >
           <div className="h-full flex flex-col">
             {/* Sidebar Header */}
@@ -119,6 +153,17 @@ export default function AdminLayout({
               >
                 PadokClub Admin
               </Link>
+              {isMobile && (
+                <button 
+                  onClick={toggleSidebar}
+                  className="p-1 rounded-md"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              )}
             </div>
 
             {/* Sidebar Nav */}
@@ -170,6 +215,7 @@ export default function AdminLayout({
                                       ? 'text-silver hover:bg-dark-grey'
                                       : 'text-medium-grey hover:bg-very-light-grey'
                                   }`}
+                                  onClick={isMobile ? toggleSidebar : undefined}
                                 >
                                   <span>{subItem.name}</span>
                                 </Link>
@@ -190,6 +236,7 @@ export default function AdminLayout({
                             ? 'text-silver hover:bg-dark-grey'
                             : 'text-medium-grey hover:bg-very-light-grey'
                         }`}
+                        onClick={isMobile ? toggleSidebar : undefined}
                       >
                         {item.icon}
                         <span>{item.name}</span>
@@ -229,10 +276,29 @@ export default function AdminLayout({
           </div>
         </aside>
 
-        {/* Main Content - always shifted for sidebar */}
+        {/* Main Content */}
         <main
-          className={`flex-1 transition-all ml-64 p-8 pt-16 ${isDark ? 'bg-dark-grey' : 'bg-very-light-grey'}`}
+          className={`flex-1 transition-all ${isMobile ? 'ml-0' : 'ml-64'} p-4 md:p-8 ${isMobile ? 'pt-20' : 'pt-16'} ${isDark ? 'bg-dark-grey' : 'bg-very-light-grey'}`}
         >
+          {/* Mobile Header with menu button */}
+          {isMobile && (
+            <div className={`fixed top-0 left-0 right-0 z-20 py-3 px-3 flex items-center ${isDark ? 'bg-graphite' : 'bg-white'} border-b ${isDark ? 'border-carbon-grey' : 'border-light-grey'} shadow-md`}>
+              <button 
+                onClick={toggleSidebar}
+                className={`p-1 rounded-md ${isDark ? 'text-white hover:bg-dark-grey' : 'text-medium-grey hover:bg-very-light-grey'}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+              </button>
+              <span className={`ml-3 text-base font-semibold font-['Titillium Web'] truncate ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+                PadokClub Admin
+              </span>
+            </div>
+          )}
+          
           {children}
         </main>
       </div>

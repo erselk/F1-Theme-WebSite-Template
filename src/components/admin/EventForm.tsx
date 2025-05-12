@@ -98,9 +98,6 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
     }));
   }, []);
 
-  // Make sure left panel stays open
-  const [isNavPanelOpen, setIsNavPanelOpen] = useState(true);
-
   // Add a separate state for date input
   const [dateInputValue, setDateInputValue] = useState<string>('');
 
@@ -123,21 +120,15 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
         name: { tr: 'Standart Bilet', en: 'Standard Ticket' },
         price: event.price || 0,
         description: { tr: 'Etkinlik girişi', en: 'Event entry' },
-        maxPerOrder: 5, // Default to 5 tickets per order
-        availableCount: -1 // Default to unlimited stock
+        maxPerOrder: 5 // Default to 5 tickets per order
       }];
-      
-      // Debug - Log initial event data received by the form
-      console.log('EventForm initializing with event:', event);
-      console.log('Schedule from event:', event.schedule);
       
       // Rules handling - convert from API format to form format if needed
       let rules = [];
       if (event.rules) {
         if (typeof event.rules === 'object' && event.rules.tr && event.rules.en) {
           // Convert from API { tr: [str1, str2], en: [str1, str2] } format 
-          // to form format: [{tr: str1, en: str1}, {tr: str2, en: str2}]
-          console.log('Converting rules from API format to form format');
+          // to form format: [{id: 'rule-xxx', content: {tr: str1, en: str1}}]
           rules = [];
           // Get the maximum length of either tr or en array
           const maxLength = Math.max(
@@ -146,20 +137,44 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
           );
           
           for (let i = 0; i < maxLength; i++) {
+            const ruleId = `rule-${Date.now()}-${i}`;
             rules.push({
-              tr: Array.isArray(event.rules.tr) && i < event.rules.tr.length ? event.rules.tr[i] : '',
-              en: Array.isArray(event.rules.en) && i < event.rules.en.length ? event.rules.en[i] : ''
+              id: ruleId,
+              content: {
+                tr: Array.isArray(event.rules.tr) && i < event.rules.tr.length ? event.rules.tr[i] : '',
+                en: Array.isArray(event.rules.en) && i < event.rules.en.length ? event.rules.en[i] : ''
+              }
             });
           }
         } else if (Array.isArray(event.rules)) {
           // If rules is already in array format
-          rules = event.rules;
+          // Eski format {tr: '', en: ''} veya yeni format {id: '', content: {tr: '', en: ''}} olabilir
+          rules = event.rules.map(rule => {
+            if (rule.id && rule.content) {
+              // Zaten yeni formatta
+              return rule;
+            } else {
+              // Eski formattan yeni formata dönüştür
+              const ruleId = `rule-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+              return {
+                id: ruleId,
+                content: {
+                  tr: rule.tr || '',
+                  en: rule.en || ''
+                }
+              };
+            }
+          });
         }
       }
       
       // If no valid rules found, set a default empty rule
       if (!rules || rules.length === 0) {
-        rules = [{ tr: '', en: '' }];
+        const ruleId = `rule-${Date.now()}`;
+        rules = [{ 
+          id: ruleId, 
+          content: { tr: '', en: '' } 
+        }];
       }
       
       // Set default gallery if not present or ensure at least 3 images
@@ -182,10 +197,8 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
       if (event.schedule) {
         if (Array.isArray(event.schedule)) {
           // If schedule is already an array, use it directly
-          console.log('Using schedule array directly:', event.schedule);
           schedule = event.schedule;
         } else {
-          console.log('Schedule is not in expected array format:', event.schedule);
           // If it's not an array, try to convert it
           schedule = [];
         }
@@ -193,7 +206,6 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
       
       // If no valid schedule found, set as empty array
       if (!schedule || schedule.length === 0) {
-        console.log('Using empty schedule array');
         schedule = [];
       }
 
@@ -314,10 +326,30 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
   };
 
   // Ticket changes handlers - Modified for single language input
-  const handleTicketChange = (index: number, field: string, value: string | number) => {
+  const handleTicketChange = (index: number, field: string, value: string | number | boolean) => {
     setFormData((prev: Partial<Event>) => {
       const updatedTickets = [...(prev.tickets || [])];
       
+      // Eğer durum değiştirilen alan isSoldOut veya isComingSoon ise, bunların aynı anda true olmasını engelle
+      if (field === 'isSoldOut' && value === true) {
+        // Eğer isSoldOut true yapılıyorsa, isComingSoon'u false yap
+        updatedTickets[index] = {
+          ...updatedTickets[index],
+          isSoldOut: true,
+          isComingSoon: false // isComingSoon'u otomatik olarak false yap
+        };
+        return { ...prev, tickets: updatedTickets };
+      } else if (field === 'isComingSoon' && value === true) {
+        // Eğer isComingSoon true yapılıyorsa, isSoldOut'u false yap
+        updatedTickets[index] = {
+          ...updatedTickets[index],
+          isComingSoon: true,
+          isSoldOut: false // isSoldOut'u otomatik olarak false yap
+        };
+        return { ...prev, tickets: updatedTickets };
+      }
+      
+      // Diğer alanların düzenlenmesi için mevcut kodu kullan
       if (field.includes('.')) {
         // Handle fields like 'name' and 'description' that need translation
         const [parent, child] = field.split('.');
@@ -349,9 +381,6 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
             [formLanguage]: value as string
           }
         };
-        
-        // Debug for ticket description changes
-        console.log(`Updated ticket ${index} ${field} in ${formLanguage}:`, updatedTickets[index][field]);
       } else if (field === 'price') {
         // Ensure price is always a valid natural number (integer ≥ 0)
         let numValue = 0;
@@ -415,7 +444,8 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
           price: 0,
           description: { tr: '', en: '' },
           maxPerOrder: 5, // Default to 5 tickets per order
-          availableCount: -1 // Default to unlimited stock
+          isSoldOut: false,
+          isComingSoon: false
         }
       ]
     }));
@@ -433,25 +463,34 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
   const handleRuleChange = (index: number, value: string) => {
     setFormData((prev: Partial<Event>) => {
       const updatedRules = [...(prev.rules || [])];
+      
+      // Yeni content yapısına uygun olarak güncelleme yapıyoruz
       updatedRules[index] = {
         ...updatedRules[index],
-        [formLanguage]: value
+        content: {
+          ...updatedRules[index]?.content || {},
+          [formLanguage]: value
+        }
       };
       
       // Ensure both languages have at least an empty string to prevent undefined errors
-      if (!updatedRules[index].tr) updatedRules[index].tr = '';
-      if (!updatedRules[index].en) updatedRules[index].en = '';
+      if (!updatedRules[index].content.tr) updatedRules[index].content.tr = '';
+      if (!updatedRules[index].content.en) updatedRules[index].content.en = '';
       
       return { ...prev, rules: updatedRules };
     });
   };
 
   const addRule = () => {
+    const ruleId = `rule-${Date.now()}`;
     setFormData((prev: Partial<Event>) => ({
       ...prev,
       rules: [
         ...(prev.rules || []),
-        { tr: '', en: '' }
+        { 
+          id: ruleId,
+          content: { tr: '', en: '' }
+        }
       ]
     }));
   };
@@ -559,12 +598,6 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
     }
     // Removed "else { errors['tickets'] = true; }" to make tickets optional
     
-    console.log('Validation results:', {
-      errors,
-      hasErrors: Object.keys(errors).length > 0,
-      formData: JSON.stringify(formData)
-    });
-    
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -629,16 +662,13 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
       if (!slug || slug.trim() === '' || slug === 'undefined' || slug.includes('undefined')) {
         if (updatedData.title?.en) {
           slug = generateSlugFromEnglishTitle(updatedData.title.en);
-          console.log('Auto-generated slug from English title:', slug);
         } else if (updatedData.title?.tr) {
           // İngilizce başlık yoksa Türkçeyi kullan
           slug = generateSlugFromEnglishTitle(updatedData.title.tr);
-          console.log('Auto-generated slug from Turkish title:', slug);
         } else {
           // Fallback olarak random bir slug oluştur
           const randomPart = Math.random().toString(36).substring(2, 8);
           slug = `event-${randomPart}`;
-          console.log('Generated random fallback slug:', slug);
         }
       }
       
@@ -649,38 +679,28 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
         date: updatedData.date ? new Date(updatedData.date).toISOString() : new Date().toISOString(),
       };
       
+      // Bilet durumları için isSoldOut ve isComingSoon değerlerinin doğru şekilde işlendiğinden emin ol
+      if (updatedData.tickets && Array.isArray(updatedData.tickets)) {
+        updatedData.tickets = updatedData.tickets.map(ticket => ({
+          ...ticket,
+          isSoldOut: ticket.isSoldOut || false,
+          isComingSoon: ticket.isComingSoon || false
+        }));
+      }
+      
       // Convert rules format to match MongoDB schema, ensuring both languages are properly set
       if (updatedData.rules && Array.isArray(updatedData.rules)) {
-        // Doğru formatta rules yapısı oluştur
-        const formattedRules = {
-          tr: [],
-          en: []
-        };
-        
-        updatedData.rules.forEach(rule => {
-          // Only add non-empty rules
-          if (rule.tr && typeof rule.tr === 'string' && rule.tr.trim()) 
-            formattedRules.tr.push(rule.tr.trim());
-          
-          if (rule.en && typeof rule.en === 'string' && rule.en.trim()) 
-            formattedRules.en.push(rule.en.trim());
-        });
-        
-        // Rules arrays should be complete at this point because we already called translateAllFields()
-        // This ensures both tr and en have corresponding values
-        // No need to add placeholder text anymore
-        
-        // Doğrudan değer atama
-        updatedData.rules = formattedRules;
-        
-        // Debug için log
-        console.log('Formatted rules structure:', JSON.stringify(formattedRules));
+        // Kuralları doğrudan MongoDB modeline uygun formatta bırakalım
+        // Boş kuralları filtreleyelim
+        updatedData.rules = updatedData.rules.filter(rule => 
+          rule && 
+          rule.content && 
+          (rule.content.tr.trim() || rule.content.en.trim())
+        );
       }
       
       // Deep clone the data to avoid any reference issues
       const finalData = JSON.parse(JSON.stringify(updatedData));
-      
-      console.log('Submitting form data:', finalData);
       
       onSubmit(finalData);
     } catch (error) {
@@ -701,6 +721,71 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
       </p>
     ) : null
   );
+
+  // Translate function to process content in other language
+  const translateAllFields = async () => {
+    try {
+      // Define source and target languages
+      const fromLang = formLanguage as 'tr' | 'en';
+      const toLang = fromLang === 'tr' ? 'en' : 'tr';
+      
+      // Düzenleme modunda sadece değişen alanları çevir, yeni ekleme modunda tümünü çevir
+      if (isEditMode && event) {
+        // Import translation service
+        const { translateChangedFields } = await import('@/services/translation-service');
+        
+        try {
+          // Orijinal event ile karşılaştırarak sadece değişen alanları çevir
+          const translatedFormData = await translateChangedFields(formData, event, fromLang, toLang);
+          
+          // Update form data with translations
+          setFormData(translatedFormData);
+          
+          return true;
+        } catch (error) {
+          console.error('Translation error:', error);
+          
+          // Kullanıcıya hata mesajı göster
+          alert(fromLang === 'tr' 
+            ? `Çeviri işlemi sırasında bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
+            : `An error occurred during translation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          
+          return false;
+        }
+      } else {
+        // Yeni etkinlik ekleme modunda tüm alanları çevir
+        const { translateMultiLangObject } = await import('@/services/translation-service');
+        
+        try {
+          // Tüm form verilerini çevirip güncelle
+          const translatedFormData = await translateMultiLangObject(formData, fromLang, toLang);
+          
+          // Update form data with translations
+          setFormData(translatedFormData);
+          
+          return true;
+        } catch (error) {
+          console.error('Translation error:', error);
+          
+          // Kullanıcıya hata mesajı göster
+          alert(fromLang === 'tr' 
+            ? `Çeviri işlemi sırasında bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
+            : `An error occurred during translation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          
+          return false;
+        }
+      }
+    } catch (error) {
+      console.error('Translation service error:', error);
+      
+      // Kullanıcıya servis hatası göster
+      alert(formLanguage === 'tr'
+        ? 'Çeviri servisi yüklenemedi. Lütfen daha sonra tekrar deneyin.'
+        : 'Translation service could not be loaded. Please try again later.');
+      
+      return false;
+    }
+  };
 
   // Handle image upload with MongoDB storage
   const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -748,7 +833,6 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
             ...prev,
             [name]: result.publicPath
           }));
-          console.log(`${name} MongoDB'ye başarıyla yüklendi:`, result.publicPath);
         } else {
           console.error('Görsel yükleme hatası:', result.error);
           alert(formLanguage === 'tr' 
@@ -853,131 +937,98 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
           ...prev,
           gallery: finalGallery
         }));
-        
-        console.log("Gallery updated with MongoDB uploads:", {
-          customImages,
-          newGalleryPaths,
-          finalGallery
-        });
       }
     }
   };
 
   // Galeri yüklendiğinde önizleme görselleri ile galerinin senkronize olmasını sağlar
   useEffect(() => {
-    if (formData.gallery && formData.gallery.length > 0 && galleryPreviews.length === 0) {
-      // Önizleme görsellerini formData.gallery'den yükle
+    if (formData.gallery && formData.gallery.length > 0) {
+      // Önizleme görsellerini formData.gallery'den yükle - burada varsayılan kontrol yapma
       const previews = formData.gallery.map(imagePath => imagePath);
       setGalleryPreviews(previews);
     }
-  }, [formData.gallery, galleryPreviews.length]);
+  }, [formData.gallery]);
 
-  // Remove a gallery image
+  // Galeri görselini kaldır fonksiyonunu düzeltelim
   const removeGalleryImage = (index: number) => {
     // Varsayılan görsel yolu
     const defaultImagePath = '/images/logouzun.png';
     
     setFormData(prev => {
       const updatedGallery = [...(prev.gallery || [])];
+      
       // Silinecek görselin varsayılan mı yoksa özel mi olduğunu kontrol et
       const isDefaultImage = updatedGallery[index] === defaultImagePath;
       
-      // Görseli kaldır
+      // Görseli kaldır 
       updatedGallery.splice(index, 1);
       
-      // Eğer özel bir görsel silindiyse ve toplam görsel sayısı 3'ten az ise
-      // varsayılan görsel ekle
-      if (updatedGallery.length < 3) {
-        updatedGallery.push(defaultImagePath);
+      // Kullanıcının yüklediği görselleri ve varsayılan görselleri ayır
+      const customImages = updatedGallery.filter(img => img !== defaultImagePath);
+      
+      // Toplam görsellerin 3'ten az olması durumunda varsayılan görsellerle tamamla
+      const finalGallery = [...customImages];
+      
+      // Kaç tane varsayılan görsel eklememiz gerekiyor?
+      const neededDefaultCount = Math.max(0, 3 - finalGallery.length);
+      
+      // Eksik kalan miktarı varsayılan görsellerle tamamla
+      for (let i = 0; i < neededDefaultCount; i++) {
+        finalGallery.push(defaultImagePath);
       }
       
-      return { ...prev, gallery: updatedGallery };
-    });
-    
-    // Önizlemeleri de güncelle
-    setGalleryPreviews(prev => {
-      const updated = [...prev];
-      updated.splice(index, 1);
-      
-      // Eğer önizleme sayısı 3'ten az ise varsayılan görsel ekle
-      if (updated.length < 3) {
-        updated.push('/images/logouzun.png');
-      }
-      
-      return updated;
+      return { ...prev, gallery: finalGallery };
     });
   };
 
-  // Translate function to process content in other language
-  const translateAllFields = async () => {
-    try {
-      // Define source and target languages
-      const fromLang = formLanguage as 'tr' | 'en';
-      const toLang = fromLang === 'tr' ? 'en' : 'tr';
+  // Galeri görsellerinin ilk yüklenmesinde minimum 3 görsel kuralını uygula
+  useEffect(() => {
+    if (event) {
+      // Set default gallery if not present or ensure at least 3 images
+      let gallery = event.gallery || [];
       
-      // Düzenleme modunda sadece değişen alanları çevir, yeni ekleme modunda tümünü çevir
-      if (isEditMode && event) {
-        // Import translation service
-        const { translateChangedFields } = await import('@/services/translation-service');
+      // Varsayılan görsel yolu
+      const defaultImagePath = '/images/logouzun.png';
+      
+      // Kullanıcının yüklediği görselleri ve varsayılan görselleri ayır
+      const customImages = gallery.filter(img => img !== defaultImagePath);
+      
+      // Eğer gallery dizisi boşsa veya yoksa 3 tane logouzun.png ekleyelim
+      if (!gallery || customImages.length === 0) {
+        gallery = [defaultImagePath, defaultImagePath, defaultImagePath];
+      } 
+      // Eğer gallery dizisinde 1 veya 2 görsel varsa, eksik görsel sayısını logouzun.png ile tamamlayalım
+      else if (customImages.length < 3) {
+        // Yeni bir dizi oluştur, önce kullanıcı görselleri
+        const updatedGallery = [...customImages];
         
-        try {
-          console.log('Sadece değişen alanlar çevriliyor:', fromLang, 'dilinden', toLang, 'diline');
-          
-          // Orijinal event ile karşılaştırarak sadece değişen alanları çevir
-          const translatedFormData = await translateChangedFields(formData, event, fromLang, toLang);
-          
-          console.log('Çevrilen alanlar güncellendi:', translatedFormData);
-          
-          // Update form data with translations
-          setFormData(translatedFormData);
-          
-          return true;
-        } catch (error) {
-          console.error('Translation error:', error);
-          
-          // Kullanıcıya hata mesajı göster
-          alert(fromLang === 'tr' 
-            ? `Çeviri işlemi sırasında bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
-            : `An error occurred during translation: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          
-          return false;
-        }
-      } else {
-        // Yeni etkinlik ekleme modunda tüm alanları çevir
-        const { translateMultiLangObject } = await import('@/services/translation-service');
+        // Kaç tane default görsel eklenmesi gerekiyor?
+        const missingCount = 3 - customImages.length;
         
-        try {
-          console.log('Tüm alanlar çevriliyor:', fromLang, 'dilinden', toLang, 'diline');
-          
-          // Tüm form verilerini çevirip güncelle
-          const translatedFormData = await translateMultiLangObject(formData, fromLang, toLang);
-          
-          // Update form data with translations
-          setFormData(translatedFormData);
-          
-          return true;
-        } catch (error) {
-          console.error('Translation error:', error);
-          
-          // Kullanıcıya hata mesajı göster
-          alert(fromLang === 'tr' 
-            ? `Çeviri işlemi sırasında bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
-            : `An error occurred during translation: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          
-          return false;
+        // Default görselleri ekle
+        for(let i = 0; i < missingCount; i++) {
+          updatedGallery.push(defaultImagePath);
         }
+        
+        gallery = updatedGallery;
       }
-    } catch (error) {
-      console.error('Translation service error:', error);
       
-      // Kullanıcıya servis hatası göster
-      alert(formLanguage === 'tr'
-        ? 'Çeviri servisi yüklenemedi. Lütfen daha sonra tekrar deneyin.'
-        : 'Translation service could not be loaded. Please try again later.');
-      
-      return false;
+      // Galeri görsellerini ayarla
+      setFormData(prev => ({
+        ...prev,
+        gallery: gallery
+      }));
     }
-  };
+  }, [event]);
+
+  // Galeri görsellerini form datadan kullanarak güncelleyen useEffect
+  useEffect(() => {
+    if (formData.gallery && formData.gallery.length > 0) {
+      // Detaylı loglama ekleyelim
+      console.log('Yüklenen galeri görselleri:', formData.gallery);
+    }
+  }, [formData.gallery]);
 
   // Handle image selection from modal
   const handleBannerImageSelection = (image: ImageFile) => {
@@ -1011,32 +1062,30 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
     const imageUrl = image.url?.startsWith('/api/files/') ? image.url : image.publicPath;
     
     setFormData(prev => {
-      // Get current gallery, filtering out default images
+      // Get current gallery
       const currentGallery = [...(prev.gallery || [])];
+      
+      // Kullanıcının yüklediği görselleri ve varsayılan görselleri ayır
       const customImages = currentGallery.filter(img => img !== defaultImagePath);
       
-      // Add the new image to gallery
-      const updatedGallery = [...customImages, imageUrl];
+      // Yeni görseli ekle
+      customImages.push(imageUrl);
       
-      // Ensure at least 3 images in the gallery
-      if (updatedGallery.length < 3) {
-        const missingCount = 3 - updatedGallery.length;
-        for (let i = 0; i < missingCount; i++) {
-          updatedGallery.push(defaultImagePath);
-        }
+      // Eğer toplam görsel sayısı 3'ün altındaysa, eksik kalan görselleri varsayılan görsel ile tamamla
+      const finalGallery = [...customImages];
+      
+      // Kaç tane varsayılan görsel eklememiz gerekiyor
+      const neededDefaultCount = Math.max(0, 3 - finalGallery.length);
+      
+      // Eksik kalan miktarı varsayılan görsellerle tamamla
+      for (let i = 0; i < neededDefaultCount; i++) {
+        finalGallery.push(defaultImagePath);
       }
       
       return {
         ...prev,
-        gallery: updatedGallery
+        gallery: finalGallery
       };
-    });
-    
-    // Update gallery previews
-    setGalleryPreviews(prev => {
-      const defaultImages = prev.filter(img => img === defaultImagePath);
-      const customImages = prev.filter(img => img !== defaultImagePath);
-      return [...customImages, image.url, ...defaultImages].slice(0, Math.max(3, customImages.length + 1));
     });
   };
 
@@ -1322,20 +1371,18 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                       {formLanguage === 'tr' ? `Bilet #${index + 1}` : `Ticket #${index + 1}`}
                     </h4>
                     
-                    {formData.tickets && formData.tickets.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeTicket(index)}
-                        className={`p-1 rounded-md ${
-                          isDark
-                            ? 'text-silver hover:bg-dark-grey'
-                            : 'text-medium-grey hover:bg-very-light-grey'
-                        }`}
-                        title={formLanguage === 'tr' ? "Bu bilet tipini sil" : "Delete this ticket type"}
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeTicket(index)}
+                      className={`p-1 rounded-md ${
+                        isDark
+                          ? 'text-silver hover:bg-dark-grey'
+                          : 'text-medium-grey hover:bg-very-light-grey'
+                      }`}
+                      title={formLanguage === 'tr' ? "Bu bilet tipini sil" : "Delete this ticket type"}
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1386,8 +1433,8 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                       </p>
                     </div>
                     
-                    {/* Bilet açıklaması - MD Grid span 2 ile tüm satırı kaplasın */}
-                    <div className="md:col-span-2">
+                    {/* Bilet açıklaması - MD Grid span artık 1 olacak */}
+                    <div className="md:col-span-1">
                       <label 
                         className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
                       >
@@ -1408,27 +1455,45 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                       />
                     </div>
                     
-                    {/* Stock field - availableCount */}
-                    <div className="md:col-span-2">
+                    {/* Bilet Durumu Checkboxları - Sağ tarafa yerleştirildi */}
+                    <div className="md:col-span-1 flex flex-col justify-end">
                       <label 
                         className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
                       >
-                        {formLanguage === 'tr' ? 'Stok' : 'Stock'}
+                        {formLanguage === 'tr' ? 'Durum' : 'Status'}
                       </label>
-                      <input
-                        type="number"
-                        min="-1"
-                        value={ticket.availableCount || 0}
-                        onChange={(e) => handleTicketChange(index, 'availableCount', e.target.value)}
-                        className={`w-full px-3 py-2 rounded-md ${
-                          isDark
-                            ? 'bg-carbon-grey border border-dark-grey text-white'
-                            : 'bg-white border border-light-grey text-dark-grey'
-                        }`}
-                      />
-                      <p className="text-sm mt-1 italic text-green-500">
-                        {formLanguage === 'tr' ? '-1 seçilirse stok limiti olmayacaktır' : 'If 0 is selected, there will be no stock limit'}
-                      </p>
+                      <div className="flex flex-col gap-2 h-full justify-center">
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id={`ticket-sold-out-${index}`}
+                            checked={ticket.isSoldOut || false}
+                            onChange={(e) => handleTicketChange(index, 'isSoldOut', e.target.checked)}
+                            className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <label 
+                            htmlFor={`ticket-sold-out-${index}`}
+                            className={`text-sm font-medium ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+                          >
+                            {formLanguage === 'tr' ? 'Tükendi' : 'Sold Out'}
+                          </label>
+                        </div>
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id={`ticket-coming-soon-${index}`}
+                            checked={ticket.isComingSoon || false}
+                            onChange={(e) => handleTicketChange(index, 'isComingSoon', e.target.checked)}
+                            className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <label 
+                            htmlFor={`ticket-coming-soon-${index}`}
+                            className={`text-sm font-medium ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+                          >
+                            {formLanguage === 'tr' ? 'Yakında' : 'Coming Soon'}
+                          </label>
+                        </div>
+                      </div>
                     </div>
                     
                     {/* ID alanı görünmeyecek şekilde hidden input olarak ekleyelim */}
@@ -1507,7 +1572,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                     </label>
                     <textarea
                       rows={2}
-                      value={rule[formLanguage]}
+                      value={rule.content[formLanguage]}
                       onChange={(e) => handleRuleChange(index, e.target.value)}
                       className={`w-full px-3 py-2 rounded-md ${
                         isDark
@@ -1677,10 +1742,11 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                 ) : formData.bannerImage ? (
                   <div className="relative w-full h-40 bg-gray-100 rounded-md overflow-hidden">
                     <Image 
-                      src={formData.bannerImage} 
+                      src={formData.bannerImage.startsWith('/api/files/') ? formData.bannerImage : formData.bannerImage} 
                       alt={formLanguage === 'tr' ? "Banner görseli" : "Banner image"} 
                       fill
                       style={{ objectFit: 'cover' }}
+                      unoptimized={formData.bannerImage.startsWith('/api/files/')}
                     />
                   </div>
                 ) : (
@@ -1739,10 +1805,11 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                 ) : formData.squareImage ? (
                   <div className="relative w-40 h-40 bg-gray-100 rounded-md overflow-hidden">
                     <Image 
-                      src={formData.squareImage} 
+                      src={formData.squareImage.startsWith('/api/files/') ? formData.squareImage : formData.squareImage} 
                       alt={formLanguage === 'tr' ? "Kare görseli" : "Square image"} 
                       fill
                       style={{ objectFit: 'cover' }}
+                      unoptimized={formData.squareImage.startsWith('/api/files/')}
                     />
                   </div>
                 ) : (
@@ -1809,20 +1876,21 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
             
             {/* Gallery preview */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-2">
-              {galleryPreviews.length > 0 ? (
-                galleryPreviews.map((preview, index) => (
+              {formData.gallery && formData.gallery.length > 0 ? (
+                formData.gallery.map((imagePath, index) => (
                   <div 
-                    key={`preview-${index}`}
+                    key={`gallery-${index}`}
                     className="relative group"
                   >
                     <div className="relative w-full h-32 bg-gray-100 rounded-md overflow-hidden">
                       <Image 
-                        src={preview} 
+                        src={imagePath}
                         alt={formLanguage === 'tr' 
                           ? `Galeri görseli ${index + 1}` 
                           : `Gallery image ${index + 1}`}
                         fill
                         style={{ objectFit: 'cover' }}
+                        unoptimized={imagePath.startsWith('/api/files/')}
                       />
                     </div>
                     <button
@@ -1837,40 +1905,13 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                     </button>
                   </div>
                 ))
-              ) : formData.gallery && formData.gallery.length > 0 ? (
-                formData.gallery.map((imagePath, index) => (
-                  <div 
-                    key={`gallery-${index}`}
-                    className="relative group"
-                  >
-                    <div className="relative w-full h-32 bg-gray-100 rounded-md overflow-hidden">
-                      <Image 
-                        src={imagePath} 
-                        alt={formLanguage === 'tr' 
-                          ? `Galeri görseli ${index + 1}` 
-                          : `Gallery image ${index + 1}`}
-                        fill
-                        style={{ objectFit: 'cover' }}
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() =>removeGalleryImage(index)}
-                      className={`absolute top-1 right-1 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${
-                        isDark ? 'bg-carbon-grey text-white' : 'bg-white text-dark-grey'
-                      }`}
-                      title={formLanguage === 'tr' ? "Bu görseli sil" : "Delete this image"}
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))
-              ) :                <div className={`col-span-full py-6 text-center ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+              ) : (
+                <div className={`col-span-full py-6 text-center ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                   {formLanguage === 'tr' 
                     ? 'Henüz galeri görseli eklenmemiş. Görsel seçmek veya yüklemek için butonları kullanın.'
                     : 'No gallery images added yet. Use the buttons to select or upload images.'}
                 </div>
-              }
+              )}
             </div>
             
             {/* Gallery Image Selector Modal */}

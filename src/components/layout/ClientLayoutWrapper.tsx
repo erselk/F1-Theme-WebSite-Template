@@ -18,8 +18,6 @@ const ClientLayoutWrapper = ({ children }: ClientLayoutWrapperProps) => {
   // Web Vitals izleme doğrudan bileşen içinde
   useReportWebVitals((metric) => {
     // Kritik metrikleri konsola kaydet
-    console.log(metric);
-    
     // Örnek: Google Analytics'e gönderme (isteğe bağlı)
     // if (window.gtag) {
     //   window.gtag('event', metric.name, {

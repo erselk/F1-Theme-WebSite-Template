@@ -116,16 +116,22 @@ export async function deleteFileFromGridFS(fileId: string): Promise<void> {
 }
 
 /**
- * List files by category
+ * List files by category with pagination
  * @param category File category (all, banner, event, blog, other)
+ * @param page Page number (default: 1)
+ * @param pageSize Number of items per page (default: 20)
  * @returns Array of file info objects
  */
-export async function listFilesByCategory(category: string): Promise<any[]> {
+export async function listFilesByCategory(
+  category: string, 
+  page: number = 1, 
+  pageSize: number = 20
+): Promise<any[]> {
   try {
     const { db } = await connectToGridFS();
     const bucket = db.collection('uploads.files');
     
-    console.log('Listing files with category:', category);
+    console.log(`Listing files with category: ${category}, page: ${page}, pageSize: ${pageSize}`);
     
     let query = {};
     
@@ -140,10 +146,17 @@ export async function listFilesByCategory(category: string): Promise<any[]> {
       };
     }
     
-    // Dosyaları çek ve sırala (en yeni ilk)
-    const files = await bucket.find(query).sort({ uploadDate: -1 }).toArray();
+    // Sayfalama hesaplamaları
+    const skip = (page - 1) * pageSize;
     
-    console.log(`Found ${files.length} files in GridFS`);
+    // Dosyaları çek ve sırala (en yeni ilk)
+    const files = await bucket.find(query)
+                             .sort({ uploadDate: -1 })
+                             .skip(skip)
+                             .limit(pageSize)
+                             .toArray();
+    
+    console.log(`Found ${files.length} files in GridFS for page ${page}`);
     
     // Map the files to a simpler format with URLs
     return files.map(file => {

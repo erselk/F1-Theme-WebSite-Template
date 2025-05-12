@@ -3,19 +3,14 @@
 import { connectToDatabase } from '@/lib/db/mongodb';
 import EventReservation from '@/models/EventReservation';
 import { Event } from '@/types';
+import { serializeMongoData } from '@/lib/utils';
 
 // Helper function to normalize MongoDB objects
-function normalizeReservationData(reservation: any) {
+function normalizeReservationData(reservation: any): any {
   if (!reservation) return null;
   
-  // Convert Mongoose document to plain object if needed
-  const rawReservation = reservation.toObject ? reservation.toObject({ getters: true }) : reservation;
-  
-  // Convert _id to string to prevent serialization issues
-  return {
-    ...rawReservation,
-    _id: rawReservation._id ? rawReservation._id.toString() : null,
-  };
+  // Yeni serileştirme fonksiyonunu kullanarak _id ve diğer buffer içeren alanlar düzgün şekilde işlenecek
+  return serializeMongoData(reservation);
 }
 
 /**

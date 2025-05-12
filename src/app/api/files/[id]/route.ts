@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getFileFromGridFS } from '@/services/file-upload-service';
+import { getFileFromGridFS } from '@/lib/file-uploader';
 
 export async function GET(
   request: NextRequest,

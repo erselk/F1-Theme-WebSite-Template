@@ -62,6 +62,8 @@ export interface Event {
     maxPerOrder?: number;
     availableCount?: number;
     variant?: 'standard' | 'premium' | 'vip';
+    isSoldOut?: boolean;
+    isComingSoon?: boolean;
   }[]; 
   comments?: {
     id: string;
@@ -70,9 +72,12 @@ export interface Event {
     content: string;
   }[];
   rules?: {
-    tr: string[];
-    en: string[];
-  };
+    id: string;
+    content: {
+      tr: string;
+      en: string;
+    };
+  }[];
   details?: {
     tr: string;
     en: string;

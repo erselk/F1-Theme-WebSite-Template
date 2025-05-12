@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Event } from '@/data/events';
+import { Event } from '@/types';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
+import { EyeIcon, PencilSquareIcon, TrashIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 
 export default function EventsListPage() {
   const router = useRouter();
@@ -30,10 +31,10 @@ export default function EventsListPage() {
           today.setHours(0, 0, 0, 0);
           
           // Etkinlikleri gelecek ve geçmiş olarak ayırıyoruz
-          const futureEvents = [];
-          const pastEvents = [];
+          const futureEvents: Event[] = [];
+          const pastEvents: Event[] = [];
           
-          data.events.forEach(event => {
+          data.events.forEach((event: Event) => {
             const eventDate = new Date(event.date);
             if (eventDate >= today) {
               futureEvents.push(event);
@@ -97,12 +98,25 @@ export default function EventsListPage() {
   // Tarih formatını yerelleştir
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
+    
     const options: Intl.DateTimeFormatOptions = { 
       year: 'numeric', 
       month: 'long', 
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
+    };
+    
+    return date.toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', options);
+  };
+  
+  // Mobil için kısaltılmış tarih formatı
+  const formatMobileDate = (dateString: string) => {
+    const date = new Date(dateString);
+    
+    const options: Intl.DateTimeFormatOptions = { 
+      month: 'short', 
+      day: 'numeric'
     };
     
     return date.toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', options);
@@ -119,6 +133,16 @@ export default function EventsListPage() {
     };
     
     return categories[category as keyof typeof categories]?.[language as 'tr' | 'en'] || category;
+  };
+
+  // Etkinliğin en düşük bilet fiyatını bul
+  const getMinTicketPrice = (event: any) => {
+    if (!event.tickets || !event.tickets.length) {
+      return event.price || 0;
+    }
+    
+    const prices = event.tickets.map((ticket: any) => ticket.price);
+    return Math.min(...prices);
   };
 
   if (loading) {
@@ -161,102 +185,105 @@ export default function EventsListPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Etkinlik Yönetimi</h1>
+    <div className="container mx-auto px-3 md:px-4 py-6 md:py-8">
+      <div className="flex justify-between items-center mb-4 md:mb-6">
+        <h1 className="text-xl md:text-2xl font-bold">Etkinlik Yönetimi</h1>
         <Link 
           href="/admin/events/add" 
-          className="px-4 py-2 bg-electric-blue text-white rounded-md hover:bg-electric-blue-dark transition-colors"
+          className="md:text-base px-3 py-1.5 md:px-4 md:py-2 bg-electric-blue text-white rounded-md hover:bg-electric-blue-dark transition-colors md:flex md:items-center md:gap-2 flex items-center gap-1"
         >
-          Yeni Etkinlik Ekle
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span className="hidden md:inline">Yeni Etkinlik Ekle</span>
         </Link>
       </div>
       
       {deleteError && (
-        <div className="mb-6 p-4 bg-f1-red/10 border border-f1-red text-f1-red rounded-md">
-          <div className="flex items-center">
+        <div className="mb-4 md:mb-6 p-3 md:p-4 bg-f1-red/10 border border-f1-red text-f1-red rounded-md">
+          <div className="flex items-center text-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="mr-2"
+              className="mr-2 flex-shrink-0"
             >
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12" y2="16"></line>
             </svg>
-            {deleteError}
+            <span className="truncate">{deleteError}</span>
           </div>
         </div>
       )}
       
       {events.length === 0 ? (
-        <div className="bg-very-light-grey dark:bg-dark-grey rounded-md p-6 text-center">
+        <div className="bg-very-light-grey dark:bg-dark-grey rounded-md p-4 md:p-6 text-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="48"
-            height="48"
+            width="36"
+            height="36"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="mx-auto mb-4 text-medium-grey"
+            className="mx-auto mb-3 md:mb-4 text-medium-grey"
           >
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
             <line x1="16" y1="2" x2="16" y2="6"></line>
             <line x1="8" y1="2" x2="8" y2="6"></line>
             <line x1="3" y1="10" x2="21" y2="10"></line>
           </svg>
-          <h3 className="text-lg font-medium mb-2">Henüz etkinlik bulunmuyor</h3>
-          <p className="text-medium-grey mb-4">İlk etkinliğinizi eklemek için &quot;Yeni Etkinlik Ekle&quot; butonuna tıklayın.</p>
+          <h3 className="text-base md:text-lg font-medium mb-2">Henüz etkinlik bulunmuyor</h3>
+          <p className="text-medium-grey text-sm mb-3 md:mb-4">İlk etkinliğinizi eklemek için ekleme butonuna tıklayın.</p>
           <Link 
             href="/admin/events/add" 
-            className="px-4 py-2 bg-electric-blue text-white rounded-md hover:bg-electric-blue-dark transition-colors"
+            className="text-sm px-3 py-1.5 md:px-4 md:py-2 bg-electric-blue text-white rounded-md hover:bg-electric-blue-dark transition-colors flex items-center gap-1 inline-flex"
           >
-            Yeni Etkinlik Ekle
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span>Yeni Etkinlik Ekle</span>
           </Link>
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto -mx-3 md:mx-0 rounded-md">
           <table className={`min-w-full divide-y ${isDark ? 'divide-dark-grey' : 'divide-light-grey'}`}>
             <thead className={`${isDark ? 'bg-dark-grey' : 'bg-very-light-grey'}`}>
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider">
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider">
                   Görsel
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider">
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider">
                   Başlık
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider">
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider hidden md:table-cell">
                   Tarih
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider">
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider hidden md:table-cell">
                   Kategori
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider">
-                  Öne Çıkan
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider">
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider hidden md:table-cell">
                   Fiyat
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-medium-grey uppercase tracking-wider">
-                  İşlemler
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-right text-xs font-medium text-medium-grey uppercase tracking-wider w-16 md:w-auto">
+                  İşlem
                 </th>
               </tr>
             </thead>
             <tbody className={`divide-y ${isDark ? 'divide-dark-grey' : 'divide-light-grey'}`}>
               {events.map((event) => (
                 <tr key={event.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="w-16 h-16 relative">
+                  <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap">
+                    <div className="w-10 h-10 md:w-16 md:h-16 relative">
                       <Image
                         src={event.squareImage}
                         alt={event.title[language as 'tr' | 'en']}
@@ -266,55 +293,68 @@ export default function EventsListPage() {
                       />
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium">
+                  <td className="px-3 md:px-6 py-2 md:py-4">
+                    <div className="text-xs md:text-sm font-medium truncate max-w-[120px] md:max-w-none">
                       {event.title[language as 'tr' | 'en']}
                     </div>
-                    <div className="text-xs text-medium-grey">{event.slug}</div>
+                    <div className="text-xs text-medium-grey truncate">{event.slug}</div>
+                    {/* Mobil görünümde tarihi göster */}
+                    <div className="text-xs text-medium-grey mt-1 md:hidden flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3 mr-1">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                      </svg>
+                      {formatMobileDate(event.date)}
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {formatDate(event.date)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-xs md:text-sm hidden md:table-cell">
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                       {getCategoryName(event.category)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {event.isFeatured ? (
-                      <span className="text-green-600">Evet</span>
-                    ) : (
-                      <span className="text-medium-grey">Hayır</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {event.price > 0 ? (
-                      <span>{event.price.toLocaleString('tr-TR')} ₺</span>
+                  <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-xs md:text-sm hidden md:table-cell">
+                    {getMinTicketPrice(event) > 0 ? (
+                      <span>{getMinTicketPrice(event).toLocaleString('tr-TR')} ₺</span>
                     ) : (
                       <span className="text-green-600">Ücretsiz</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link
-                      href={`/events/${event.slug}`}
-                      className="text-medium-grey hover:text-dark-grey mr-3"
-                      target="_blank"
-                    >
-                      Görüntüle
-                    </Link>
-                    <Link
-                      href={`/admin/events/edit/${event.slug}`}
-                      className="text-electric-blue hover:text-electric-blue-dark mr-3"
-                    >
-                      Düzenle
-                    </Link>
-                    <button
-                      onClick={() => deleteEvent(event.slug)}
-                      disabled={isDeleting === event.slug}
-                      className="text-f1-red hover:text-f1-red-dark disabled:opacity-50"
-                    >
-                      {isDeleting === event.slug ? 'Siliniyor...' : 'Sil'}
-                    </button>
+                  <td className="px-2 md:px-6 py-2 md:py-4 whitespace-nowrap text-right text-xs md:text-sm font-medium">
+                    <div className="flex justify-end space-x-1 md:space-x-3">
+                      <Link
+                        href={`/events/${event.slug}`}
+                        className="text-medium-grey hover:text-dark-grey"
+                        target="_blank"
+                        title="Görüntüle"
+                      >
+                        <EyeIcon className="w-4 h-4 md:w-5 md:h-5" />
+                      </Link>
+                      <Link
+                        href={`/admin/reservations/events?event=${event.slug.replace(/-/g, ' ')}`}
+                        className="text-blue-500 hover:text-blue-700"
+                        title="Satışlar"
+                      >
+                        <ShoppingCartIcon className="w-4 h-4 md:w-5 md:h-5" />
+                      </Link>
+                      <Link
+                        href={`/admin/events/edit/${event.slug}`}
+                        className="text-electric-blue hover:text-electric-blue-dark"
+                        title="Düzenle"
+                      >
+                        <PencilSquareIcon className="w-4 h-4 md:w-5 md:h-5" />
+                      </Link>
+                      <button
+                        onClick={() => deleteEvent(event.slug)}
+                        disabled={isDeleting === event.slug}
+                        className="text-f1-red hover:text-f1-red-dark disabled:opacity-50"
+                        title="Sil"
+                      >
+                        {isDeleting === event.slug ? (
+                          <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-f1-red border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <TrashIcon className="w-4 h-4 md:w-5 md:h-5" />
+                        )}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

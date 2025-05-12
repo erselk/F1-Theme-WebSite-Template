@@ -3,23 +3,22 @@
 import { connectToDatabase } from '@/lib/db/mongodb';
 import EventOrder from '@/models/EventOrder';
 import { revalidatePath } from 'next/cache';
+import { serializeMongoData } from '@/lib/utils';
 
 // Mongoose nesnelerini düz JSON'a dönüştüren ve veriyi normalize eden yardımcı fonksiyon
-function normalizeOrderData(order: any) {
+function normalizeOrderData(order: any): any {
   if (!order) return null;
-
-  // MongoDB ObjectId'leri ile ilgili sorunları önlemek için düz objeye çeviriyoruz
-  // toObject metodu varsa Mongoose dökümanını düz objeye çevir
-  const rawOrder = order.toObject ? order.toObject({ getters: true }) : order;
   
-  // _id alanını doğrudan string'e çeviriyoruz
-  const normalizedOrder = {
-    ...rawOrder,
-    _id: rawOrder._id ? rawOrder._id.toString() : null,
-  };
+  // Eğer dizi ise dizi elemanlarını ayrı ayrı normalize et
+  if (Array.isArray(order)) {
+    return order.map(item => normalizeOrderData(item));
+  }
 
-  // Temel alanlar için kontroller
-  const tickets = Array.isArray(normalizedOrder.tickets) ? normalizedOrder.tickets.map((ticket: any) => ({
+  // Utils'deki serileştirme fonksiyonunu kullanarak buffer sorununu çöz
+  const serializedOrder = serializeMongoData(order);
+  
+  // Biletlerin dönüşümü için güvenli işlem
+  const tickets = Array.isArray(serializedOrder.tickets) ? serializedOrder.tickets.map((ticket: any) => ({
     id: ticket.id || 'unknown-ticket',
     name: ticket.name || 'Unknown Ticket',
     price: typeof ticket.price === 'number' ? ticket.price : 0,
@@ -27,23 +26,21 @@ function normalizeOrderData(order: any) {
   })) : [];
 
   // Biletlerin gerçek toplam değerini hesapla
-  const calculatedTotalAmount = tickets.reduce((total, ticket) => {
+  const calculatedTotalAmount = tickets.reduce((total: number, ticket: any) => {
     return total + (ticket.price * ticket.quantity);
-  }, 0) * 100; // 100 ile çarpıyoruz çünkü totalAmount kuruş cinsinden tutulabilir
-
-  const result = {
-    ...normalizedOrder,
-    orderId: normalizedOrder.orderId || 'unknown',
-    eventSlug: normalizedOrder.eventSlug || 'unknown-event',
-    eventName: typeof normalizedOrder.eventName === 'object' ? normalizedOrder.eventName : { tr: 'Bilinmeyen Etkinlik', en: 'Unknown Event' },
-    customerInfo: normalizedOrder.customerInfo || { fullName: 'Unknown', email: 'unknown@example.com', phone: '' },
+  }, 0);
+  
+  // Eksik alanlar için varsayılan değerler ile tamamla
+  return {
+    ...serializedOrder,
+    orderId: serializedOrder.orderId || 'unknown',
+    eventSlug: serializedOrder.eventSlug || 'unknown-event',
+    eventName: typeof serializedOrder.eventName === 'object' ? serializedOrder.eventName : { tr: 'Bilinmeyen Etkinlik', en: 'Unknown Event' },
+    customerInfo: serializedOrder.customerInfo || { fullName: 'Unknown', email: 'unknown@example.com', phone: '' },
     tickets: tickets,
-    // Bilet verisi ile totalAmount'ın tutarlı olmasını sağlıyoruz
     totalAmount: calculatedTotalAmount,
-    orderDate: normalizedOrder.orderDate || new Date()
+    orderDate: serializedOrder.orderDate || new Date().toISOString()
   };
-
-  return result;
 }
 
 /**
@@ -156,7 +153,7 @@ export async function getEventOrdersStats() {
       if (!order.tickets || !Array.isArray(order.tickets)) return sum;
       
       // Her siparişin gerçek tutarını bilet fiyatı x adedine göre hesapla
-      const orderTotal = order.tickets.reduce((ticketSum, ticket) => {
+      const orderTotal = order.tickets.reduce((ticketSum: number, ticket: any) => {
         const price = typeof ticket.price === 'number' ? ticket.price : 0;
         const quantity = typeof ticket.quantity === 'number' ? ticket.quantity : 0;
         return ticketSum + (price * quantity);
@@ -168,7 +165,7 @@ export async function getEventOrdersStats() {
     // Toplam bilet sayısını hesapla
     totalTickets = allOrders.reduce((sum, order) => {
       if (!order.tickets || !Array.isArray(order.tickets)) return sum;
-      return sum + order.tickets.reduce((ticketSum, ticket) => {
+      return sum + order.tickets.reduce((ticketSum: number, ticket: any) => {
         return ticketSum + (typeof ticket.quantity === 'number' ? ticket.quantity : 0);
       }, 0);
     }, 0);

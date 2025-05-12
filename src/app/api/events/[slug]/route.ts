@@ -3,6 +3,10 @@ import { connectToDatabase } from '@/lib/db/mongodb';
 import Event from '@/models/Event';
 import { getEventStatus } from '@/types';
 
+// Cache kontrollerini ayarla - önbelleğe almayı engelle
+export const dynamic = 'force-dynamic'; // Statik önbelleğe almayı devre dışı bırak
+export const revalidate = 0; // Her istekte yeniden doğrulama yap
+
 export async function GET(
   request: Request,
   { params }: { params: { slug: string } }
@@ -45,6 +49,12 @@ export async function GET(
     return NextResponse.json({ 
       event: eventWithStatus,
       success: true 
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
     });
   } catch (error) {
     console.error('Etkinlik verisi getirme hatası:', error);

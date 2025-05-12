@@ -18,7 +18,15 @@ const ticketSchema = new Schema({
   variant: {
     type: String,
     enum: ['standard', 'premium', 'vip']
-  }
+  },
+  isSoldOut: Boolean,
+  isComingSoon: Boolean
+}, { _id: false });
+
+// Kural tipi için şema
+const ruleSchema = new Schema({
+  id: String,
+  content: localizedTextSchema
 }, { _id: false });
 
 // Event şeması
@@ -54,8 +62,8 @@ const eventSchema = new Schema({
   },
   // Kurallar
   rules: {
-    tr: [String],
-    en: [String]
+    type: [ruleSchema],
+    default: []
   },
   // Biletler
   tickets: {

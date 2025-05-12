@@ -4,17 +4,19 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
 import { getAllEventOrders, getEventOrdersStats } from '@/services/event-orders-service';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 export default function EventOrdersPage() {
   const { isDark, language } = useThemeLanguage();
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [stats, setStats] = useState<{ totalOrders: number; totalRevenue: number; totalTickets: number } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sorting, setSorting] = useState({ field: 'orderDate', direction: 'desc' });
   const ordersPerPage = 10;
+  const searchParams = useSearchParams();
 
   // Format price with proper Turkish/English formatting
   const formatPrice = (amount: number) => {
@@ -51,8 +53,8 @@ export default function EventOrdersPage() {
       ]);
 
       if (ordersResult.success && statsResult.success) {
-        setOrders(ordersResult.data);
-        setStats(statsResult.data);
+        setOrders(ordersResult.data || []);
+        setStats(statsResult.data || null);
       } else {
         setError(ordersResult.error || statsResult.error || 'An error occurred while fetching data');
       }
@@ -68,6 +70,14 @@ export default function EventOrdersPage() {
     fetchData();
   }, []);
 
+  // URL'den eventSlug parametresi varsa arama terimine ekle
+  useEffect(() => {
+    const eventSlug = searchParams.get('event');
+    if (eventSlug) {
+      setSearchTerm(eventSlug);
+    }
+  }, [searchParams]);
+
   // Handle sorting
   const handleSort = (field: string) => {
     setSorting(prev => ({
@@ -80,78 +90,80 @@ export default function EventOrdersPage() {
   const filteredOrders = useMemo(() => {
     if (!orders || !orders.length) return [];
     
-    return orders
-      .filter((order: any) => {
-        if (!order) return false;
-        
-        try {
-          const searchLower = searchTerm.toLowerCase();
-          return (
-            // Sipariş no kaldırıldı, şu alanları arayacağız:
-            // - Müşteri adı
-            // - Email adresi
-            // - Telefon numarası
-            // - Etkinlik adı
-            // - Bilet tutarı (sayısal değer)
-            (order.customerInfo && order.customerInfo.fullName && 
-              order.customerInfo.fullName.toLowerCase().includes(searchLower)) ||
-            (order.customerInfo && order.customerInfo.email && 
-              order.customerInfo.email.toLowerCase().includes(searchLower)) ||
-            (order.customerInfo && order.customerInfo.phone && 
-              order.customerInfo.phone.toLowerCase().includes(searchLower)) ||
-            (typeof order.eventName === 'object' && (
-              (order.eventName.tr && order.eventName.tr.toLowerCase().includes(searchLower)) ||
-              (order.eventName.en && order.eventName.en.toLowerCase().includes(searchLower))
-            )) ||
-            // Bilet tutarı araması - önce hesaplıyoruz
-            (() => {
-              if (isNaN(parseFloat(searchLower))) return false; // Sayısal değer değilse atla
-              const ticketTotal = order.tickets?.reduce((sum: number, ticket: any) => 
-                sum + (ticket.price * ticket.quantity), 0) || 0;
-              return ticketTotal.toString().includes(searchLower);
-            })()
-          );
-        } catch (err) {
-          console.error("Error filtering order:", err);
-          return false;
+    // Apply search filter
+    let result = orders.filter((order: any) => {
+      if (!order) return false;
+      
+      try {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+          // Sipariş no kaldırıldı, şu alanları arayacağız:
+          // - Müşteri adı
+          // - Email adresi
+          // - Telefon numarası
+          // - Etkinlik adı
+          // - Bilet tutarı (sayısal değer)
+          (order.customerInfo && order.customerInfo.fullName && 
+            order.customerInfo.fullName.toLowerCase().includes(searchLower)) ||
+          (order.customerInfo && order.customerInfo.email && 
+            order.customerInfo.email.toLowerCase().includes(searchLower)) ||
+          (order.customerInfo && order.customerInfo.phone && 
+            order.customerInfo.phone.toLowerCase().includes(searchLower)) ||
+          (typeof order.eventName === 'object' && (
+            (order.eventName.tr && order.eventName.tr.toLowerCase().includes(searchLower)) ||
+            (order.eventName.en && order.eventName.en.toLowerCase().includes(searchLower))
+          )) ||
+          // Bilet tutarı araması - önce hesaplıyoruz
+          (() => {
+            if (isNaN(parseFloat(searchLower))) return false; // Sayısal değer değilse atla
+            const ticketTotal = order.tickets?.reduce((sum: number, ticket: any) => 
+              sum + (ticket.price * ticket.quantity), 0) || 0;
+            return ticketTotal.toString().includes(searchLower);
+          })()
+        );
+      } catch (err) {
+        console.error("Error filtering order:", err);
+        return false;
+      }
+    });
+    
+    // Sort the results
+    return result.sort((a: any, b: any) => {
+      let fieldA, fieldB;
+      
+      try {
+        // Handle nested fields
+        if (sorting.field === 'customerName') {
+          fieldA = a.customerInfo?.fullName;
+          fieldB = b.customerInfo?.fullName;
+        } else if (sorting.field === 'eventName') {
+          fieldA = typeof a.eventName === 'object' ? (a.eventName[language] || a.eventName.en || a.eventName.tr) : a.eventName;
+          fieldB = typeof b.eventName === 'object' ? (b.eventName[language] || b.eventName.en || b.eventName.tr) : b.eventName;
+        } else {
+          fieldA = a[sorting.field];
+          fieldB = b[sorting.field];
         }
-      })
-      .sort((a: any, b: any) => {
-        let fieldA, fieldB;
         
-        try {
-          // Handle nested fields
-          if (sorting.field === 'customerName') {
-            fieldA = a.customerInfo?.fullName;
-            fieldB = b.customerInfo?.fullName;
-          } else if (sorting.field === 'eventName') {
-            fieldA = typeof a.eventName === 'object' ? (a.eventName[language] || a.eventName.en || a.eventName.tr) : a.eventName;
-            fieldB = typeof b.eventName === 'object' ? (b.eventName[language] || b.eventName.en || b.eventName.tr) : b.eventName;
-          } else {
-            fieldA = a[sorting.field];
-            fieldB = b[sorting.field];
-          }
-          
-          // Handle date fields
-          if (sorting.field === 'orderDate') {
-            fieldA = new Date(fieldA || 0).getTime();
-            fieldB = new Date(fieldB || 0).getTime();
-          }
-          
-          // Handle undefined values
-          if (fieldA === undefined && fieldB === undefined) return 0;
-          if (fieldA === undefined) return 1;
-          if (fieldB === undefined) return -1;
-          
-          // Sorting direction
-          return sorting.direction === 'asc'
-            ? fieldA > fieldB ? 1 : -1
-            : fieldA < fieldB ? 1 : -1;
-        } catch (err) {
-          console.error("Error sorting orders:", err);
-          return 0;
+        // Handle date fields
+        if (sorting.field === 'orderDate') {
+          fieldA = new Date(fieldA || 0).getTime();
+          fieldB = new Date(fieldB || 0).getTime();
         }
-      });
+        
+        // Handle undefined values
+        if (fieldA === undefined && fieldB === undefined) return 0;
+        if (fieldA === undefined) return 1;
+        if (fieldB === undefined) return -1;
+        
+        // Sorting direction
+        return sorting.direction === 'asc'
+          ? fieldA > fieldB ? 1 : -1
+          : fieldA < fieldB ? 1 : -1;
+      } catch (err) {
+        console.error("Error sorting orders:", err);
+        return 0;
+      }
+    });
   }, [orders, searchTerm, sorting, language]);
 
   // Calculate pagination
@@ -216,61 +228,53 @@ export default function EventOrdersPage() {
       {/* Page header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className={`text-2xl font-bold ${textClass}`}>
+          <h1 className={`text-lg md:text-2xl font-bold ${textClass}`}>
             {language === 'tr' ? 'Etkinlik Siparişleri' : 'Event Orders'}
           </h1>
-          <p className={textSecondaryClass}>
+          <p className={`text-xs md:text-base ${textSecondaryClass}`}>
             {language === 'tr' ? 'Tüm etkinlik siparişlerini ve rezervasyonlarını yönetin' : 'Manage all event orders and reservations'}
           </p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            className={`px-4 py-2 rounded-md text-sm ${buttonSecondaryClass}`}
-            onClick={fetchData}
-          >
-            {language === 'tr' ? 'Yenile' : 'Refresh'}
-          </button>
         </div>
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className={`${cardClass} rounded-lg shadow p-6 border ${borderClass}`}>
-          <h3 className={`text-lg font-medium ${textSecondaryClass}`}>
+      <div className="grid grid-cols-3 gap-2 md:gap-4">
+        <div className={`${cardClass} rounded-lg shadow p-3 md:p-6 border ${borderClass}`}>
+          <h3 className={`text-xs md:text-lg font-medium ${textSecondaryClass}`}>
             {language === 'tr' ? 'Toplam Sipariş' : 'Total Orders'}
           </h3>
-          <p className="text-3xl font-bold text-electric-blue mt-2">
+          <p className="text-xl md:text-3xl font-bold text-electric-blue mt-1 md:mt-2">
             {stats?.totalOrders || 0}
           </p>
         </div>
-        <div className={`${cardClass} rounded-lg shadow p-6 border ${borderClass}`}>
-          <h3 className={`text-lg font-medium ${textSecondaryClass}`}>
+        <div className={`${cardClass} rounded-lg shadow p-3 md:p-6 border ${borderClass}`}>
+          <h3 className={`text-xs md:text-lg font-medium ${textSecondaryClass}`}>
             {language === 'tr' ? 'Toplam Gelir' : 'Total Revenue'}
           </h3>
-          <p className="text-3xl font-bold text-neon-green mt-2">
+          <p className="text-xl md:text-3xl font-bold text-neon-green mt-1 md:mt-2">
             {formatPrice(stats?.totalRevenue || 0)}
           </p>
         </div>
-        <div className={`${cardClass} rounded-lg shadow p-6 border ${borderClass}`}>
-          <h3 className={`text-lg font-medium ${textSecondaryClass}`}>
+        <div className={`${cardClass} rounded-lg shadow p-3 md:p-6 border ${borderClass}`}>
+          <h3 className={`text-xs md:text-lg font-medium ${textSecondaryClass}`}>
             {language === 'tr' ? 'Toplam Bilet' : 'Total Tickets'}
           </h3>
-          <p className="text-3xl font-bold text-neon-red mt-2">
+          <p className="text-xl md:text-3xl font-bold text-neon-red mt-1 md:mt-2">
             {stats?.totalTickets || 0}
           </p>
         </div>
       </div>
 
       {/* Filters and controls */}
-      <div className={`${cardClass} rounded-lg shadow p-4 border ${borderClass}`}>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="w-full sm:w-auto">
+      <div className={`${cardClass} rounded-lg shadow p-3 md:p-4 border ${borderClass}`}>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
+          <div className="w-full">
             <input
               type="text"
-              placeholder={language === 'tr' ? 'Müşteri, e-posta, telefon, etkinlik veya tutar ara...' : 'Search by customer, email, phone, event or amount...'}
+              placeholder={language === 'tr' ? 'Müşteri, e-posta...' : 'Search...'}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className={`w-full sm:w-80 px-4 py-2 rounded-md border ${borderClass} ${isDark ? 'bg-graphite text-white' : 'bg-white text-gray-800'}`}
+              className={`w-full px-3 py-1.5 md:px-4 md:py-2 rounded-md border ${borderClass} ${isDark ? 'bg-graphite text-white' : 'bg-white text-gray-800'} text-xs md:text-sm`}
             />
           </div>
         </div>
@@ -282,19 +286,21 @@ export default function EventOrdersPage() {
           <table className="w-full">
             <thead className={tableHeaderClass}>
               <tr>
-                <th className="px-4 py-3 text-left">
+                <th className="px-2 md:px-4 py-2 md:py-3 text-left">
                   <span>{language === 'tr' ? 'Etkinlik' : 'Event'}</span>
                 </th>
-                <th className="px-4 py-3 text-left">
+                <th className="px-2 md:px-4 py-2 md:py-3 text-left hidden md:table-cell">
                   <span>{language === 'tr' ? 'Müşteri' : 'Customer'}</span>
                 </th>
-                <th className="px-4 py-3 text-left">
+                <th className="px-2 md:px-4 py-2 md:py-3 text-left">
                   <span>{language === 'tr' ? 'Biletler' : 'Tickets'}</span>
                 </th>
-                <th className="px-4 py-3 text-right">
+                <th className="px-2 md:px-4 py-2 md:py-3 text-right hidden md:table-cell">
                   <span>{language === 'tr' ? 'Tutar' : 'Amount'}</span>
                 </th>
-                <th className="px-4 py-3 text-right">{language === 'tr' ? 'İşlemler' : 'Actions'}</th>
+                <th className="px-2 md:px-4 py-2 md:py-3 text-right w-10 md:w-auto">
+                  <span className="sr-only">{language === 'tr' ? 'İşlemler' : 'Actions'}</span>
+                </th>
               </tr>
             </thead>
             <tbody className={textClass}>
@@ -304,49 +310,69 @@ export default function EventOrdersPage() {
                     key={order.orderId} 
                     className={`border-t ${borderClass} ${tableRowHoverClass}`}
                   >
-                    <td className="px-4 py-3">
-                      {/* Etkinlik adını artık tıklanmadan düz metin olarak gösteriyorum */}
-                      <div className="font-medium">
+                    <td className="px-2 md:px-4 py-2 md:py-3">
+                      <div className="font-medium text-xs md:text-sm truncate max-w-[120px] md:max-w-none">
                         {typeof order.eventName === 'object' 
                           ? (order.eventName[language] || order.eventName.en || order.eventName.tr || order.eventSlug) 
                           : order.eventSlug}
                       </div>
+                      {/* Mobilde müşteri bilgisi */}
+                      <div className="md:hidden mt-1">
+                        <div className="text-xs truncate max-w-[120px] text-gray-500">{order.customerInfo?.fullName || ''}</div>
+                      </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-2 md:px-4 py-2 md:py-3 hidden md:table-cell">
                       <div>
-                        <div className="font-medium">{order.customerInfo?.fullName}</div>
-                        <div className={`text-sm ${textSecondaryClass}`}>{order.customerInfo?.email}</div>
+                        <div className="font-medium text-xs md:text-sm truncate max-w-[90px] md:max-w-none">{order.customerInfo?.fullName}</div>
+                        <div className={`text-xs ${textSecondaryClass} truncate max-w-[90px] md:max-w-none`}>{order.customerInfo?.email}</div>
                         {order.customerInfo?.phone && (
-                          <div className={`text-sm ${textSecondaryClass}`}>{order.customerInfo.phone}</div>
+                          <div className={`text-xs ${textSecondaryClass} truncate max-w-[90px] md:max-w-none`}>{order.customerInfo.phone}</div>
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <ul className="space-y-1">
+                    <td className="px-2 md:px-4 py-2 md:py-3">
+                      <ul className="space-y-0.5">
                         {order.tickets.map((ticket: any, idx: number) => {
                           // Bilet adını doğru şekilde gösterme
                           const ticketName = typeof ticket.name === 'object' 
                             ? (ticket.name[language] || ticket.name.en || ticket.name.tr || 'Ticket')
                             : ticket.name;
                           
+                          // Mobilde sadece ilk bileti ve toplam bilet sayısını gösteriyoruz
+                          if (window.innerWidth < 768 && idx > 0) {
+                            if (idx === 1) {
+                              return (
+                                <li key={idx} className="text-xs text-gray-500">
+                                  {language === 'tr' ? `ve ${order.tickets.length - 1} bilet daha` : `and ${order.tickets.length - 1} more`}
+                                </li>
+                              );
+                            }
+                            return null;
+                          }
+                          
                           return (
-                            <li key={idx} className="text-sm">
+                            <li key={idx} className="text-xs md:text-sm">
                               {ticketName} <span className="font-medium">x{ticket.quantity}</span>
                             </li>
                           );
                         })}
                       </ul>
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-neon-green">
+                    <td className="px-2 md:px-4 py-2 md:py-3 text-right font-medium text-xs md:text-sm text-neon-green hidden md:table-cell">
                       {formatPrice(order.tickets.reduce((total: number, ticket: any) => total + (ticket.price * ticket.quantity), 0))}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-2 md:px-4 py-2 md:py-3 text-right">
                       <div className="flex justify-end">
                         <Link
                           href={`/admin/reservations/events/${order.orderId}`}
-                          className={`px-3 py-1 rounded-md text-sm ${buttonPrimaryClass}`}
+                          className={`p-1.5 md:px-3 md:py-1 rounded-md text-xs md:text-sm ${buttonPrimaryClass}`}
+                          title={language === 'tr' ? 'Detay' : 'Details'}
                         >
-                          {language === 'tr' ? 'Detay' : 'Details'}
+                          <span className="hidden md:inline">{language === 'tr' ? 'Detay' : 'Details'}</span>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 md:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
                         </Link>
                       </div>
                     </td>

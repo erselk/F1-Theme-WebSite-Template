@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-// Correct import for Azure Translation API client
-import { TranslationClient, AzureKeyCredential } from '@azure-rest/ai-translation-text';
+import { AzureKeyCredential } from '@azure/core-auth';
+import { default as TextTranslationClient, isUnexpected } from '@azure-rest/ai-translation-text';
 
 // Desteklenen diller
 type SupportedLanguage = 'en' | 'tr';
@@ -8,6 +8,7 @@ type SupportedLanguage = 'en' | 'tr';
 // Microsoft Translator API ayarları
 const MS_TRANSLATOR_API_KEY = process.env.MS_TRANSLATOR_API_KEY;
 const MS_TRANSLATOR_REGION = process.env.MS_TRANSLATOR_REGION || 'germanywestcentral';
+const MS_TRANSLATOR_ENDPOINT = 'https://api.cognitive.microsofttranslator.com';
 
 export async function POST(req: NextRequest) {
   try {
@@ -48,25 +49,39 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      // Create client with Azure Key Credential
-      const client = new TranslationClient(
-        MS_TRANSLATOR_REGION,
-        new AzureKeyCredential(MS_TRANSLATOR_API_KEY)
-      );
+      // Create credential
+      const credential = {
+        key: MS_TRANSLATOR_API_KEY,
+        region: MS_TRANSLATOR_REGION
+      };
+      
+      // Create client
+      const client = TextTranslationClient(MS_TRANSLATOR_ENDPOINT, credential);
+      
+      // Setup translation request
+      const inputText = [{ text: text }];
       
       // Perform translation
-      const response = await client.translate([text], [to], {
-        from: from,
-        textType: "plain"
+      const translateResponse = await client.path("/translate").post({
+        body: inputText,
+        queryParameters: {
+          to: to,
+          from: from
+        },
       });
       
-      if (!response || !response[0] || !response[0].translations || response[0].translations.length === 0) {
+      if (isUnexpected(translateResponse)) {
+        throw new Error(translateResponse.body.error?.message || "Translation API returned an error");
+      }
+      
+      const translations = translateResponse.body;
+      if (!translations || translations.length === 0 || !translations[0].translations || translations[0].translations.length === 0) {
         throw new Error("Empty translations response from API");
       }
       
       // Get translation result
-      const translatedText = response[0].translations[0].text || '';
-      const detectedLanguage = response[0].detectedLanguage || { language: from, score: 1 };
+      const translatedText = translations[0].translations[0].text || '';
+      const detectedLanguage = translations[0].detectedLanguage || { language: from, score: 1 };
       
       // Return formatted translation result
       return NextResponse.json({

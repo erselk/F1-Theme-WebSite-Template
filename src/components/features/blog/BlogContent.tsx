@@ -5,8 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
 import { useSearchParams } from "next/navigation";
-import { getAllBlogs } from "@/services/mongo-service";
 import { BlogPost } from "@/types";
+import useSWRFetch from "@/hooks/useSWRFetch";
 
 // SearchParams hook'unu kullanan bir bileşen oluşturarak Suspense ile sarmalayacağız
 const BlogContentWithSearch: React.FC = () => {
@@ -14,25 +14,9 @@ const BlogContentWithSearch: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [activeAuthor, setActiveAuthor] = useState<string | null>(null);
   const searchParams = useSearchParams();
-  const [blogs, setBlogs] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   
-  // MongoDB'den blog verilerini çek
-  useEffect(() => {
-    async function fetchBlogs() {
-      try {
-        setLoading(true);
-        const fetchedBlogs = await getAllBlogs();
-        setBlogs(fetchedBlogs);
-      } catch (error) {
-        console.error("Blog verilerini getirme hatası:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    fetchBlogs();
-  }, []);
+  // SWR ile blog verilerini çek
+  const { data, error, isLoading, mutate } = useSWRFetch<{ blogs: BlogPost[], success: boolean }>('/api/blogs');
   
   // Set active filters from URL query parameters if present
   useEffect(() => {
@@ -59,8 +43,11 @@ const BlogContentWithSearch: React.FC = () => {
 
   // Sort blogs by date (newest to oldest) and filter by category and/or author
   const filteredBlogs = useMemo(() => {
+    // Blog verisi yoksa boş dizi döndür
+    if (!data?.blogs) return [];
+    
     // First sort all blogs by date (newest first)
-    const sortedBlogs = [...blogs].sort((a, b) => {
+    const sortedBlogs = [...data.blogs].sort((a, b) => {
       return new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime();
     });
     
@@ -70,7 +57,7 @@ const BlogContentWithSearch: React.FC = () => {
       const authorMatch = !activeAuthor || blog.author.name === activeAuthor;
       return categoryMatch && authorMatch;
     });
-  }, [activeCategory, activeAuthor, blogs]);
+  }, [activeCategory, activeAuthor, data?.blogs]);
   
   // Format date based on language
   const formatDate = (dateString: string) => {
@@ -88,13 +75,50 @@ const BlogContentWithSearch: React.FC = () => {
     setActiveAuthor(null);
   };
 
+  // Verileri manuel olarak yenileme fonksiyonu
+  const refreshData = () => {
+    mutate(); // SWR'nin mutate fonksiyonu ile verileri yenile
+  };
+
+  // Eğer hata varsa, hata durumu göster
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-500 mb-4">
+          {language === 'tr' 
+            ? 'Blog içeriklerini yüklerken bir hata oluştu.' 
+            : 'An error occurred while loading blog content.'}
+        </p>
+        <button 
+          onClick={refreshData}
+          className={`px-4 py-2 rounded ${isDark ? 'bg-neon-red' : 'bg-f1-red'} text-white`}
+        >
+          {language === 'tr' ? 'Tekrar Dene' : 'Try Again'}
+        </button>
+      </div>
+    );
+  }
+
   // Eğer yükleme devam ediyorsa, yükleme durumu göster
-  if (loading) {
+  if (isLoading) {
     return <BlogLoadingState />;
   }
 
   return (
     <div className="mb-12 sm:mb-16 px-2 sm:px-4 md:px-8 lg:px-12 text-[13px] sm:text-base">
+      {/* Yenileme butonu */}
+      <div className="flex justify-end mb-4">
+        <button 
+          onClick={refreshData}
+          className="text-xs sm:text-sm text-medium-grey dark:text-silver hover:underline flex items-center"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          {language === 'tr' ? 'Yenile' : 'Refresh'}
+        </button>
+      </div>
+      
       {/* Category filters */}
       <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8 justify-center">
         {categories.map((category) => (
@@ -234,6 +258,11 @@ const BlogLoadingState: React.FC = () => {
   
   return (
     <div className="mb-12 sm:mb-16 px-2 sm:px-4 md:px-8 lg:px-12">
+      {/* Yükleme animasyonu */}
+      <div className="flex justify-end mb-4">
+        <div className="w-16 h-4 bg-gray-300 dark:bg-graphite rounded animate-pulse"></div>
+      </div>
+      
       <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8 justify-center">
         {[1, 2, 3, 4, 5].map((i) => (
           <div 

@@ -4,6 +4,10 @@ import Blog from '@/models/Blog';
 import { Types } from 'mongoose';
 import mongoose from 'mongoose';
 
+// Cache kontrollerini ayarla - önbelleğe almayı engelle
+export const dynamic = 'force-dynamic'; // Statik önbelleğe almayı devre dışı bırak
+export const revalidate = 0; // Her istekte yeniden doğrulama yap
+
 export async function GET() {
   try {
     await connectToDatabase();
@@ -11,9 +15,16 @@ export async function GET() {
     // Tüm blogları getir ve tarihe göre tersinden sırala (en yenisi önce)
     const blogs = await Blog.find({}).sort({ publishDate: -1 });
     
+    // Cache-Control başlıklarını ayarla
     return NextResponse.json({ 
       blogs,
       success: true 
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
     });
   } catch (error) {
     console.error('Blog verilerini getirme hatası:', error);

@@ -129,96 +129,102 @@ export default function AuthorsListPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Yazarlar Yönetimi</h1>
+    <div className="container mx-auto px-3 md:px-4 py-6 md:py-8">
+      <div className="flex justify-between items-center mb-4 md:mb-6">
+        <h1 className="text-xl md:text-2xl font-bold">Yazarlar Yönetimi</h1>
         <Link 
           href="/admin/authors/add" 
-          className="px-4 py-2 bg-electric-blue text-white rounded-md hover:bg-blue-600 transition-colors"
+          className="md:text-base px-3 py-1.5 md:px-4 md:py-2 bg-electric-blue text-white rounded-md hover:bg-blue-600 transition-colors md:flex md:items-center md:gap-2 flex items-center gap-1"
         >
-          Yeni Yazar Ekle
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span className="hidden md:inline">Yeni Yazar Ekle</span>
         </Link>
       </div>
       
       {deleteError && (
-        <div className="mb-6 p-4 bg-f1-red/10 border border-f1-red text-f1-red rounded-md">
-          <div className="flex items-center">
+        <div className="mb-4 md:mb-6 p-3 md:p-4 bg-f1-red/10 border border-f1-red text-f1-red rounded-md">
+          <div className="flex items-center text-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="mr-2"
+              className="mr-2 flex-shrink-0"
             >
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12" y2="16"></line>
             </svg>
-            {deleteError}
+            <span className="truncate">{deleteError}</span>
           </div>
         </div>
       )}
       
       {authors.length === 0 ? (
-        <div className="bg-very-light-grey dark:bg-dark-grey rounded-md p-6 text-center">
+        <div className="bg-very-light-grey dark:bg-dark-grey rounded-md p-4 md:p-6 text-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="48"
-            height="48"
+            width="36"
+            height="36"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="mx-auto mb-4 text-medium-grey"
+            className="mx-auto mb-3 md:mb-4 text-medium-grey"
           >
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
             <circle cx="9" cy="7" r="4"></circle>
             <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
           </svg>
-          <h3 className="text-lg font-medium mb-2">Henüz yazar bulunmuyor</h3>
-          <p className="text-medium-grey mb-4">İlk yazarı eklemek için &quot;Yeni Yazar Ekle&quot; butonuna tıklayın.</p>
+          <h3 className="text-base md:text-lg font-medium mb-2">Henüz yazar bulunmuyor</h3>
+          <p className="text-medium-grey text-sm mb-3 md:mb-4">İlk yazarı eklemek için ekleme butonuna tıklayın.</p>
           <Link 
             href="/admin/authors/add" 
-            className="px-4 py-2 bg-electric-blue text-white rounded-md hover:bg-blue-600 transition-colors"
+            className="text-sm px-3 py-1.5 md:px-4 md:py-2 bg-electric-blue text-white rounded-md hover:bg-blue-600 transition-colors flex items-center gap-1 inline-flex"
           >
-            Yeni Yazar Ekle
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span>Yeni Yazar Ekle</span>
           </Link>
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto -mx-3 md:mx-0 rounded-md">
           <table className={`min-w-full divide-y ${isDark ? 'divide-dark-grey' : 'divide-light-grey'}`}>
             <thead className={`${isDark ? 'bg-dark-grey' : 'bg-very-light-grey'}`}>
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider">
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider">
                   Profil
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider">
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider">
                   İsim
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider">
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider hidden md:table-cell">
                   Yazılar
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider">
-                  Eklenme Tarihi
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-medium-grey uppercase tracking-wider hidden md:table-cell">
+                  Eklenme
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-medium-grey uppercase tracking-wider">
-                  İşlemler
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-right text-xs font-medium text-medium-grey uppercase tracking-wider">
+                  İşlem
                 </th>
               </tr>
             </thead>
             <tbody className={`divide-y ${isDark ? 'divide-dark-grey' : 'divide-light-grey'}`}>
               {authors.map((author) => (
                 <tr key={author._id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="w-12 h-12 relative overflow-hidden rounded-full border border-gray-200">
+                  <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap">
+                    <div className="w-8 h-8 md:w-12 md:h-12 relative overflow-hidden rounded-full border border-gray-200">
                       <Image
                         src={author.profileImage || '/api/files/680e8849803166580a5ca610'}
                         alt={author.name}
@@ -227,32 +233,44 @@ export default function AuthorsListPage() {
                       />
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium">
+                  <td className="px-3 md:px-6 py-2 md:py-4">
+                    <div className="text-xs md:text-sm font-medium truncate max-w-[120px] md:max-w-none">
                       {author.name}
                     </div>
-                    <div className="text-xs text-medium-grey">{author._id}</div>
+                    <div className="text-xs text-medium-grey truncate hidden md:block">{author._id}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-xs md:text-sm hidden md:table-cell">
                     {author.articles?.length || 0} yazı
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-xs md:text-sm hidden md:table-cell">
                     {formatDate(author.createdAt)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link
-                      href={`/admin/authors/edit/${author._id}`}
-                      className="text-electric-blue hover:text-blue-600 mr-3"
-                    >
-                      Düzenle
-                    </Link>
-                    <button
-                      onClick={() => deleteAuthor(author._id!)}
-                      disabled={isDeleting === author._id}
-                      className="text-f1-red hover:text-red-700 disabled:opacity-50"
-                    >
-                      {isDeleting === author._id ? 'Siliniyor...' : 'Sil'}
-                    </button>
+                  <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-right text-xs md:text-sm font-medium">
+                    <div className="flex justify-end space-x-1 md:space-x-3">
+                      <Link
+                        href={`/admin/authors/edit/${author._id}`}
+                        className="text-electric-blue hover:text-blue-600"
+                        title="Düzenle"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 md:w-5 md:h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                        </svg>
+                      </Link>
+                      <button
+                        onClick={() => deleteAuthor(author._id!)}
+                        disabled={isDeleting === author._id}
+                        className="text-f1-red hover:text-red-700 disabled:opacity-50"
+                        title="Sil"
+                      >
+                        {isDeleting === author._id ? (
+                          <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-f1-red border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 md:w-5 md:h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
