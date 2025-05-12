@@ -10,7 +10,12 @@ import jsPDF from 'jspdf';
 export default function OrderDetailPage() {
   // useParams hook kullanarak params'ı Promise problemi olmadan alıyoruz
   const params = useParams();
-  const orderId = params.orderId as string;
+  
+  // Güvenli bir şekilde params'a erişim
+  // params bir Promise ise React.use() ile çözülür, değilse direkt olarak kullanılır
+  const orderId = typeof params.orderId === 'object' && 'then' in params.orderId 
+    ? React.use(params as any).orderId 
+    : params.orderId as string;
   
   const router = useRouter();
   const { isDark, language } = useThemeLanguage();

@@ -549,15 +549,15 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
   return (
     <div className={`p-6 rounded-lg ${isDark ? 'bg-graphite' : 'bg-white'} shadow-md`}>
       {/* Language selection for content input */}
-      <div className="mb-6">
-        <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+      <div className="mb-3 sm:mb-4">
+        <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
           {formLanguage === 'tr' ? 'İçerik Dili' : 'Content Language'}
         </label>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-4">
           <select
             value={formLanguage}
             onChange={(e) => setFormLanguage(e.target.value as LanguageType)}
-            className={`px-3 py-2 rounded-md ${
+            className={`px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${
               isDark
                 ? 'bg-carbon-grey border border-dark-grey text-white [&>option]:bg-carbon-grey'
                 : 'bg-white border border-light-grey text-dark-grey'
@@ -567,7 +567,7 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
             <option value="en">English</option>
           </select>
           
-          <p className={`text-sm ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+          <p className={`text-xs sm:text-sm ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
             {formLanguage === 'tr' 
               ? 'İçerik Türkçe girilecek ve yayınlanırken İngilizceye çevrilecek.'
               : 'Content will be entered in English and translated to Turkish when published.'}
@@ -576,46 +576,48 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
       </div>
 
       {showValidationErrors && Object.keys(validationErrors).length > 0 && (
-        <div className="mb-6 p-4 bg-f1-red/10 border border-f1-red text-f1-red rounded-md">
+        <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-f1-red/10 border border-f1-red text-f1-red rounded-md">
           <div className="flex items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="mr-2"
+              className="mr-1 sm:mr-2"
             >
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12" y2="16"></line>
             </svg>
-            {formLanguage === 'tr' 
-              ? `Lütfen tüm zorunlu alanları doldurun (${Object.keys(validationErrors).length} eksik alan)`
-              : `Please fill in all required fields (${Object.keys(validationErrors).length} missing fields)`}
+            <span className="text-xs sm:text-sm">
+              {formLanguage === 'tr' 
+                ? `Lütfen tüm zorunlu alanları doldurun (${Object.keys(validationErrors).length} eksik alan)`
+                : `Please fill in all required fields (${Object.keys(validationErrors).length} missing fields)`}
+            </span>
           </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
         {/* Main Information */}
-        <div className={`p-4 border rounded-md mb-6 ${
+        <div className={`p-2 sm:p-3 border rounded-md mb-3 sm:mb-4 ${
           isDark ? 'border-carbon-grey bg-dark-grey bg-opacity-50' : 'border-light-grey bg-very-light-grey bg-opacity-50'
         }`}>
-          <h3 className={`text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+          <h3 className={`text-sm sm:text-base font-medium mb-2 sm:mb-3 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
             {formLanguage === 'tr' ? 'Ana Bilgiler' : 'Main Information'}
           </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
             {/* Title - Single Language Input */}
-            <div className="col-span-2">
+            <div className="col-span-1 sm:col-span-2">
               <label 
                 htmlFor="title" 
-                className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+                className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
               >
                 {formLanguage === 'tr' ? 'Başlık *' : 'Title *'}
               </label>
@@ -626,7 +628,7 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
                 required
                 value={formData.title?.[formLanguage] || ''}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 rounded-md ${
+                className={`w-full px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${
                   isDark
                     ? 'bg-carbon-grey border border-dark-grey text-white'
                     : 'bg-white border border-light-grey text-dark-grey'
@@ -651,70 +653,53 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
               value={dateInputValue}
             />
             
-            {/* Author Selection - Added to main information */}
-            <div className="md:col-span-1">
-              <label 
-                htmlFor="author" 
-                className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-              >
-                {formLanguage === 'tr' ? 'Yazar *' : 'Author *'}
+            {/* Author Selection */}
+            <div className="mb-2 sm:mb-3">
+              <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+                {formLanguage === 'tr' ? 'Yazar' : 'Author'}
               </label>
-              <div className="flex space-x-2">
-                <div className={`form-group ${hasError('author.name') ? 'has-error' : ''}`}>
+              
+              <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                <div className="flex-1">
                   <select
-                    id="author"
                     name="author.name"
-                    value={authors.find(a => a.name === formData.author?.name)?._id || ''}
+                    value={formData.author?.name || ''}
                     onChange={handleAuthorSelect}
-                    onClick={handleAuthorSelectorOpen}
-                    className={`form-input ${isDark ? 'dark' : ''}`}
-                    required
+                    className={`w-full px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md border ${
+                      isDark 
+                        ? 'bg-dark-grey border-carbon-grey text-silver focus:border-electric-blue' 
+                        : 'bg-white border-light-grey text-medium-grey focus:border-race-blue'
+                    } ${hasError('author.name') ? 'border-red-500' : ''}`}
                   >
-                    <option value="">
-                      {language === 'tr' ? '-- Yazar Seçin --' : '-- Select Author --'}
-                    </option>
-                    
-                    {isLoadingAuthors && (
-                      <option value="" disabled>
-                        {language === 'tr' ? 'Yazarlar yükleniyor...' : 'Loading authors...'}
-                      </option>
-                    )}
-                    
-                    {!isLoadingAuthors && authors.map(author => (
-                      <option key={author._id} value={author._id}>
+                    <option value="">{formLanguage === 'tr' ? 'Yazar Seçin' : 'Select Author'}</option>
+                    {authors.map(author => (
+                      <option key={author._id} value={author.name}>
                         {author.name}
                       </option>
                     ))}
                   </select>
-                  
-                  {isLoadingAuthors && (
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <div className="w-4 h-4 border-2 border-electric-blue border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  )}
                 </div>
-                <a 
-                  href="/admin/authors/add"
-                  className={`px-3 py-2 rounded-md whitespace-nowrap ${
+                
+                <button
+                  type="button"
+                  onClick={handleAuthorSelectorOpen}
+                  className={`px-2 py-1 sm:px-3 sm:py-2 text-xs rounded-md ${
                     isDark
-                      ? 'bg-electric-blue text-white hover:bg-blue-600'
+                      ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
                       : 'bg-race-blue text-white hover:bg-race-blue/80'
-                  } transition flex items-center`}
+                  } flex items-center justify-center whitespace-nowrap`}
                 >
-                  <PlusIcon className="w-4 h-4 mr-1" />
-                  {formLanguage === 'tr' ? 'Yeni' : 'New'}
-                </a>
+                  <PlusIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                  {formLanguage === 'tr' ? 'Yeni Yazar Ekle' : 'Add New Author'}
+                </button>
               </div>
-              {hasError('author.name') && showValidationErrors && 
-                <ErrorMessage show={showValidationErrors} />
-              }
             </div>
 
             {/* Category */}
-            <div className="md:col-span-1">
+            <div className="col-span-1">
               <label 
                 htmlFor="category" 
-                className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+                className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
               >
                 {formLanguage === 'tr' ? 'Kategori *' : 'Category *'}
               </label>
@@ -724,7 +709,7 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
                 required
                 value={formData.category || 'f1'}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 rounded-md ${
+                className={`w-full px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${
                   isDark
                     ? 'bg-carbon-grey border border-dark-grey text-white [&>option]:bg-carbon-grey'
                     : 'bg-white border border-light-grey text-dark-grey'
@@ -742,17 +727,17 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
         </div>
         
         {/* Excerpt */}
-        <div className={`p-4 border rounded-md mb-6 ${
+        <div className={`p-2 sm:p-3 border rounded-md mb-3 sm:mb-4 ${
           isDark ? 'border-carbon-grey bg-dark-grey bg-opacity-50' : 'border-light-grey bg-very-light-grey bg-opacity-50'
         }`}>
-          <h3 className={`text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+          <h3 className={`text-sm sm:text-base font-medium mb-2 sm:mb-3 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
             {formLanguage === 'tr' ? 'Özet' : 'Excerpt'}
           </h3>
           
           <div>
             <label 
               htmlFor="excerpt" 
-              className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+              className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
             >
               {formLanguage === 'tr' ? 'Özet *' : 'Excerpt *'}
             </label>
@@ -760,10 +745,10 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
               id="excerpt"
               name="excerpt"
               required
-              rows={3}
+              rows={2}
               value={formData.excerpt?.[formLanguage] || ''}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 rounded-md ${
+              className={`w-full px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${
                 isDark
                   ? 'bg-carbon-grey border border-dark-grey text-white'
                   : 'bg-white border border-light-grey text-dark-grey'
@@ -777,17 +762,17 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
         </div>
         
         {/* Content */}
-        <div className={`p-4 border rounded-md mb-6 ${
+        <div className={`p-2 sm:p-3 border rounded-md mb-3 sm:mb-4 ${
           isDark ? 'border-carbon-grey bg-dark-grey bg-opacity-50' : 'border-light-grey bg-very-light-grey bg-opacity-50'
         }`}>
-          <h3 className={`text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+          <h3 className={`text-sm sm:text-base font-medium mb-2 sm:mb-3 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
             {formLanguage === 'tr' ? 'İçerik' : 'Content'}
           </h3>
           
           <div>
             <label 
               htmlFor="content" 
-              className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+              className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
             >
               {formLanguage === 'tr' ? 'İçerik *' : 'Content *'}
             </label>
@@ -795,10 +780,10 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
               id="content"
               name="content"
               required
-              rows={12}
+              rows={8}
               value={formData.content?.[formLanguage] || ''}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 rounded-md ${
+              className={`w-full px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${
                 isDark
                   ? 'bg-carbon-grey border border-dark-grey text-white'
                   : 'bg-white border border-light-grey text-dark-grey'
@@ -808,154 +793,140 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
                 : "Content of the blog post. Leave double line breaks between paragraphs."}
             ></textarea>
             <ErrorMessage show={hasError('content')} />
-            <p className={`text-xs mt-2 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+            <p className={`text-xs mt-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
               {formLanguage === 'tr' ? 'Paragraflar arasında çift satır boşluğu bırakın (Enter tuşuna iki kez basın).' : 'Leave double line breaks between paragraphs (press Enter key twice).'}
             </p>
           </div>
         </div>
         
         {/* Images Section */}
-        <div className={`p-4 border rounded-md mb-6 ${
+        <div className={`p-2 sm:p-4 border rounded-md mb-4 sm:mb-6 ${
           isDark ? 'border-carbon-grey bg-dark-grey bg-opacity-50' : 'border-light-grey bg-very-light-grey bg-opacity-50'
         }`}>
-          <h3 className={`text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+          <h3 className={`text-base sm:text-lg font-medium mb-3 sm:mb-4 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
             {formLanguage === 'tr' ? 'Görseller' : 'Images'}
           </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
             {/* Cover Image */}
-            <div>
-              <label 
-                className={`block text-sm font-medium mb-2 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-              >
+            <div className="flex flex-col items-center">
+              <label className={`block text-xs sm:text-sm font-medium mb-1 sm:mb-2 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                 {formLanguage === 'tr' ? 'Kapak Görseli (16:9 önerilen)' : 'Cover Image (16:9 recommended)'}
               </label>
               
-              <div className="mb-4">
+              <div className="mb-2 sm:mb-4 w-full max-w-[160px] sm:max-w-[284px]">
                 {coverPreview ? (
-                  <div className="relative w-full h-40 bg-gray-100 rounded-md overflow-hidden">
+                  <div className="relative w-full aspect-[16/9] bg-gray-100 rounded-md overflow-hidden">
                     <Image 
                       src={coverPreview} 
                       alt={formLanguage === 'tr' ? "Kapak önizleme" : "Cover preview"} 
                       fill
                       style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 640px) 160px, 284px"
+                      priority
                     />
                   </div>
                 ) : formData.coverImage ? (
-                  <div className="relative w-full h-40 bg-gray-100 rounded-md overflow-hidden">
+                  <div className="relative w-full aspect-[16/9] bg-gray-100 rounded-md overflow-hidden">
                     <Image 
                       src={formData.coverImage} 
                       alt={formLanguage === 'tr' ? "Kapak görseli" : "Cover image"} 
                       fill
                       style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 640px) 160px, 284px"
+                      priority
+                      unoptimized={formData.coverImage.startsWith('/api/files/')}
                     />
                   </div>
                 ) : (
-                  <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md">
-                    <span className={isDark ? 'text-carbon-grey' : 'text-light-grey'}>
+                  <div className="w-full aspect-[16/9] flex items-center justify-center bg-gray-100 rounded-md">
+                    <span className={`text-xs sm:text-sm ${isDark ? 'text-carbon-grey' : 'text-light-grey'}`}>
                       {formLanguage === 'tr' ? 'Görsel yok' : 'No image'}
                     </span>
                   </div>
                 )}
               </div>
               
-              <div className="flex items-center">
-                {/* Select Image Button */}
+              <div className="w-full max-w-[160px] sm:max-w-[284px]">
                 <button
                   type="button"
                   onClick={() => setCoverSelectorOpen(true)}
-                  className={`w-full px-4 py-2 rounded-md ${
+                  className={`w-full px-2 py-1.5 sm:px-4 sm:py-2 rounded-md ${
                     isDark
                       ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
                       : 'bg-race-blue text-white hover:bg-race-blue/80'
-                  } flex items-center justify-center`}
+                  } flex items-center justify-center text-xs sm:text-sm`}
                 >
-                  <PhotoIcon className="w-5 h-5 mr-2" />
+                  <PhotoIcon className="w-3 h-3 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
                   {formLanguage === 'tr' ? 'Görsel Seç' : 'Select Image'}
                 </button>
               </div>
-
-              {/* Cover Image Selector Modal */}
-              <ImageSelector
-                isOpen={coverSelectorOpen}
-                onClose={() => setCoverSelectorOpen(false)}
-                onSelect={handleCoverImageSelection}
-                category="blog" // Sadece upload kategorisi için kullanılıyor
-                currentImage={formData.coverImage}
-              />
             </div>
             
             {/* Thumbnail Image */}
-            <div>
-              <label 
-                className={`block text-sm font-medium mb-2 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-              >
-                {formLanguage === 'tr' ? 'Küçük Görsel (Liste için)' : 'Thumbnail Image (For Listing)'}
+            <div className="flex flex-col items-center">
+              <label className={`block text-xs sm:text-sm font-medium mb-1 sm:mb-2 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+                {formLanguage === 'tr' ? 'Küçük Görsel (1:1 önerilen)' : 'Thumbnail Image (1:1 recommended)'}
               </label>
               
-              <div className="mb-4">
+              <div className="mb-2 sm:mb-4 w-full max-w-[160px] sm:max-w-[160px]">
                 {thumbnailPreview ? (
-                  <div className="relative w-40 h-40 bg-gray-100 rounded-md overflow-hidden">
+                  <div className="relative w-full aspect-square bg-gray-100 rounded-md overflow-hidden">
                     <Image 
                       src={thumbnailPreview} 
                       alt={formLanguage === 'tr' ? "Küçük görsel önizleme" : "Thumbnail preview"} 
                       fill
                       style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 640px) 160px, 160px"
+                      priority
                     />
                   </div>
                 ) : formData.thumbnailImage ? (
-                  <div className="relative w-40 h-40 bg-gray-100 rounded-md overflow-hidden">
+                  <div className="relative w-full aspect-square bg-gray-100 rounded-md overflow-hidden">
                     <Image 
                       src={formData.thumbnailImage} 
                       alt={formLanguage === 'tr' ? "Küçük görsel" : "Thumbnail image"} 
                       fill
                       style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 640px) 160px, 160px"
+                      priority
+                      unoptimized={formData.thumbnailImage.startsWith('/api/files/')}
                     />
                   </div>
                 ) : (
-                  <div className="w-40 h-40 flex items-center justify-center bg-gray-100 rounded-md">
-                    <span className={isDark ? 'text-carbon-grey' : 'text-light-grey'}>
+                  <div className="w-full aspect-square flex items-center justify-center bg-gray-100 rounded-md">
+                    <span className={`text-xs sm:text-sm ${isDark ? 'text-carbon-grey' : 'text-light-grey'}`}>
                       {formLanguage === 'tr' ? 'Görsel yok' : 'No image'}
                     </span>
                   </div>
                 )}
               </div>
               
-              <div className="flex items-center">
-                {/* Select Image Button */}
+              <div className="w-full max-w-[160px] sm:max-w-[160px]">
                 <button
                   type="button"
                   onClick={() => setThumbnailSelectorOpen(true)}
-                  className={`w-full px-4 py-2 rounded-md ${
+                  className={`w-full px-2 py-1.5 sm:px-4 sm:py-2 rounded-md ${
                     isDark
                       ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
                       : 'bg-race-blue text-white hover:bg-race-blue/80'
-                  } flex items-center justify-center`}
+                  } flex items-center justify-center text-xs sm:text-sm`}
                 >
-                  <PhotoIcon className="w-5 h-5 mr-2" />
+                  <PhotoIcon className="w-3 h-3 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
                   {formLanguage === 'tr' ? 'Görsel Seç' : 'Select Image'}
                 </button>
               </div>
-
-              {/* Thumbnail Image Selector Modal */}
-              <ImageSelector
-                isOpen={thumbnailSelectorOpen}
-                onClose={() => setThumbnailSelectorOpen(false)}
-                onSelect={handleThumbnailImageSelection}
-                category="blog"
-                currentImage={formData.thumbnailImage}
-              />
             </div>
           </div>
         </div>
         
         {/* Form Buttons */}
-        <div className="flex justify-end space-x-3">
+        <div className="flex justify-end space-x-2 sm:space-x-3">
           <button
             type="button"
             onClick={onCancel}
             disabled={isSubmitting}
-            className={`px-4 py-2 rounded-md ${
+            className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm rounded-md ${
               isDark
                 ? 'bg-carbon-grey text-silver hover:bg-dark-grey'
                 : 'bg-light-grey text-medium-grey hover:bg-very-light-grey'
@@ -967,7 +938,7 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`px-4 py-2 rounded-md ${
+            className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm rounded-md ${
               isDark
                 ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
                 : 'bg-race-blue text-white hover:bg-race-blue/80'
@@ -976,7 +947,7 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
             {isSubmitting ? (
               <span className="flex items-center">
                 <svg 
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" 
+                  className="animate-spin -ml-1 mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-white" 
                   xmlns="http://www.w3.org/2000/svg" 
                   fill="none" 
                   viewBox="0 0 24 24"
@@ -995,7 +966,7 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                {formLanguage === 'tr' ? 'Kaydediliyor...' : 'Saving...'}
+                <span className="text-xs sm:text-sm">{formLanguage === 'tr' ? 'Kaydediliyor...' : 'Saving...'}</span>
               </span>
             ) : isEditMode 
               ? (formLanguage === 'tr' ? 'Güncelle' : 'Update')

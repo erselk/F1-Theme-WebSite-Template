@@ -176,9 +176,9 @@ export default function EditBlogPage({ params }: { params: { slug: string } }) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white mb-2">Blog Yazısını Düzenle</h1>
-        <p className="text-medium-grey">&quot;{blog.title?.tr || blog.title?.en}&quot; başlıklı blog yazısını düzenliyorsunuz.</p>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-lg sm:text-xl font-bold text-white mb-1 sm:mb-2">Blog Yazısını Düzenle</h1>
+        <p className="text-xs sm:text-sm text-medium-grey">&quot;{blog.title?.tr || blog.title?.en}&quot; başlıklı blog yazısını düzenliyorsunuz.</p>
       </div>
       
       {error && (

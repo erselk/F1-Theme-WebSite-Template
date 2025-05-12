@@ -3,7 +3,7 @@
 import { connectToDatabase } from '@/lib/db/mongodb';
 import EventOrder from '@/models/EventOrder';
 import { revalidatePath } from 'next/cache';
-import { serializeMongoData } from '@/lib/utils';
+import { serializeMongoData, quickSerializeMongoData } from '@/lib/utils';
 
 // Mongoose nesnelerini düz JSON'a dönüştüren ve veriyi normalize eden yardımcı fonksiyon
 function normalizeOrderData(order: any): any {
@@ -14,8 +14,8 @@ function normalizeOrderData(order: any): any {
     return order.map(item => normalizeOrderData(item));
   }
 
-  // Utils'deki serileştirme fonksiyonunu kullanarak buffer sorununu çöz
-  const serializedOrder = serializeMongoData(order);
+  // Stack overflow sorunu yaşadığımız için, daha basit serileştirme fonksiyonunu kullanıyoruz
+  const serializedOrder = quickSerializeMongoData(order);
   
   // Biletlerin dönüşümü için güvenli işlem
   const tickets = Array.isArray(serializedOrder.tickets) ? serializedOrder.tickets.map((ticket: any) => ({

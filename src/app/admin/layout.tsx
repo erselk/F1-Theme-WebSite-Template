@@ -138,7 +138,7 @@ export default function AdminLayout({
         {/* Sidebar */}
         <aside
           className={`fixed left-0 top-0 z-40 h-screen transition-transform duration-300 
-          ${isDark ? 'bg-graphite border-r border-carbon-grey' : 'bg-white border-r border-light-grey'}
+          ${isDark ? 'bg-dark-grey border-r border-carbon-grey' : 'bg-very-light-grey border-r border-light-grey'}
           ${isMobile && !sidebarOpen ? '-translate-x-full' : 'translate-x-0'}
           ${isMobile ? 'w-64' : 'w-64'}`}
         >
@@ -278,22 +278,22 @@ export default function AdminLayout({
 
         {/* Main Content */}
         <main
-          className={`flex-1 transition-all ${isMobile ? 'ml-0' : 'ml-64'} p-4 md:p-8 ${isMobile ? 'pt-20' : 'pt-16'} ${isDark ? 'bg-dark-grey' : 'bg-very-light-grey'}`}
+          className={`flex-1 transition-all ${isMobile ? 'ml-0 px-1' : 'ml-64 p-8'} ${isMobile ? 'pt-16' : 'pt-16'} ${isDark ? 'bg-dark-grey' : 'bg-very-light-grey'}`}
         >
           {/* Mobile Header with menu button */}
           {isMobile && (
-            <div className={`fixed top-0 left-0 right-0 z-20 py-3 px-3 flex items-center ${isDark ? 'bg-graphite' : 'bg-white'} border-b ${isDark ? 'border-carbon-grey' : 'border-light-grey'} shadow-md`}>
+            <div className="fixed top-0 left-0 right-0 z-20 py-2 px-2 flex items-center bg-[#1a1a1a] border-b border-[#2a2a2a] shadow-md">
               <button 
                 onClick={toggleSidebar}
-                className={`p-1 rounded-md ${isDark ? 'text-white hover:bg-dark-grey' : 'text-medium-grey hover:bg-very-light-grey'}`}
+                className="p-1.5 rounded-md text-silver hover:bg-[#2a2a2a]"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="3" y1="12" x2="21" y2="12"></line>
                   <line x1="3" y1="6" x2="21" y2="6"></line>
                   <line x1="3" y1="18" x2="21" y2="18"></line>
                 </svg>
               </button>
-              <span className={`ml-3 text-base font-semibold font-['Titillium Web'] truncate ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+              <span className="ml-3 text-base font-semibold font-['Titillium Web'] truncate text-silver">
                 PadokClub Admin
               </span>
             </div>

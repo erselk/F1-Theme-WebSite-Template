@@ -6,12 +6,19 @@ import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
 import { Author } from '@/models/Author';
 import Image from 'next/image';
 import Link from 'next/link';
+import React from 'react';
 
 export default function AuthorEditPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { isDark } = useThemeLanguage();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Güvenli bir şekilde params'a erişim
+  // params bir Promise ise React.use() ile çözülür, değilse direkt olarak kullanılır
+  const id = typeof params.id === 'object' && 'then' in params.id 
+    ? React.use(params as any).id 
+    : params.id;
   
   // Form state
   const [formData, setFormData] = useState<{
@@ -33,7 +40,7 @@ export default function AuthorEditPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchAuthor = async () => {
       try {
-        const response = await fetch(`/api/authors/${params.id}`);
+        const response = await fetch(`/api/authors/${id}`);
         if (!response.ok) {
           throw new Error('Yazar getirilirken bir hata oluştu');
         }
@@ -54,7 +61,7 @@ export default function AuthorEditPage({ params }: { params: { id: string } }) {
     };
 
     fetchAuthor();
-  }, [params.id]);
+  }, [id]);
 
   // Profil resmi seçildiğinde önizleme oluştur
   useEffect(() => {
@@ -115,7 +122,7 @@ export default function AuthorEditPage({ params }: { params: { id: string } }) {
       }
       
       // Yazarı güncelle
-      const response = await fetch(`/api/authors/${params.id}`, {
+      const response = await fetch(`/api/authors/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -142,11 +149,11 @@ export default function AuthorEditPage({ params }: { params: { id: string } }) {
   
   return (
     <div className={`${isDark ? 'text-white' : 'text-gray-800'}`}>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Yazar Düzenle</h1>
+      <div className="flex justify-between items-center mb-4 md:mb-6">
+        <h1 className="text-xl md:text-2xl font-bold">Yazar Düzenle</h1>
         <Link
           href="/admin/authors"
-          className={`px-5 py-2.5 rounded-md font-medium ${
+          className={`px-3 py-1.5 md:px-5 md:py-2.5 rounded-md font-medium text-sm md:text-base ${
             isDark
               ? 'bg-carbon-grey text-silver hover:bg-gray-700'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -158,37 +165,38 @@ export default function AuthorEditPage({ params }: { params: { id: string } }) {
 
       {/* Bildirimler */}
       {submitSuccess && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+        <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 md:px-4 md:py-3 rounded mb-4 text-sm">
           {submitSuccess}
         </div>
       )}
 
       {submitError && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 md:px-4 md:py-3 rounded mb-4 text-sm">
           {submitError}
         </div>
       )}
 
       {/* Yazar Düzenleme Formu */}
       {loading ? (
-        <div className="text-center py-10">
-          <p>Yazar bilgileri yükleniyor...</p>
+        <div className="text-center py-8 md:py-10">
+          <div className="animate-spin rounded-full h-8 w-8 md:h-10 md:w-10 border-t-2 border-b-2 border-electric-blue mx-auto mb-2"></div>
+          <p className="text-sm md:text-base text-medium-grey">Yazar bilgileri yükleniyor...</p>
         </div>
       ) : error ? (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 md:px-4 md:py-3 rounded text-sm">
           {error}
         </div>
       ) : (
-        <div className={`p-6 rounded-lg ${isDark ? 'bg-carbon-grey' : 'bg-white shadow'}`}>
-          <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-6">
-            <div className="flex-1 min-w-[250px]">
-              <label className="block mb-2 font-medium">Yazar Adı*</label>
+        <div className={`p-4 md:p-6 rounded-lg ${isDark ? 'bg-carbon-grey' : 'bg-white shadow'}`}>
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 md:gap-6">
+            <div className="w-full sm:w-1/2">
+              <label className="block mb-2 text-sm font-medium">Yazar Adı*</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-3 border rounded-md ${
+                className={`w-full px-3 py-2 md:px-4 md:py-2.5 border rounded-md ${
                   isDark ? 'bg-dark-grey border-carbon-grey' : 'bg-white border-gray-300'
                 }`}
                 required
@@ -196,10 +204,10 @@ export default function AuthorEditPage({ params }: { params: { id: string } }) {
               />
             </div>
             
-            <div className="flex-1 min-w-[250px]">
-              <label className="block mb-2 font-medium">Profil Resmi*</label>
-              <div className="flex items-center gap-4">
-                <div className="w-20 h-20 relative overflow-hidden rounded-full border-2 border-gray-300">
+            <div className="w-full sm:w-1/2">
+              <label className="block mb-2 text-sm font-medium">Profil Resmi*</label>
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="w-14 h-14 md:w-16 md:h-16 relative overflow-hidden rounded-full border-2 border-gray-300 flex-shrink-0">
                   <Image
                     src={previewUrl || formData.profileImage || '/api/files/680e8849803166580a5ca610'}
                     alt="Profile preview"
@@ -211,15 +219,15 @@ export default function AuthorEditPage({ params }: { params: { id: string } }) {
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
-                  className={`flex-1 ${isDark ? 'text-silver' : 'text-gray-700'}`}
+                  className={`flex-1 text-xs md:text-sm ${isDark ? 'text-silver' : 'text-gray-700'}`}
                 />
               </div>
             </div>
             
-            <div className="w-full flex justify-end gap-4 mt-6">
+            <div className="flex justify-end gap-3 md:gap-4 w-full">
               <Link
                 href="/admin/authors"
-                className={`px-6 py-3 rounded-md font-medium ${
+                className={`px-4 py-2 md:px-6 md:py-3 rounded-md font-medium text-sm md:text-base ${
                   isDark
                     ? 'bg-dark-grey text-silver hover:bg-gray-700 border border-gray-600'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
@@ -230,7 +238,7 @@ export default function AuthorEditPage({ params }: { params: { id: string } }) {
               <button
                 type="submit"
                 disabled={uploading}
-                className={`px-6 py-3 rounded-md font-semibold text-white ${
+                className={`px-4 py-2 md:px-6 md:py-3 rounded-md font-semibold text-white text-sm md:text-base ${
                   isDark
                     ? 'bg-electric-blue hover:bg-blue-600'
                     : 'bg-f1-red hover:bg-red-700'

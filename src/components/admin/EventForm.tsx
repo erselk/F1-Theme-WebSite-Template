@@ -1090,10 +1090,10 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
   };
 
   return (
-    <div className={`p-6 rounded-lg ${isDark ? 'bg-graphite' : 'bg-white'} shadow-md`}>
+    <div className={`p-3 sm:p-6 rounded-lg ${isDark ? 'bg-graphite' : 'bg-white'} shadow-md`}>
       {/* Language selection for content input */}
-      <div className="mb-6">
-        <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+      <div className="mb-4 sm:mb-6">
+        <label className={`block text-xs sm:text-sm font-medium mb-1 sm:mb-2 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
           {formLanguage === 'tr' ? 'İçerik Dili' : 'Content Language'}
         </label>
         <div className="flex items-center space-x-4">
@@ -1146,20 +1146,17 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Main Information */}
-        <div className={`p-4 border rounded-md mb-6 ${
+        <div className={`p-2 sm:p-4 border rounded-md mb-2 sm:mb-4 ${
           isDark ? 'border-carbon-grey bg-dark-grey bg-opacity-50' : 'border-light-grey bg-very-light-grey bg-opacity-50'
         }`}>
-          <h3 className={`text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+          <h3 className={`text-sm sm:text-lg font-medium mb-2 sm:mb-3 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
             {formLanguage === 'tr' ? 'Ana Bilgiler' : 'Main Information'}
           </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Title - Single Language Input */}
-            <div className="col-span-2">
-              <label 
-                htmlFor="title" 
-                className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-              >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
+            {/* Title */}
+            <div className="md:col-span-2">
+              <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                 {formLanguage === 'tr' ? 'Başlık *' : 'Title *'}
               </label>
               <input
@@ -1169,7 +1166,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                 required
                 value={formData.title?.[formLanguage] || ''}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 rounded-md ${
+                className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm sm:text-base rounded-md ${
                   isDark
                     ? 'bg-carbon-grey border border-dark-grey text-white'
                     : 'bg-white border border-light-grey text-dark-grey'
@@ -1177,21 +1174,10 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
               />
               <ErrorMessage show={hasError('title')} />
             </div>
-            
-            {/* Hidden SEO URL (slug) - Hidden from UI but still part of the form data */}
-            <input
-              type="hidden"
-              id="slug"
-              name="slug"
-              value={formData.slug || ''}
-            />
-            
-            {/* Event Date */}
+
+            {/* Event Date and Category - Desktop: side by side, Mobile: stacked */}
             <div className="md:col-span-1">
-              <label 
-                htmlFor="date" 
-                className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-              >
+              <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                 {formLanguage === 'tr' ? 'Etkinlik Tarihi ve Saati *' : 'Event Date and Time *'}
               </label>
               <input
@@ -1201,7 +1187,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                 required
                 value={dateInputValue}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 rounded-md ${
+                className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm sm:text-base rounded-md ${
                   isDark
                     ? 'bg-carbon-grey border border-dark-grey text-white'
                     : 'bg-white border border-light-grey text-dark-grey'
@@ -1210,12 +1196,8 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
               <ErrorMessage show={hasError('date')} />
             </div>
 
-            {/* Category */}
             <div className="md:col-span-1">
-              <label 
-                htmlFor="category" 
-                className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-              >
+              <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                 {formLanguage === 'tr' ? 'Kategori *' : 'Category *'}
               </label>
               <select
@@ -1224,7 +1206,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                 required
                 value={formData.category || 'other'}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 rounded-md ${
+                className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm sm:text-base rounded-md ${
                   isDark
                     ? 'bg-carbon-grey border border-dark-grey text-white [&>option]:bg-carbon-grey'
                     : 'bg-white border border-light-grey text-dark-grey'
@@ -1237,10 +1219,10 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                 <option value="other">{formLanguage === 'tr' ? 'Diğer' : 'Other'}</option>
               </select>
             </div>
-            
+
             {/* Featured Checkbox */}
             <div className="md:col-span-2">
-              <div className="flex items-center mt-3">
+              <div className="flex items-center">
                 <input
                   type="checkbox"
                   id="isFeatured"
@@ -1253,10 +1235,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                       : 'bg-white border border-light-grey text-dark-grey'
                   }`}
                 />
-                <label 
-                  htmlFor="isFeatured" 
-                  className={`text-sm font-medium ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                >
+                <label className={`text-xs sm:text-sm font-medium ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                   {formLanguage === 'tr' ? 'Öne Çıkarılsın' : 'Featured'}
                 </label>
               </div>
@@ -1265,109 +1244,99 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
         </div>
         
         {/* Location */}
-        <div className={`p-4 border rounded-md mb-6 ${
+        <div className={`p-2 sm:p-4 border rounded-md mb-2 sm:mb-4 ${
           isDark ? 'border-carbon-grey bg-dark-grey bg-opacity-50' : 'border-light-grey bg-very-light-grey bg-opacity-50'
         }`}>
-          <h3 className={`text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+          <h3 className={`text-sm sm:text-lg font-medium mb-2 sm:mb-3 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
             {formLanguage === 'tr' ? 'Konum Bilgileri' : 'Location Information'}
           </h3>
           
-          <div className="grid grid-cols-1 gap-4">
-            {/* Location - Single Language Input */}
-            <div>
-              <label 
-                htmlFor="location" 
-                className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-              >
-                {formLanguage === 'tr' ? 'Konum *' : 'Location *'}
-              </label>
-              <input
-                type="text"
-                id="location"
-                name="location"
-                required
-                value={formData.location?.[formLanguage] || ''}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 rounded-md ${
-                  isDark
-                    ? 'bg-carbon-grey border border-dark-grey text-white'
-                    : 'bg-white border border-light-grey text-dark-grey'
-                } ${hasError('location') ? 'border-f1-red ring-1 ring-f1-red' : ''}`}
-              />
-              <ErrorMessage show={hasError('location')} />
-            </div>
+          <div>
+            <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+              {formLanguage === 'tr' ? 'Konum *' : 'Location *'}
+            </label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              required
+              value={formData.location?.[formLanguage] || ''}
+              onChange={handleInputChange}
+              className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm sm:text-base rounded-md ${
+                isDark
+                  ? 'bg-carbon-grey border border-dark-grey text-white'
+                  : 'bg-white border border-light-grey text-dark-grey'
+              } ${hasError('location') ? 'border-f1-red ring-1 ring-f1-red' : ''}`}
+            />
+            <ErrorMessage show={hasError('location')} />
           </div>
         </div>
         
-        {/* Description - Single field */}
-        <div className={`p-4 border rounded-md mb-6 ${
+        {/* Description */}
+        <div className={`p-2 sm:p-4 border rounded-md mb-2 sm:mb-4 ${
           isDark ? 'border-carbon-grey bg-dark-grey bg-opacity-50' : 'border-light-grey bg-very-light-grey bg-opacity-50'
         }`}>
-          <h3 className={`text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+          <h3 className={`text-sm sm:text-lg font-medium mb-2 sm:mb-3 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
             {formLanguage === 'tr' ? 'Açıklama' : 'Description'}
           </h3>
           
           <div>
-            <label 
-              htmlFor="description" 
-              className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-            >
+            <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
               {formLanguage === 'tr' ? 'Açıklama *' : 'Description *'}
             </label>
             <textarea
               id="description"
               name="description"
               required
-              rows={6}
+              rows={4}
               value={formData.description?.[formLanguage] || ''}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 rounded-md ${
+              className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-sm sm:text-base rounded-md ${
                 isDark
                   ? 'bg-carbon-grey border border-dark-grey text-white'
                   : 'bg-white border border-light-grey text-dark-grey'
               } ${hasError('description') ? 'border-f1-red ring-1 ring-f1-red' : ''}`}
-              placeholder={formLanguage === 'tr' 
-                ? "Etkinlik açıklaması" 
-                : "Event description"}
             ></textarea>
             <ErrorMessage show={hasError('description')} />
           </div>
         </div>
         
         {/* Ticket Types Section */}
-        <div className={`p-4 border rounded-md mb-6 ${
+        <div className={`p-2 sm:p-4 border rounded-md mb-2 sm:mb-4 ${
           isDark ? 'border-carbon-grey bg-dark-grey bg-opacity-50' : 'border-light-grey bg-very-light-grey bg-opacity-50'
         }`}>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className={`text-lg font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+          <div className="flex justify-between items-center mb-2 sm:mb-3">
+            <h3 className={`text-sm sm:text-lg font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
               {formLanguage === 'tr' ? 'Bilet Tipleri' : 'Ticket Types'}
             </h3>
             
             <button
               type="button"
               onClick={addTicket}
-              className={`px-3 py-1 rounded-md flex items-center ${
+              className={`p-1.5 sm:p-2 rounded-md flex items-center text-xs sm:text-sm ${
                 isDark
                   ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
                   : 'bg-race-blue text-white hover:bg-race-blue/80'
               }`}
             >
-              <PlusIcon className="w-4 h-4 mr-1" />
-              {formLanguage === 'tr' ? 'Yeni Bilet Tipi Ekle' : 'Add New Ticket Type'}
+              <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-1" />
+              <span className="hidden sm:inline">
+                {formLanguage === 'tr' ? 'Yeni Bilet Tipi Ekle' : 'Add New Ticket Type'}
+              </span>
             </button>
           </div>
           
-          <div className="space-y-6">
+          <div className="space-y-2 sm:space-y-3">
             {Array.isArray(formData.tickets) && formData.tickets.length > 0 ? (
               formData.tickets.map((ticket, index) => (
                 <div 
                   key={ticket.id || `ticket-${index}`} 
-                  className={`p-4 border rounded-md ${
+                  className={`p-2 sm:p-3 border rounded-md ${
                     isDark ? 'border-dark-grey' : 'border-light-grey'
                   }`}
                 >
-                  <div className="flex justify-between items-start mb-4">
-                    <h4 className={`font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className={`text-xs sm:text-sm font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
                       {formLanguage === 'tr' ? `Bilet #${index + 1}` : `Ticket #${index + 1}`}
                     </h4>
                     
@@ -1381,16 +1350,14 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                       }`}
                       title={formLanguage === 'tr' ? "Bu bilet tipini sil" : "Delete this ticket type"}
                     >
-                      <TrashIcon className="w-4 h-4" />
+                      <TrashIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                     </button>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Ticket Name - Single Language Input */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
+                    {/* Ticket Name */}
                     <div>
-                      <label 
-                        className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                      >
+                      <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                         {formLanguage === 'tr' ? 'Bilet Adı *' : 'Ticket Name *'}
                       </label>
                       <input
@@ -1400,7 +1367,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                         data-field="name"
                         value={ticket.name[formLanguage]}
                         onChange={(e) => handleTicketChange(index, 'name', e.target.value)}
-                        className={`w-full px-3 py-2 rounded-md ${
+                        className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${
                           isDark
                             ? 'bg-carbon-grey border border-dark-grey text-white'
                             : 'bg-white border border-light-grey text-dark-grey'
@@ -1411,9 +1378,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                     
                     {/* Ticket Price */}
                     <div>
-                      <label 
-                        className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                      >
+                      <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                         {formLanguage === 'tr' ? 'Fiyat (₺) *' : 'Price (₺) *'}
                       </label>
                       <input
@@ -1422,29 +1387,27 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                         min="0"
                         value={ticket.price}
                         onChange={(e) => handleTicketChange(index, 'price', e.target.value)}
-                        className={`w-full px-3 py-2 rounded-md ${
+                        className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${
                           isDark
                             ? 'bg-carbon-grey border border-dark-grey text-white'
                             : 'bg-white border border-light-grey text-dark-grey'
                         }`}
                       />
-                      <p className="text-sm mt-1 italic text-green-500">
+                      <p className="text-xs mt-1 italic text-green-500">
                         {formLanguage === 'tr' ? '0 seçilirse bilet ücretsiz olacaktır' : 'If 0 is selected, the ticket will be free'}
                       </p>
                     </div>
                     
-                    {/* Bilet açıklaması - MD Grid span artık 1 olacak */}
+                    {/* Ticket Description */}
                     <div className="md:col-span-1">
-                      <label 
-                        className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                      >
+                      <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                         {formLanguage === 'tr' ? 'Açıklama' : 'Description'}
                       </label>
                       <textarea
                         rows={2}
                         value={ticket.description?.[formLanguage] || ''}
                         onChange={(e) => handleTicketChange(index, 'description', e.target.value)}
-                        className={`w-full px-3 py-2 rounded-md ${
+                        className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${
                           isDark
                             ? 'bg-carbon-grey border border-dark-grey text-white'
                             : 'bg-white border border-light-grey text-dark-grey'
@@ -1455,25 +1418,23 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                       />
                     </div>
                     
-                    {/* Bilet Durumu Checkboxları - Sağ tarafa yerleştirildi */}
+                    {/* Ticket Status */}
                     <div className="md:col-span-1 flex flex-col justify-end">
-                      <label 
-                        className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                      >
+                      <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                         {formLanguage === 'tr' ? 'Durum' : 'Status'}
                       </label>
-                      <div className="flex flex-col gap-2 h-full justify-center">
+                      <div className="flex flex-col gap-1 sm:gap-2 h-full justify-center">
                         <div className="flex items-center">
                           <input
                             type="checkbox"
                             id={`ticket-sold-out-${index}`}
                             checked={ticket.isSoldOut || false}
                             onChange={(e) => handleTicketChange(index, 'isSoldOut', e.target.checked)}
-                            className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            className="mr-2 h-3 w-3 sm:h-4 sm:w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                           />
                           <label 
                             htmlFor={`ticket-sold-out-${index}`}
-                            className={`text-sm font-medium ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+                            className={`text-xs sm:text-sm font-medium ${isDark ? 'text-silver' : 'text-medium-grey'}`}
                           >
                             {formLanguage === 'tr' ? 'Tükendi' : 'Sold Out'}
                           </label>
@@ -1484,28 +1445,22 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                             id={`ticket-coming-soon-${index}`}
                             checked={ticket.isComingSoon || false}
                             onChange={(e) => handleTicketChange(index, 'isComingSoon', e.target.checked)}
-                            className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            className="mr-2 h-3 w-3 sm:h-4 sm:w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                           />
                           <label 
                             htmlFor={`ticket-coming-soon-${index}`}
-                            className={`text-sm font-medium ${isDark ? 'text-silver' : 'text-medium-grey'}`}
+                            className={`text-xs sm:text-sm font-medium ${isDark ? 'text-silver' : 'text-medium-grey'}`}
                           >
                             {formLanguage === 'tr' ? 'Yakında' : 'Coming Soon'}
                           </label>
                         </div>
                       </div>
                     </div>
-                    
-                    {/* ID alanı görünmeyecek şekilde hidden input olarak ekleyelim */}
-                    <input
-                      type="hidden"
-                      value={ticket.id || `ticket-${Date.now()}-${index}`}
-                    />
                   </div>
                 </div>
               ))
             ) : (
-              <div className={`py-6 text-center ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+              <div className={`py-3 text-center text-xs sm:text-sm ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                 {formLanguage === 'tr' 
                   ? 'Henüz bilet eklenmemiş. Eklemek için "Yeni Bilet Tipi Ekle" butonunu kullanın.'
                   : 'No tickets added yet. Use the "Add New Ticket Type" button to add tickets.'}
@@ -1515,39 +1470,41 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
         </div>
         
         {/* Rules Section */}
-        <div className={`p-4 border rounded-md mb-6 ${
+        <div className={`p-2 sm:p-4 border rounded-md mb-2 sm:mb-4 ${
           isDark ? 'border-carbon-grey bg-dark-grey bg-opacity-50' : 'border-light-grey bg-very-light-grey bg-opacity-50'
         }`}>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className={`text-lg font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+          <div className="flex justify-between items-center mb-2 sm:mb-3">
+            <h3 className={`text-sm sm:text-lg font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
               {formLanguage === 'tr' ? 'Etkinlik Kuralları' : 'Event Rules'}
             </h3>
             
             <button
               type="button"
               onClick={addRule}
-              className={`px-3 py-1 rounded-md flex items-center ${
+              className={`p-1.5 sm:p-2 rounded-md flex items-center text-xs sm:text-sm ${
                 isDark
                   ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
                   : 'bg-race-blue text-white hover:bg-race-blue/80'
               }`}
             >
-              <PlusIcon className="w-4 h-4 mr-1" />
-              {formLanguage === 'tr' ? 'Kural Ekle' : 'Add Rule'}
+              <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-1" />
+              <span className="hidden sm:inline">
+                {formLanguage === 'tr' ? 'Kural Ekle' : 'Add Rule'}
+              </span>
             </button>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-2 sm:space-y-3">
             {Array.isArray(formData.rules) && formData.rules.length > 0 ? (
               formData.rules.map((rule, index) => (
                 <div 
                   key={index} 
-                  className={`p-4 border rounded-md ${
+                  className={`p-2 sm:p-3 border rounded-md ${
                     isDark ? 'border-dark-grey' : 'border-light-grey'
                   }`}
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <h4 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+                    <h4 className={`text-xs sm:text-sm font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
                       {formLanguage === 'tr' ? `Kural #${index + 1}` : `Rule #${index + 1}`}
                     </h4>
                     
@@ -1559,22 +1516,19 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                       }`}
                       title={formLanguage === 'tr' ? "Bu kuralı sil" : "Delete this rule"}
                     >
-                      <TrashIcon className="w-4 h-4" />
+                      <TrashIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                     </button>
                   </div>
                   
-                  {/* Rule - Single Language Input */}
                   <div>
-                    <label 
-                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                    >
+                    <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                       {formLanguage === 'tr' ? 'Kural' : 'Rule'}
                     </label>
                     <textarea
                       rows={2}
                       value={rule.content[formLanguage]}
                       onChange={(e) => handleRuleChange(index, e.target.value)}
-                      className={`w-full px-3 py-2 rounded-md ${
+                      className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${
                         isDark
                           ? 'bg-carbon-grey border border-dark-grey text-white'
                           : 'bg-white border border-light-grey text-dark-grey'
@@ -1587,7 +1541,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                 </div>
               ))
             ) : (
-              <div className={`py-6 text-center ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+              <div className={`py-3 text-center text-xs sm:text-sm ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                 {formLanguage === 'tr' 
                   ? 'Henüz kural eklenmemiş. Eklemek için "Kural Ekle" butonunu kullanın.'
                   : 'No rules added yet. Use the "Add Rule" button to add rules.'}
@@ -1597,160 +1551,166 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
         </div>
 
         {/* Program Section */}
-        <div className={`p-4 border rounded-md mb-6 ${
+        <div className={`p-2 sm:p-4 border rounded-md mb-2 sm:mb-4 ${
           isDark ? 'border-carbon-grey bg-dark-grey bg-opacity-50' : 'border-light-grey bg-very-light-grey bg-opacity-50'
         }`}>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className={`text-lg font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+          <div className="flex justify-between items-center mb-2 sm:mb-3">
+            <h3 className={`text-sm sm:text-lg font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
               {formLanguage === 'tr' ? 'Etkinlik Programı' : 'Event Program'}
             </h3>
             
             <button
               type="button"
               onClick={addProgramItem}
-              className={`px-3 py-1 rounded-md flex items-center ${
+              className={`p-1.5 sm:p-2 rounded-md flex items-center text-xs sm:text-sm ${
                 isDark
                   ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
                   : 'bg-race-blue text-white hover:bg-race-blue/80'
               }`}
             >
-              <PlusIcon className="w-4 h-4 mr-1" />
-              {formLanguage === 'tr' ? 'Yeni Program Öğesi Ekle' : 'Add New Program Item'}
+              <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-1" />
+              <span className="hidden sm:inline">
+                {formLanguage === 'tr' ? 'Yeni Program Öğesi Ekle' : 'Add New Program Item'}
+              </span>
             </button>
           </div>
           
-          <div className="space-y-4">
-            {formData.schedule?.map((item, index) => (
-              <div 
-                key={index} 
-                className={`p-4 border rounded-md ${
-                  isDark ? 'border-dark-grey' : 'border-light-grey'
-                }`}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
-                    {formLanguage === 'tr' ? `Program #${index + 1}` : `Program #${index + 1}`}
-                  </h4>
+          <div className="space-y-2 sm:space-y-3">
+            {formData.schedule?.length > 0 ? (
+              formData.schedule.map((item, index) => (
+                <div 
+                  key={index} 
+                  className={`p-2 sm:p-3 border rounded-md ${
+                    isDark ? 'border-dark-grey' : 'border-light-grey'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className={`text-xs sm:text-sm font-medium ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+                      {formLanguage === 'tr' ? `Program #${index + 1}` : `Program #${index + 1}`}
+                    </h4>
+                    
+                    <button
+                      type="button"
+                      onClick={() => removeProgramItem(index)}
+                      className={`p-1 rounded-md ${
+                        isDark ? 'text-silver hover:bg-dark-grey' : 'text-medium-grey hover:bg-very-light-grey'
+                      }`}
+                      title={formLanguage === 'tr' ? "Bu program öğesini sil" : "Delete this program item"}
+                    >
+                      <TrashIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                    </button>
+                  </div>
                   
-                  <button
-                    type="button"
-                    onClick={() => removeProgramItem(index)}
-                    className={`p-1 rounded-md ${
-                      isDark ? 'text-silver hover:bg-dark-grey' : 'text-medium-grey hover:bg-very-light-grey'
-                    }`}
-                    title={formLanguage === 'tr' ? "Bu program öğesini sil" : "Delete this program item"}
-                  >
-                    <TrashIcon className="w-4 h-4" />
-                  </button>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Time */}
-                  <div>
-                    <label 
-                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                    >
-                      {formLanguage === 'tr' ? 'Zaman *' : 'Time *'}
-                    </label>
-                    <input
-                      type="time"
-                      required
-                      value={item.time}
-                      onChange={(e) => handleProgramChange(index, 'time', e.target.value)}
-                      className={`w-full px-3 py-2 rounded-md ${
-                        isDark
-                          ? 'bg-carbon-grey border border-dark-grey text-white'
-                          : 'bg-white border border-light-grey text-dark-grey'
-                      }`}
-                    />
-                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
+                    {/* Time */}
+                    <div>
+                      <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+                        {formLanguage === 'tr' ? 'Zaman *' : 'Time *'}
+                      </label>
+                      <input
+                        type="time"
+                        required
+                        value={item.time}
+                        onChange={(e) => handleProgramChange(index, 'time', e.target.value)}
+                        className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${
+                          isDark
+                            ? 'bg-carbon-grey border border-dark-grey text-white'
+                            : 'bg-white border border-light-grey text-dark-grey'
+                        }`}
+                      />
+                    </div>
 
-                  {/* Title */}
-                  <div>
-                    <label 
-                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                    >
-                      {formLanguage === 'tr' ? 'Başlık *' : 'Title *'}
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={item.title[formLanguage]}
-                      onChange={(e) => handleProgramChange(index, 'title', e.target.value)}
-                      className={`w-full px-3 py-2 rounded-md ${
-                        isDark
-                          ? 'bg-carbon-grey border border-dark-grey text-white'
-                          : 'bg-white border border-light-grey text-dark-grey'
-                      }`}
-                    />
-                  </div>
+                    {/* Title */}
+                    <div>
+                      <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+                        {formLanguage === 'tr' ? 'Başlık *' : 'Title *'}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={item.title[formLanguage]}
+                        onChange={(e) => handleProgramChange(index, 'title', e.target.value)}
+                        className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${
+                          isDark
+                            ? 'bg-carbon-grey border border-dark-grey text-white'
+                            : 'bg-white border border-light-grey text-dark-grey'
+                        }`}
+                      />
+                    </div>
 
-                  {/* Description */}
-                  <div className="md:col-span-2">
-                    <label 
-                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-                    >
-                      {formLanguage === 'tr' ? 'Açıklama' : 'Description'}
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={item.description[formLanguage]}
-                      onChange={(e) => handleProgramChange(index, 'description', e.target.value)}
-                      className={`w-full px-3 py-2 rounded-md ${
-                        isDark
-                          ? 'bg-carbon-grey border border-dark-grey text-white'
-                          : 'bg-white border border-light-grey text-dark-grey'
-                      }`}
-                      placeholder={formLanguage === 'tr' 
-                        ? "Program öğesi hakkında açıklama" 
-                        : "Description about this program item"}
-                    ></textarea>
+                    {/* Description */}
+                    <div className="md:col-span-2">
+                      <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+                        {formLanguage === 'tr' ? 'Açıklama' : 'Description'}
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={item.description[formLanguage]}
+                        onChange={(e) => handleProgramChange(index, 'description', e.target.value)}
+                        className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${
+                          isDark
+                            ? 'bg-carbon-grey border border-dark-grey text-white'
+                            : 'bg-white border border-light-grey text-dark-grey'
+                        }`}
+                        placeholder={formLanguage === 'tr' 
+                          ? "Program öğesi hakkında açıklama" 
+                          : "Description about this program item"}
+                      ></textarea>
+                    </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className={`py-3 text-center text-xs sm:text-sm ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
+                {formLanguage === 'tr' 
+                  ? 'Henüz program öğesi eklenmemiş. Eklemek için "+" butonunu kullanın.'
+                  : 'No program items added yet. Use the "+" button to add items.'}
               </div>
-            ))}
+            )}
           </div>
         </div>
         
         {/* Images Section */}
-        <div className={`p-4 border rounded-md mb-6 ${
+        <div className={`p-2 sm:p-4 border rounded-md mb-2 sm:mb-4 ${
           isDark ? 'border-carbon-grey bg-dark-grey bg-opacity-50' : 'border-light-grey bg-very-light-grey bg-opacity-50'
         }`}>
-          <h3 className={`text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
+          <h3 className={`text-sm sm:text-lg font-medium mb-2 sm:mb-3 ${isDark ? 'text-white' : 'text-dark-grey'}`}>
             {formLanguage === 'tr' ? 'Görseller' : 'Images'}
           </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-2 sm:mb-4">
             {/* Banner Image */}
-            <div>
-              <label 
-                className={`block text-sm font-medium mb-2 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-              >
+            <div className="flex flex-col items-center">
+              <label className={`block text-xs sm:text-sm font-medium mb-1 sm:mb-2 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                 {formLanguage === 'tr' ? 'Banner Görseli (16:9 önerilen)' : 'Banner Image (16:9 recommended)'}
               </label>
               
-              <div className="mb-4">
+              <div className="mb-2 sm:mb-4 flex justify-center w-full max-w-[160px] sm:max-w-[284px]">
                 {bannerPreview ? (
-                  <div className="relative w-full h-40 bg-gray-100 rounded-md overflow-hidden">
+                  <div className="relative w-full aspect-[16/9] bg-gray-100 rounded-md overflow-hidden">
                     <Image 
                       src={bannerPreview} 
                       alt={formLanguage === 'tr' ? "Banner önizleme" : "Banner preview"} 
                       fill
                       style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 640px) 160px, 284px"
+                      priority
                     />
                   </div>
                 ) : formData.bannerImage ? (
-                  <div className="relative w-full h-40 bg-gray-100 rounded-md overflow-hidden">
+                  <div className="relative w-full aspect-[16/9] bg-gray-100 rounded-md overflow-hidden">
                     <Image 
-                      src={formData.bannerImage.startsWith('/api/files/') ? formData.bannerImage : formData.bannerImage} 
+                      src={formData.bannerImage} 
                       alt={formLanguage === 'tr' ? "Banner görseli" : "Banner image"} 
                       fill
                       style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 640px) 160px, 284px"
+                      priority
                       unoptimized={formData.bannerImage.startsWith('/api/files/')}
                     />
                   </div>
                 ) : (
-                  <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md">
+                  <div className="w-full aspect-[16/9] flex items-center justify-center bg-gray-100 rounded-md">
                     <span className={isDark ? 'text-carbon-grey' : 'text-light-grey'}>
                       {formLanguage === 'tr' ? 'Görsel yok' : 'No image'}
                     </span>
@@ -1758,62 +1718,62 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                 )}
               </div>
               
-              <div className="flex items-center">
-                {/* Select Image Button */}
+              <div className="flex items-center w-full max-w-[160px] sm:max-w-[284px]">
                 <button
                   type="button"
                   onClick={() => setBannerSelectorOpen(true)}
-                  className={`w-full px-4 py-2 rounded-md ${
+                  className={`w-full px-2 py-1.5 sm:px-4 sm:py-2 rounded-md ${
                     isDark
                       ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
                       : 'bg-race-blue text-white hover:bg-race-blue/80'
-                  } flex items-center justify-center`}
+                  } flex items-center justify-center text-xs sm:text-sm`}
                 >
-                  <PhotoIcon className="w-5 h-5 mr-2" />
+                  <PhotoIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
                   {formLanguage === 'tr' ? 'Görsel Seç' : 'Select Image'}
                 </button>
               </div>
 
-              {/* Banner Image Selector Modal */}
               <ImageSelector
                 isOpen={bannerSelectorOpen}
                 onClose={() => setBannerSelectorOpen(false)}
                 onSelect={handleBannerImageSelection}
-                category="banner" // Sadece upload kategorisi için kullanılıyor
+                category="banner"
                 currentImage={formData.bannerImage}
               />
             </div>
             
             {/* Square Image */}
-            <div>
-              <label 
-                className={`block text-sm font-medium mb-2 ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-              >
+            <div className="flex flex-col items-center">
+              <label className={`block text-xs sm:text-sm font-medium mb-1 sm:mb-2 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                 {formLanguage === 'tr' ? 'Kare Görseli (1:1 önerilen)' : 'Square Image (1:1 recommended)'}
               </label>
               
-              <div className="mb-4">
+              <div className="mb-2 sm:mb-4 flex justify-center">
                 {squarePreview ? (
-                  <div className="relative w-40 h-40 bg-gray-100 rounded-md overflow-hidden">
+                  <div className="relative w-[160px] h-[160px] bg-gray-100 rounded-md overflow-hidden">
                     <Image 
                       src={squarePreview} 
                       alt={formLanguage === 'tr' ? "Kare önizleme" : "Square preview"} 
                       fill
                       style={{ objectFit: 'cover' }}
+                      sizes="160px"
+                      priority
                     />
                   </div>
                 ) : formData.squareImage ? (
-                  <div className="relative w-40 h-40 bg-gray-100 rounded-md overflow-hidden">
+                  <div className="relative w-[160px] h-[160px] bg-gray-100 rounded-md overflow-hidden">
                     <Image 
-                      src={formData.squareImage.startsWith('/api/files/') ? formData.squareImage : formData.squareImage} 
+                      src={formData.squareImage} 
                       alt={formLanguage === 'tr' ? "Kare görseli" : "Square image"} 
                       fill
                       style={{ objectFit: 'cover' }}
+                      sizes="160px"
+                      priority
                       unoptimized={formData.squareImage.startsWith('/api/files/')}
                     />
                   </div>
                 ) : (
-                  <div className="w-40 h-40 flex items-center justify-center bg-gray-100 rounded-md">
+                  <div className="w-[160px] h-[160px] flex items-center justify-center bg-gray-100 rounded-md">
                     <span className={isDark ? 'text-carbon-grey' : 'text-light-grey'}>
                       {formLanguage === 'tr' ? 'Görsel yok' : 'No image'}
                     </span>
@@ -1821,23 +1781,21 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
                 )}
               </div>
               
-              <div className="flex items-center">
-                {/* Select Image Button */}
+              <div className="flex items-center w-full max-w-[160px]">
                 <button
                   type="button"
                   onClick={() => setSquareSelectorOpen(true)}
-                  className={`w-full px-4 py-2 rounded-md ${
+                  className={`w-full px-2 py-1.5 sm:px-4 sm:py-2 rounded-md ${
                     isDark
                       ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
                       : 'bg-race-blue text-white hover:bg-race-blue/80'
-                  } flex items-center justify-center`}
+                  } flex items-center justify-center text-xs sm:text-sm`}
                 >
-                  <PhotoIcon className="w-5 h-5 mr-2" />
+                  <PhotoIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
                   {formLanguage === 'tr' ? 'Görsel Seç' : 'Select Image'}
                 </button>
               </div>
 
-              {/* Square Image Selector Modal */}
               <ImageSelector
                 isOpen={squareSelectorOpen}
                 onClose={() => setSquareSelectorOpen(false)}
@@ -1850,39 +1808,38 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
           
           {/* Gallery Images */}
           <div>
-            <div className="flex justify-between items-center mb-4">
-              <label 
-                className={`block text-sm font-medium ${isDark ? 'text-silver' : 'text-medium-grey'}`}
-              >
+            <div className="flex justify-between items-center mb-3 sm:mb-4">
+              <label className={`block text-xs sm:text-sm font-medium ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                 {formLanguage === 'tr' ? 'Galeri Görselleri' : 'Gallery Images'}
               </label>
               
               <div className="flex items-center space-x-2">
-                {/* Select Image Button */}
                 <button
                   type="button"
                   onClick={() => setGallerySelectorOpen(true)}
-                  className={`px-4 py-2 rounded-md ${
+                  className={`p-2 sm:px-4 sm:py-2 rounded-md ${
                     isDark
                       ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
                       : 'bg-race-blue text-white hover:bg-race-blue/80'
                   } flex items-center justify-center`}
                 >
-                  <PhotoIcon className="w-5 h-5 mr-2" />
-                  {formLanguage === 'tr' ? 'Görsel Seç' : 'Select Image'}
+                  <PhotoIcon className="w-6 h-6 sm:w-5 sm:h-5 sm:mr-2" />
+                  <span className="hidden sm:inline">
+                    {formLanguage === 'tr' ? 'Görsel Seç' : 'Select Image'}
+                  </span>
                 </button>
               </div>
             </div>
             
             {/* Gallery preview */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-4 mt-2">
               {formData.gallery && formData.gallery.length > 0 ? (
                 formData.gallery.map((imagePath, index) => (
                   <div 
                     key={`gallery-${index}`}
                     className="relative group"
                   >
-                    <div className="relative w-full h-32 bg-gray-100 rounded-md overflow-hidden">
+                    <div className="relative w-full h-20 sm:h-32 bg-gray-100 rounded-md overflow-hidden">
                       <Image 
                         src={imagePath}
                         alt={formLanguage === 'tr' 
@@ -1926,12 +1883,12 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
         </div>
         
         {/* Form Buttons */}
-        <div className="flex justify-end space-x-3">
+        <div className="flex justify-end space-x-2 sm:space-x-3 mt-2 sm:mt-4">
           <button
             type="button"
             onClick={onCancel}
             disabled={isSubmitting}
-            className={`px-4 py-2 rounded-md ${
+            className={`px-2 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm rounded-md ${
               isDark
                 ? 'bg-carbon-grey text-silver hover:bg-dark-grey'
                 : 'bg-light-grey text-medium-grey hover:bg-very-light-grey'
@@ -1943,7 +1900,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`px-4 py-2 rounded-md ${
+            className={`px-2 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm rounded-md ${
               isDark
                 ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
                 : 'bg-race-blue text-white hover:bg-race-blue/80'
@@ -1952,7 +1909,7 @@ export default function EventForm({ event, onSubmit, onCancel, isSubmitting }: E
             {isSubmitting ? (
               <span className="flex items-center">
                 <svg 
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" 
+                  className="animate-spin -ml-1 mr-2 h-3 w-3 sm:h-4 sm:w-4 text-white" 
                   xmlns="http://www.w3.org/2000/svg" 
                   fill="none" 
                   viewBox="0 0 24 24"
