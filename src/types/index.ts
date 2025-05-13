@@ -8,6 +8,7 @@ export interface BlogPost {
   thumbnailImage: string;
   publishDate: string; 
   author: {
+    _id?: string;
     name: string;
     avatar?: string;
   };

@@ -39,14 +39,15 @@ export const formatPrice = (amount: number, language: string) => {
 /**
  * Format date based on language
  */
-export const formatDate = (dateString: string, language: string) => {
-  return new Date(dateString).toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', {
+export const formatDate = (dateString: string, language: string, dateOnly: boolean = false) => {
+  const options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+    ...(dateOnly ? {} : { hour: '2-digit', minute: '2-digit' })
+  };
+  
+  return new Date(dateString).toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', options);
 };
 
 /**

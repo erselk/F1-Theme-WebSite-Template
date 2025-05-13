@@ -11,12 +11,15 @@ import StatsCard from '@/components/admin/common/StatsCard';
 import AdminCard from '@/components/admin/common/AdminCard';
 import SearchInput from '@/components/admin/common/SearchInput';
 import DataTable from '@/components/admin/common/DataTable';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
-const BOOKING_STATUS = {
-  pending: { tr: 'Bekliyor', en: 'Pending', color: 'bg-amber-500 text-white' },
-  confirmed: { tr: 'Onaylandı', en: 'Confirmed', color: 'bg-green-500 text-white' },
-  cancelled: { tr: 'İptal Edildi', en: 'Cancelled', color: 'bg-red-500 text-white' },
-  completed: { tr: 'Tamamlandı', en: 'Completed', color: 'bg-blue-500 text-white' },
+// Tarih filtresi seçenekleri
+const DATE_FILTERS = {
+  today: { tr: 'Bugün', en: 'Today' },
+  tomorrow: { tr: 'Yarın', en: 'Tomorrow' },
+  thisWeek: { tr: 'Bu Hafta', en: 'This Week' },
+  thisMonth: { tr: 'Bu Ay', en: 'This Month' },
+  past: { tr: 'Geçmiş', en: 'Past' },
 };
 
 export default function BookingsPage() {
@@ -26,20 +29,8 @@ export default function BookingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sorting, setSorting] = useState({ field: 'startTime', direction: 'desc' as 'asc' | 'desc' });
-  const [activeFilters, setActiveFilters] = useState<string[]>([]);
-
-  // Status Badge Component
-  const getStatusBadge = (status: string) => {
-    const statusConfig = BOOKING_STATUS[status as keyof typeof BOOKING_STATUS] || 
-      { tr: 'Bilinmiyor', en: 'Unknown', color: 'bg-gray-500 text-white' };
-    
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs ${statusConfig.color}`}>
-        {language === 'tr' ? statusConfig.tr : statusConfig.en}
-      </span>
-    );
-  };
+  const [activeDateFilters, setActiveDateFilters] = useState<string[]>([]);
+  const [showMobileFilter, setShowMobileFilter] = useState(false);
 
   // Fetch bookings and stats
   const fetchData = async () => {
@@ -68,52 +59,183 @@ export default function BookingsPage() {
     fetchData();
   }, []);
 
-  // Handle sorting
-  const handleSort = (field: string) => {
-    setSorting(prev => ({
-      field,
-      direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
+  // Filtrelenen verileri tarih filtrelerine göre daha fazla işle
+  const processDateFilter = (bookingsList: any[]) => {
+    if (!activeDateFilters.length) {
+      // Herhangi bir filtre yoksa, bugünden geleceğe + dünden geçmişe sırala
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const futureBookings = bookingsList
+        .filter(booking => new Date(booking.startTime) >= today)
+        .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+
+      const pastBookings = bookingsList
+        .filter(booking => new Date(booking.startTime) < today)
+        .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+
+      return [...futureBookings, ...pastBookings];
+    }
+
+    const now = new Date();
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+    
+    const nextMonth = new Date(today);
+    nextMonth.setDate(today.getDate() + 30);
+    
+    // Birden fazla filtre varsa, hepsini birleştiriyoruz
+    let resultBookings: any[] = [];
+    
+    activeDateFilters.forEach(filter => {
+      let filterBookings: any[] = [];
+      
+      switch (filter) {
+        case 'today':
+          filterBookings = bookingsList.filter(booking => {
+            const bookingDate = new Date(booking.startTime);
+            return bookingDate >= today && bookingDate < tomorrow;
+          });
+          break;
+        case 'tomorrow':
+          filterBookings = bookingsList.filter(booking => {
+            const bookingDate = new Date(booking.startTime);
+            const nextDay = new Date(tomorrow);
+            nextDay.setDate(tomorrow.getDate() + 1);
+            return bookingDate >= tomorrow && bookingDate < nextDay;
+          });
+          break;
+        case 'thisWeek':
+          filterBookings = bookingsList.filter(booking => {
+            const bookingDate = new Date(booking.startTime);
+            return bookingDate >= today && bookingDate < nextWeek;
+          });
+          break;
+        case 'thisMonth':
+          filterBookings = bookingsList.filter(booking => {
+            const bookingDate = new Date(booking.startTime);
+            return bookingDate >= today && bookingDate < nextMonth;
+          });
+          break;
+        case 'past':
+          filterBookings = bookingsList.filter(booking => {
+            const bookingDate = new Date(booking.startTime);
+            return bookingDate < today;
+          });
+          break;
+      }
+      
+      // Benzersiz değerleri ekle
+      filterBookings.forEach(booking => {
+        if (!resultBookings.some(b => b.refNumber === booking.refNumber)) {
+          resultBookings.push(booking);
+        }
+      });
+    });
+    
+    // Tarihe göre sıralama
+    return resultBookings.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
   };
 
-  // Toggle status filter
-  const toggleFilter = (status: string) => {
-    setActiveFilters(prev => 
-      prev.includes(status) 
-        ? prev.filter(s => s !== status) 
-        : [...prev, status]
-    );
+  // Toggle date filter
+  const toggleDateFilter = (filterKey: string) => {
+    if (activeDateFilters.includes(filterKey)) {
+      setActiveDateFilters(prev => prev.filter(key => key !== filterKey));
+    } else {
+      setActiveDateFilters(prev => [...prev, filterKey]);
+    }
+    setShowMobileFilter(false);
   };
 
   // Reset all filters
   const resetFilters = () => {
     setSearchTerm('');
-    setActiveFilters([]);
+    setActiveDateFilters([]);
   };
 
-  // Use our custom filtering hook
-  const {
-    currentItems: currentBookings,
-    totalPages,
-    indexOfFirstItem: indexOfFirstBooking,
-    indexOfLastItem: indexOfLastBooking,
-    totalItems: totalFilteredBookings,
-    paginate
-  } = useFilteredData({
-    data: bookings.filter(booking => 
-      activeFilters.length === 0 || activeFilters.includes(booking.status)
-    ),
+  // İlk filtrelemeyi yap sonra tarih filtrelerini uygula
+  const filteredData = useFilteredData({
+    data: processDateFilter(bookings),
     searchTerm,
     searchFields: ['venue', 'name', 'phone', 'email'],
-    sortField: sorting.field,
-    sortDirection: sorting.direction,
+    sortField: 'startTime',
+    sortDirection: 'asc',
     itemsPerPage: 10
   });
 
-  // Table columns definition
-  const columns = [
+  // Table columns definition - Web version
+  const webColumns = [
     {
-      header: { tr: 'Mekan ve Tarih', en: 'Venue & Date' },
+      header: { tr: 'Alan', en: 'Venue' },
+      accessor: 'venue',
+      cell: (booking: any) => (
+        <div className="font-medium text-xs md:text-sm truncate max-w-[120px] md:max-w-none">
+          {booking.venue}
+        </div>
+      )
+    },
+    {
+      header: { tr: 'Müşteri', en: 'Customer' },
+      accessor: 'name',
+      cell: (booking: any) => (
+        <div>
+          <div className="font-medium text-xs md:text-sm truncate max-w-[90px] md:max-w-none">{booking.name}</div>
+          {booking.phone && (
+            <div className="text-xs text-gray-400 truncate max-w-[90px] md:max-w-none">{booking.phone}</div>
+          )}
+        </div>
+      )
+    },
+    {
+      header: { tr: 'Tarih', en: 'Date' },
+      accessor: 'startTime',
+      cell: (booking: any) => (
+        <div className="text-xs text-gray-400 truncate max-w-[120px] md:max-w-none">
+          {formatDate(booking.startTime, language, true)}
+        </div>
+      )
+    },
+    {
+      header: { tr: 'Saat', en: 'Time' },
+      accessor: 'time',
+      cell: (booking: any) => (
+        <div className="text-xs text-gray-400 truncate max-w-[120px] md:max-w-none">
+          {formatTimeRange(booking.startTime, booking.endTime, language)}
+        </div>
+      )
+    },
+    {
+      header: { tr: 'Kişi', en: 'Persons' },
+      accessor: 'personCount',
+      className: 'text-center',
+      cell: (booking: any) => (
+        <span className="text-xs md:text-sm">
+          {booking.personCount || '1'}
+        </span>
+      )
+    },
+    {
+      header: { tr: 'Tutar', en: 'Amount' },
+      accessor: 'totalPrice',
+      className: 'text-right',
+      cell: (booking: any) => (
+        <span className="font-medium text-xs md:text-sm text-neon-green">
+          {formatPrice(booking.totalPrice, language)}
+        </span>
+      )
+    }
+  ];
+
+  // Mobile columns definition
+  const mobileColumns = [
+    {
+      header: { tr: 'Alan & Zaman', en: 'Venue & Time' },
       accessor: 'venue',
       cell: (booking: any) => (
         <div>
@@ -121,7 +243,7 @@ export default function BookingsPage() {
             {booking.venue}
           </div>
           <div className="text-xs text-gray-400 truncate max-w-[120px] md:max-w-none">
-            {formatDate(booking.startTime, language)}
+            {formatDate(booking.startTime, language, true)}
           </div>
           <div className="text-xs text-gray-400 truncate max-w-[120px] md:max-w-none">
             {formatTimeRange(booking.startTime, booking.endTime, language)}
@@ -138,9 +260,6 @@ export default function BookingsPage() {
           {booking.phone && (
             <div className="text-xs text-gray-400 truncate max-w-[90px] md:max-w-none">{booking.phone}</div>
           )}
-          {booking.email && (
-            <div className="text-xs text-gray-400 truncate max-w-[90px] md:max-w-none">{booking.email}</div>
-          )}
         </div>
       )
     },
@@ -149,19 +268,18 @@ export default function BookingsPage() {
       accessor: 'totalPrice',
       className: 'text-right',
       cell: (booking: any) => (
-        <span className="font-medium text-xs md:text-sm text-neon-green">
-          {formatPrice(booking.totalPrice, language)}
-        </span>
+        <div className="text-right">
+          <span className="font-medium text-xs md:text-sm text-neon-green">
+            {formatPrice(booking.totalPrice, language)}
+          </span>
+          <div className="text-xs text-gray-400">{language === 'tr' ? 'Kişi:' : 'Persons:'} {booking.personCount || '1'}</div>
+        </div>
       )
-    },
-    {
-      header: { tr: 'Durum', en: 'Status' },
-      accessor: 'status',
-      className: 'text-center hidden md:table-cell',
-      hidden: 'mobile' as 'mobile',
-      cell: (booking: any) => getStatusBadge(booking.status)
     }
   ];
+
+  // Responsive columns selection
+  const columns = typeof window !== 'undefined' && window.innerWidth <= 768 ? mobileColumns : webColumns;
 
   if (loading) {
     return <LoadingState />;
@@ -190,7 +308,7 @@ export default function BookingsPage() {
   const strings = {
     reset: language === 'tr' ? 'Filtreleri Temizle' : 'Clear Filters',
     filters: language === 'tr' ? 'Filtreler' : 'Filters',
-    status: language === 'tr' ? 'Durum' : 'Status',
+    dateFilter: language === 'tr' ? 'Tarih' : 'Date',
   };
 
   return (
@@ -215,8 +333,9 @@ export default function BookingsPage() {
 
       {/* Filters and controls */}
       <AdminCard>
-        <div className="flex flex-col space-y-4">
-          <div className="w-full">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between md:space-x-4 space-y-4 md:space-y-0">
+          {/* Arama kutusunu web sürümünde daha dar yapalım */}
+          <div className="w-full md:w-1/3">
             <SearchInput 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
@@ -224,30 +343,79 @@ export default function BookingsPage() {
             />
           </div>
           
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-xs md:text-sm font-medium">{strings.status}:</span>
-            {Object.entries(BOOKING_STATUS).map(([key, value]) => (
+          {/* Tarih Filtresi - Mobil Versiyonu */}
+          <div className="block md:hidden relative">
+            <button
+              onClick={() => setShowMobileFilter(!showMobileFilter)}
+              className={`w-full px-3 py-2 text-xs rounded-md flex justify-between items-center ${
+                isDark ? 'bg-[#e1e1e1] text-gray-700 border border-gray-200' : 'bg-[#e1e1e1] text-gray-700 border border-gray-200'
+              }`}
+            >
+              <span>
+                {activeDateFilters.length > 0
+                  ? activeDateFilters.map(filter => language === 'tr' ? DATE_FILTERS[filter as keyof typeof DATE_FILTERS].tr : DATE_FILTERS[filter as keyof typeof DATE_FILTERS].en).join(', ')
+                  : (language === 'tr' ? 'Tarih Seçin' : 'Select Date')}
+              </span>
+              <ChevronDownIcon className="w-4 h-4" />
+            </button>
+            
+            {showMobileFilter && (
+              <div className={`absolute z-10 mt-1 w-full rounded-md shadow-lg ${
+                isDark ? 'bg-[#e1e1e1] border border-gray-200' : 'bg-[#e1e1e1] border border-gray-200'
+              }`}>
+                {Object.entries(DATE_FILTERS).map(([key, value]) => (
+                  <button
+                    key={key}
+                    className={`w-full text-left px-4 py-2 text-xs flex items-center gap-2 ${
+                      isDark ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                    onClick={() => toggleDateFilter(key)}
+                  >
+                    <div className={`w-4 h-4 flex-shrink-0 rounded border ${
+                      activeDateFilters.includes(key) 
+                        ? 'bg-race-blue border-race-blue' 
+                        : 'border-gray-400'
+                    }`}>
+                      {activeDateFilters.includes(key) && (
+                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    {language === 'tr' ? value.tr : value.en}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {/* Tarih Filtresi - Web Versiyonu */}
+          <div className="hidden md:flex flex-wrap gap-2 items-center">
+            <span className="text-xs md:text-sm font-medium">{strings.dateFilter}:</span>
+            {Object.entries(DATE_FILTERS).map(([key, value]) => (
               <button
                 key={key}
-                className={`px-3 py-1 text-xs md:text-sm rounded-full ${
-                  activeFilters.includes(key)
-                    ? value.color
-                    : isDark ? 'bg-carbon-grey text-silver' : 'bg-gray-100 text-gray-700'
+                className={`px-3 py-1 text-xs md:text-sm rounded-full flex items-center gap-1.5 ${
+                  activeDateFilters.includes(key)
+                    ? (isDark ? 'bg-electric-blue text-white' : 'bg-race-blue text-white')
+                    : (isDark ? 'bg-carbon-grey text-silver hover:bg-dark-grey' : 'bg-gray-100 text-gray-700 hover:bg-gray-200')
                 }`}
-                onClick={() => toggleFilter(key)}
+                onClick={() => toggleDateFilter(key)}
               >
+                <div className={`w-3.5 h-3.5 flex-shrink-0 rounded-sm border ${
+                  activeDateFilters.includes(key) 
+                    ? (isDark ? 'border-white' : 'border-white')
+                    : (isDark ? 'border-silver' : 'border-gray-400')
+                }`}>
+                  {activeDateFilters.includes(key) && (
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
                 {language === 'tr' ? value.tr : value.en}
               </button>
             ))}
-            
-            {(activeFilters.length > 0 || searchTerm) && (
-              <button
-                className="px-3 py-1 text-xs md:text-sm rounded-full text-red-500 bg-red-100 hover:bg-red-200"
-                onClick={resetFilters}
-              >
-                {strings.reset}
-              </button>
-            )}
           </div>
         </div>
       </AdminCard>
@@ -255,15 +423,15 @@ export default function BookingsPage() {
       {/* Bookings table */}
       <DataTable
         columns={columns}
-        data={currentBookings}
+        data={filteredData.currentItems}
         keyField="refNumber"
         pagination={{
-          currentPage: Math.ceil(indexOfFirstBooking / 10) + 1,
-          totalPages,
-          totalItems: totalFilteredBookings,
-          indexOfFirstItem: indexOfFirstBooking,
-          indexOfLastItem: indexOfLastBooking,
-          paginate
+          currentPage: filteredData.currentPage,
+          totalPages: filteredData.totalPages,
+          totalItems: filteredData.totalItems,
+          indexOfFirstItem: filteredData.indexOfFirstItem,
+          indexOfLastItem: filteredData.indexOfLastItem,
+          paginate: filteredData.paginate
         }}
         emptyState={{
           withFilters: {
@@ -276,7 +444,7 @@ export default function BookingsPage() {
           },
           resetFilters
         }}
-        isFiltered={searchTerm !== '' || activeFilters.length > 0}
+        isFiltered={searchTerm !== '' || activeDateFilters.length > 0}
       />
     </div>
   );

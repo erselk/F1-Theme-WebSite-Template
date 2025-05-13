@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthorById, updateAuthor, deleteAuthor } from '@/services/mongo-service';
+import { ObjectId } from 'mongodb';
 
 // GET /api/authors/[id] - Belirli bir yazarı getir
 export async function GET(
@@ -7,8 +8,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Params'ın await edilmesi gerekiyor
-    const id = await params.id;
+    const id = params.id;
     const { author } = await getAuthorById(id);
     
     if (!author) {
@@ -17,6 +17,7 @@ export async function GET(
         { status: 404 }
       );
     }
+    
     return NextResponse.json({ author }, { status: 200 });
   } catch (error) {
     console.error('Error fetching author:', error);
@@ -27,24 +28,14 @@ export async function GET(
   }
 }
 
-// PUT /api/authors/[id] - Bir yazarı güncelle
-export async function PUT(
+// POST /api/authors/[id] - Yazarı güncelle
+export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    // Params'ın await edilmesi gerekiyor
-    const id = await params.id;
+    const id = params.id;
     const body = await request.json();
-    
-    // Yazar var mı kontrol et
-    const { author } = await getAuthorById(id);
-    if (!author) {
-      return NextResponse.json(
-        { error: 'Yazar bulunamadı' },
-        { status: 404 }
-      );
-    }
     
     // Gerekli alanları kontrol et
     if (!body.name) {
@@ -74,19 +65,16 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Params'ın await edilmesi gerekiyor
-    const id = await params.id;
+    const id = params.id;
+    const result = await deleteAuthor(id);
     
-    // Yazar var mı kontrol et
-    const { author } = await getAuthorById(id);
-    if (!author) {
+    if (!result.success) {
       return NextResponse.json(
-        { error: 'Yazar bulunamadı' },
+        { error: 'Yazar bulunamadı veya silinemedi' },
         { status: 404 }
       );
     }
     
-    const result = await deleteAuthor(id);
     return NextResponse.json(
       { success: true, message: 'Yazar başarıyla silindi' },
       { status: 200 }
