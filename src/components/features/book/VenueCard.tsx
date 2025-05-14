@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 
 interface VenueCardProps {
   venue: {
@@ -11,11 +12,11 @@ interface VenueCardProps {
   onSelect: (venueId: string) => void;
 }
 
-export default function VenueCard({
+const VenueCard: React.FC<VenueCardProps> = ({
   venue,
   isSelected,
   onSelect,
-}: VenueCardProps) {
+}) => {
   return (
     <div
       className={`p-6 rounded-lg cursor-pointer transition-all duration-200 ${
@@ -30,4 +31,6 @@ export default function VenueCard({
       <p className="text-muted-foreground">{venue.description}</p>
     </div>
   );
-}
+};
+
+export default React.memo(VenueCard);

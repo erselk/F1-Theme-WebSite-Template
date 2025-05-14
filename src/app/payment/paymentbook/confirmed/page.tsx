@@ -6,9 +6,14 @@ import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
 import Link from 'next/link';
 import Image from 'next/image';
 import { jsPDF } from 'jspdf';
+import { createEvent } from 'ics';
+// @ts-ignore - QR kod modülü için tip tanımı yok
+import QRCode from 'qrcode';
 
 // PDF'lerde Türkçe karakter desteği için font ekleme
 import 'jspdf-autotable';
+// Import custom fonts for PDF
+import { addCustomFonts, safeText } from '@/lib/pdf-fonts';
 
 // Loading fallback component
 function PaymentConfirmationLoading() {
@@ -30,6 +35,7 @@ function PaymentBookConfirmedContent() {
   const [paymentData, setPaymentData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [calendarAdded, setCalendarAdded] = useState(false);
 
   // Load reservation data from localStorage
   useEffect(() => {
@@ -53,9 +59,7 @@ function PaymentBookConfirmedContent() {
   const textClass = isDark ? 'text-white' : 'text-gray-900';
   const secondaryTextClass = isDark ? 'text-gray-300' : 'text-gray-600';
   const cardBgClass = isDark ? 'bg-dark-grey' : 'bg-white';
-  const borderClass = isDark ? 'border-carbon-grey' : 'border-gray-200';
-
-  // Translations
+  const borderClass = isDark ? 'border-carbon-grey' : 'border-gray-200';  // Translations
   const t = {
     tr: {
       loading: 'Yükleniyor...',
@@ -86,7 +90,8 @@ function PaymentBookConfirmedContent() {
       addressTitle: 'ADRES',
       address: 'Çamlıca Mah. Anadolu Blv. No:27, Üsküdar, İstanbul',
       important: 'ÖNEMLİ',
-      seeYou: 'Sizi merkezimizde görmekten mutluluk duyacağız.'
+      seeYou: 'Sizi merkezimizde görmekten mutluluk duyacağız.',
+      addToCalendar: 'Takvim Dosyasını İndir'
     },
     en: {
       loading: 'Loading...',
@@ -117,7 +122,8 @@ function PaymentBookConfirmedContent() {
       addressTitle: 'ADDRESS',
       address: 'Camlica Mah. Anadolu Blv. No:27, Uskudar, Istanbul',
       important: 'IMPORTANT',
-      seeYou: 'We look forward to seeing you at our center.'
+      seeYou: 'We look forward to seeing you at our center.',
+      addToCalendar: 'Download Calendar File'
     }
   };
 
@@ -133,173 +139,361 @@ function PaymentBookConfirmedContent() {
       month: 'long',
       day: 'numeric'
     });
-  };
-
-  // Generate and download PDF ticket
-  const downloadTicket = () => {
+  };  // Add to calendar functionality using ICS
+  const addToCalendar = () => {
+    if (!paymentData) return;
+    
+    try {
+      // Parse event date and time
+      const eventDate = paymentData.eventDate || paymentData.date || paymentData.startTime;
+      const startTime = paymentData.startTime || paymentData.time?.split(' - ')?.[0] || '';
+      const endTime = paymentData.endTime || paymentData.time?.split(' - ')?.[1] || '';
+      
+      // Create start and end datetime objects
+      let startDateTime = new Date(eventDate);
+      if (startTime) {
+        const [hours, minutes] = startTime.split(':');
+        startDateTime.setHours(parseInt(hours), parseInt(minutes), 0);
+      }
+      
+      // Default duration of 1 hour if no end time specified
+      let endDateTime = new Date(startDateTime);
+      if (endTime) {
+        const [hours, minutes] = endTime.split(':');
+        endDateTime.setHours(parseInt(hours), parseInt(minutes), 0);
+      } else {
+        endDateTime.setHours(endDateTime.getHours() + 1);
+      }
+      
+      // Format dates for ICS
+      // ICS expects [year, month, day, hour, minute]
+      const startArray = [
+        startDateTime.getFullYear(),
+        startDateTime.getMonth() + 1, // ICS months are 1-indexed
+        startDateTime.getDate(),
+        startDateTime.getHours(),
+        startDateTime.getMinutes()
+      ] as [number, number, number, number, number];
+      
+      const endArray = [
+        endDateTime.getFullYear(),
+        endDateTime.getMonth() + 1,
+        endDateTime.getDate(),
+        endDateTime.getHours(),
+        endDateTime.getMinutes()
+      ] as [number, number, number, number, number];
+      
+      // Create event description
+      const description = `${strings.venue}: ${paymentData.venue}\n${strings.guests}: ${paymentData.people}\n${strings.refNumber}: ${paymentData.refNumber || paymentData.orderId}`;
+      
+      // Create the calendar event
+      createEvent(
+        {
+          title: `Padok Club: ${paymentData.venue}`,
+          description,
+          location: 'Çamlıca Mah. Anadolu Blv. No:27, Üsküdar, İstanbul',
+          start: startArray,
+          end: endArray,
+          status: 'CONFIRMED',
+          busyStatus: 'BUSY',
+          organizer: { name: 'Padok Club', email: 'info@padokclub.com' }
+        }, 
+        (error, value) => {
+          if (error) {
+            console.error('Error creating ICS event:', error);
+            return;
+          }
+          
+          if (value) {
+            // Create a Blob with the ICS data
+            const blob = new Blob([value], { type: 'text/calendar;charset=utf-8' });
+            
+            // Create a link element to trigger the download
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `padokclub-${paymentData.refNumber || paymentData.orderId}.ics`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            setCalendarAdded(true);
+            
+            // Reset status after 3 seconds
+            setTimeout(() => setCalendarAdded(false), 3000);
+          }
+        }
+      );
+      
+    } catch (error) {
+      console.error('Error adding to calendar:', error);
+    }
+  };  // Generate and download PDF ticket
+  const downloadTicket = async () => {
     if (!paymentData) return;
     
     setGeneratingPdf(true);
     
-    setTimeout(() => {
+    try {      // Create PDF in A4 portrait format
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        putOnlyUsedFonts: true,
+        hotfixes: ["px_scaling"]
+      });
+      
+      // Apply custom fonts with Turkish character support
+      addCustomFonts(doc);
+      
+      // Set language for better character support
+      doc.setLanguage("tr");
+        // Get page dimensions
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      
+      // Modern ticket design with brand colors
+      // Header section with brand color background
+      doc.setFillColor(225, 6, 0); // PADOK red
+      doc.rect(0, 0, pageWidth, 40, 'F');
+      
+      // Logo placeholder
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.setFont('Roboto', 'bold');
+      doc.text("PADOK CLUB", margin, 25);
+      
+      // Ticket title
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
+      doc.text(safeText(strings.pdfTitle), pageWidth / 2, 25, { align: 'center' });
+      
+      // Reference number
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.text(`#${paymentData.refNumber || paymentData.orderId}`, pageWidth - margin, 25, { align: 'right' });
+      
+      // Main content background
+      doc.setFillColor(248, 249, 250); // Light gray background
+      doc.rect(0, 40, pageWidth, pageHeight - 40, 'F');      // QR code section - Generate actual QR code (positioned at bottom left)
+      const qrSize = 40;
+      const qrCodeX = margin;
+      const qrCodeY = pageHeight - margin - qrSize - 20;
+      
+      // QR code data - create a JSON object with the reservation details
+      const qrCodeData = JSON.stringify({
+        refNumber: paymentData.refNumber || paymentData.orderId,
+        name: paymentData.fullName || paymentData.name,
+        venue: paymentData.venue,
+        datetime: `${formatDate(paymentData.eventDate || paymentData.date || paymentData.startTime)} ${paymentData.time || `${paymentData.startTime} - ${paymentData.endTime}`}`,
+        guests: paymentData.people
+      });
+      
       try {
-        // Bilet için A5 boyutunda PDF oluştur (landscape)
-        const doc = new jsPDF({
-          orientation: 'landscape',
-          unit: 'mm',
-          format: 'a5'
+        // Generate QR code on canvas
+        const canvas = document.createElement('canvas');
+        await QRCode.toCanvas(canvas, qrCodeData, {
+          width: 200,
+          margin: 0,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          }
         });
         
-        // Türkçe karakter desteği için encodingini belirt
-        doc.setFont('helvetica');
-        doc.setLanguage('tr'); // Türkçe dil desteğini etkinleştir
+        // Convert canvas to image data URL
+        const qrCodeImage = canvas.toDataURL('image/png');
         
-        // Başlık ve logo alanı
-        doc.setFillColor(20, 20, 20);
-        doc.rect(0, 0, 210, 25, 'F');
-        
-        // Başlık
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(16);
-        doc.text(strings.pdfTitle, 20, 15);
-        
-        // Referans numarası
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(12);
-        doc.text(`#${paymentData.refNumber || paymentData.orderId}`, 180, 15, { align: 'right' });
-        
-        // Ana içerik alanı
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(24);
-        doc.text(strings.ticketTitle, 105, 40, { align: 'center' });
-        
-        // Unicode karakter kodlaması için değer dönüştürmelerini uygula
-        const unicodify = (text: string) => {
-          // Latin-1 karakterleri Unicode ile değiştir
-          return text
-            .replace(/ı/g, 'i')
-            .replace(/İ/g, 'I')
-            .replace(/ğ/g, 'g')
-            .replace(/Ğ/g, 'G')
-            .replace(/ü/g, 'u')
-            .replace(/Ü/g, 'U')
-            .replace(/ş/g, 's')
-            .replace(/Ş/g, 'S')
-            .replace(/ö/g, 'o')
-            .replace(/Ö/g, 'O')
-            .replace(/ç/g, 'c')
-            .replace(/Ç/g, 'C');
-        };
-        
-        // Bilet detayları - sol sütun
-        doc.setFontSize(12);
-        doc.setTextColor(100, 100, 100);
-        doc.text(`${unicodify(strings.venue)}:`, 20, 60);
-        doc.text(`${unicodify(strings.date)}:`, 20, 70);
-        doc.text(`${unicodify(strings.time)}:`, 20, 80);
-        doc.text(`${unicodify(strings.guests)}:`, 20, 90);
-        doc.text(`${unicodify(strings.amount)}:`, 20, 100);
-        
-        // Bilet detayları - sağ sütun
-        doc.setTextColor(0, 0, 0);
-        doc.setFont('helvetica', 'bold');
-        doc.text(unicodify(paymentData.venue), 80, 60);
-        doc.text(unicodify(formatDate(paymentData.eventDate || paymentData.date || paymentData.startTime)), 80, 70);
-        doc.text(`${paymentData.time || `${paymentData.startTime} - ${paymentData.endTime}`}`, 80, 80);
-        doc.text(`${paymentData.people}`, 80, 90);
-        
-        // Fiyat - ücretsiz veya ücretli
-        if (paymentData.isFree || paymentData.amount === 0 || paymentData.totalPrice === 0) {
-          doc.setTextColor(0, 180, 0);
-          doc.text(unicodify(strings.free), 80, 100);
-        } else {
-          doc.setTextColor(0, 0, 0);
-          doc.text(`${paymentData.totalPrice || (paymentData.amount / 100)} TL`, 80, 100);
-        }
-        
-        // Müşteri bilgileri
-        doc.setFontSize(12);
-        doc.setTextColor(100, 100, 100);
-        doc.text(`${unicodify(strings.name)}:`, 120, 60);
-        doc.text(`${unicodify(strings.phone)}:`, 120, 70);
-        
-        doc.setTextColor(0, 0, 0);
-        doc.text(unicodify(paymentData.fullName || paymentData.name), 160, 60);
-        doc.text(paymentData.phone, 160, 70);
-        
-        // Alt taraf - adres ve notlar
-        doc.setDrawColor(200, 200, 200);
-        doc.line(20, 115, 190, 115);
-        
+        // Add QR code to PDF
+        doc.addImage(qrCodeImage, 'PNG', qrCodeX, qrCodeY, qrSize, qrSize);
+          // QR code label
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text(
+          locale === 'tr' ? 'QR Kod' : 'QR Code', 
+          qrCodeX + qrSize/2, 
+          qrCodeY + qrSize + 5, 
+          { align: 'center' }
+        );      } catch (error) {
+        console.error('QR kod oluşturma hatası:', error);
+        // If QR code fails, show a placeholder
+        doc.setDrawColor(0);
+        doc.roundedRect(qrCodeX, qrCodeY, qrSize, qrSize, 3, 3, 'S');
+        doc.setFontSize(8);
         doc.setTextColor(80, 80, 80);
-        doc.setFontSize(10);
-        doc.text(unicodify(strings.printAndBring), 20, 125);
-        
-        // Adres
-        doc.setFontSize(10);
-        doc.setTextColor(100, 100, 100);
-        doc.text(unicodify(strings.addressTitle) + ':', 20, 135);
-        doc.setTextColor(0, 0, 0);
-        doc.text(unicodify(strings.address), 20, 142);
-        
-        // Not - iki satıra bölünmüş şekilde (önce kelimesinden itibaren alt satır)
-        doc.setFontSize(10);
-        doc.setTextColor(100, 100, 100);
-        doc.text(unicodify(strings.important) + ':', 120, 135);
-        doc.setTextColor(0, 0, 0);
-        
-        // Önemli notu iki satıra bölme
-        // Türkçe için "önce" veya "before" kelimesinden böl
-        const arriveEarlyText = unicodify(strings.arriveEarly);
-        let line1, line2;
-        
-        if (locale === 'tr') {
-          const parts = arriveEarlyText.split(/önce/i);
-          if (parts.length > 1) {
-            line1 = parts[0] + 'önce';
-            line2 = parts.slice(1).join('önce').trim();
-          } else {
-            line1 = arriveEarlyText;
-            line2 = '';
-          }
-        } else {
-          const parts = arriveEarlyText.split(/before/i);
-          if (parts.length > 1) {
-            line1 = parts[0] + 'before';
-            line2 = parts.slice(1).join('before').trim();
-          } else {
-            line1 = arriveEarlyText;
-            line2 = '';
-          }
-        }
-        
-        doc.text(line1, 120, 142);
-        if (line2) {
-          doc.text(line2, 120, 148);
-        }
-        
-        // Alt bilgi
-        doc.setFontSize(12);
-        doc.setTextColor(40, 40, 40);
-        doc.text(unicodify(strings.seeYou), 105, 158, { align: 'center' });
-        
-        // PDF'i indir
-        const fileName = `padokclub-reservation-${paymentData.refNumber || paymentData.orderId}.pdf`;
-        doc.save(fileName);
-        
-      } catch (error) {
-        console.error('Error generating PDF:', error);
-      } finally {
-        setGeneratingPdf(false);
+        doc.text('QR', qrCodeX + qrSize/2, qrCodeY + qrSize/2, { align: 'center' });
       }
-    }, 500);
+        // Ticket title
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(24);
+      doc.setFont('Roboto', 'bold');
+      doc.text(safeText(strings.ticketTitle), pageWidth / 2, 60, { align: 'center' });
+      
+      // Draw a colored band
+      doc.setFillColor(225, 6, 0);  // PADOK red accent
+      doc.rect(margin, 65, pageWidth - (margin * 2), 2, 'F');
+      
+      // Draw boxes for each section
+      doc.setDrawColor(220, 220, 220);
+      doc.setLineWidth(0.5);
+      
+      // Determine box sizes
+      const boxWidth = (pageWidth - (margin * 3)) / 2;
+      const boxHeight = 80;
+      const boxY = 75;
+      
+      // Reservation box
+      doc.roundedRect(margin, boxY, boxWidth, boxHeight, 3, 3, 'S');
+      doc.setFillColor(240, 240, 240);
+      doc.roundedRect(margin, boxY, boxWidth, 10, 3, 3, 'F');
+      
+      // Customer box
+      doc.roundedRect(margin * 2 + boxWidth, boxY, boxWidth, boxHeight, 3, 3, 'S');
+      doc.setFillColor(240, 240, 240);
+      doc.roundedRect(margin * 2 + boxWidth, boxY, boxWidth, 10, 3, 3, 'F');
+      
+      // Box titles
+      doc.setTextColor(80, 80, 80);
+      doc.setFontSize(14);
+      doc.setFont('Roboto', 'bold');
+      doc.text(safeText(strings.reservationDetails), margin + (boxWidth / 2), boxY + 7, { align: 'center' });
+      doc.text(safeText(strings.customerInfo), margin * 2 + boxWidth + (boxWidth / 2), boxY + 7, { align: 'center' });
+      
+      // Reset font
+      doc.setFont('Roboto', 'normal');
+      
+      // Reservation details
+      doc.setFontSize(12);
+      doc.setTextColor(100, 100, 100);
+      
+      const xLabelReservation = margin + 5;
+      const xValueReservation = margin + boxWidth - 5;
+      const yStartReservation = boxY + 20;
+      const lineHeightReservation = 12;
+      
+      // Reservation details - labels
+      doc.text(safeText(`${strings.venue}:`), xLabelReservation, yStartReservation);
+      doc.text(safeText(`${strings.date}:`), xLabelReservation, yStartReservation + lineHeightReservation);
+      doc.text(safeText(`${strings.time}:`), xLabelReservation, yStartReservation + 2 * lineHeightReservation);
+      doc.text(safeText(`${strings.guests}:`), xLabelReservation, yStartReservation + 3 * lineHeightReservation);
+      doc.text(safeText(`${strings.amount}:`), xLabelReservation, yStartReservation + 4 * lineHeightReservation);
+      
+      // Reservation details - values
+      doc.setTextColor(0, 0, 0);
+      doc.setFont('Roboto', 'bold');
+      doc.text(safeText(paymentData.venue), xValueReservation, yStartReservation, { align: 'right' });
+      
+      const formattedDate = formatDate(paymentData.eventDate || paymentData.date || paymentData.startTime);
+      doc.text(safeText(formattedDate), xValueReservation, yStartReservation + lineHeightReservation, { align: 'right' });
+      
+      const timeValue = paymentData.time || `${paymentData.startTime} - ${paymentData.endTime}`;
+      doc.text(safeText(timeValue), xValueReservation, yStartReservation + 2 * lineHeightReservation, { align: 'right' });
+      
+      doc.text(`${paymentData.people}`, xValueReservation, yStartReservation + 3 * lineHeightReservation, { align: 'right' });
+      
+      // Amount display
+      if (paymentData.isFree || paymentData.amount === 0 || paymentData.totalPrice === 0) {
+        doc.setTextColor(0, 150, 0); // Green for free
+        doc.text(safeText(strings.free), xValueReservation, yStartReservation + 4 * lineHeightReservation, { align: 'right' });
+      } else {
+        doc.setTextColor(0, 0, 0);
+        const price = paymentData.totalPrice ? `${paymentData.totalPrice} TL` : `${(paymentData.amount / 100).toFixed(2)} TL`;
+        doc.text(price, xValueReservation, yStartReservation + 4 * lineHeightReservation, { align: 'right' });
+      }
+        // Customer information
+      doc.setFontSize(12);
+      doc.setTextColor(100, 100, 100);
+      doc.setFont('Roboto', 'normal');
+      
+      const xLabelCustomer = margin * 2 + boxWidth + 5;
+      const xValueCustomer = margin * 2 + boxWidth * 2 - 5;
+      const yStartCustomer = yStartReservation;
+      
+      // Customer info - labels
+      doc.text(safeText(`${strings.name}:`), xLabelCustomer, yStartCustomer);
+      doc.text(safeText(`${strings.phone}:`), xLabelCustomer, yStartCustomer + lineHeightReservation);
+      doc.text(safeText(`${strings.refNumber}:`), xLabelCustomer, yStartCustomer + 2 * lineHeightReservation);
+      
+      // Customer info - values
+      doc.setTextColor(0, 0, 0);
+      doc.setFont('Roboto', 'bold');
+      doc.text(safeText(paymentData.fullName || paymentData.name), xValueCustomer, yStartCustomer, { align: 'right' });
+      doc.text(paymentData.phone, xValueCustomer, yStartCustomer + lineHeightReservation, { align: 'right' });
+      doc.text(`${paymentData.refNumber || paymentData.orderId}`, xValueCustomer, yStartCustomer + 2 * lineHeightReservation, { align: 'right' });
+      
+      // Info section
+      const infoSectionY = boxY + boxHeight + 20;
+      
+      // Horizontal divider
+      doc.setDrawColor(220, 220, 220);
+      doc.setLineWidth(0.5);
+      doc.line(margin, infoSectionY - 10, pageWidth - margin, infoSectionY - 10);
+      
+      // Section title
+      doc.setFont('Roboto', 'bold');
+      doc.setFontSize(16);
+      doc.setTextColor(80, 80, 80);
+      doc.text(safeText('Önemli Bilgiler / Important Information'), margin, infoSectionY);
+      
+      // Info boxes
+      const infoBoxWidth = (pageWidth - (margin * 3)) / 2;
+      const infoBoxY = infoSectionY + 10;
+      
+      // Address section
+      doc.setFont('Roboto', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(80, 80, 80);
+      doc.text(safeText(`${strings.addressTitle}:`), margin, infoBoxY);
+      
+      // Address content
+      doc.setFont('Roboto', 'normal');
+      doc.setTextColor(100, 100, 100);
+      doc.text(safeText(strings.address), margin, infoBoxY + 10);
+      
+      // Important notes section
+      doc.setFont('Roboto', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(80, 80, 80);
+      doc.text(safeText(`${strings.important}:`), margin * 2 + infoBoxWidth, infoBoxY);
+      
+      // Split arrive early note into multiple lines
+      const arriveEarlyText = strings.arriveEarly;
+      const maxWidth = infoBoxWidth - 10;
+        // Use splitTextToSize which handles text wrapping
+      doc.setFont('Roboto', 'normal');
+      doc.setTextColor(100, 100, 100);
+      const splitText = doc.splitTextToSize(safeText(arriveEarlyText), maxWidth);
+      doc.text(splitText, margin * 2 + infoBoxWidth, infoBoxY + 10);
+      
+      // Footer message
+      const footerY = pageHeight - 30;
+      doc.setFontSize(14);
+      doc.setTextColor(60, 60, 60);
+      doc.setFont('Roboto', 'bold');
+      doc.text(safeText(strings.seeYou), pageWidth / 2, footerY, { align: 'center' });
+      
+      // Small Padok Club branding at bottom
+      doc.setFontSize(10);
+      doc.setTextColor(150, 150, 150);
+      doc.setFont('Roboto', 'normal');
+      doc.text('PADOK CLUB © ' + new Date().getFullYear(), pageWidth - margin, pageHeight - 15, { align: 'right' });
+      
+      // Save the PDF
+      const fileName = `padokclub-reservation-${paymentData.refNumber || paymentData.orderId}.pdf`;
+      doc.save(fileName);
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    } finally {
+      setGeneratingPdf(false);
+    }
   };
 
   if (loading) {
     return (
-      <div className={`min-h-screen ${bgClass} flex items-center justify-center p-4`}>
+    <div className={`min-h-screen ${bgClass} flex items-center justify-center p-4`}>
         <div className="flex flex-col items-center space-y-4">
-          <div className="w-16 h-16 border-4 border-electric-blue border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
           <p className={`${textClass} font-medium`}>
             {strings.loading}
           </p>
@@ -324,10 +518,9 @@ function PaymentBookConfirmedContent() {
             </h1>
             <p className={`${secondaryTextClass} max-w-md`}>
               {strings.notFoundDesc}
-            </p>
-            <Link 
+            </p>            <Link 
               href="/" 
-              className="px-5 py-3 mt-4 bg-electric-blue text-white rounded-md hover:bg-electric-blue-dark transition-colors"
+              className="px-5 py-3 mt-4 bg-black text-white rounded-md hover:bg-gray-800 transition-colors"
             >
               {strings.backToHome}
             </Link>
@@ -434,13 +627,13 @@ function PaymentBookConfirmedContent() {
                         `${(paymentData.amount / 100).toFixed(2)} TL`)}
                   </span>
                 </div>
-                
-                {/* PDF indirme butonu - toplam tutarın altında */}
-                <div className="pt-4 mt-2">
+                  {/* Buttons */}
+                <div className="space-y-2 pt-4 mt-2">
+                  {/* Download Ticket button */}
                   <button
                     onClick={downloadTicket}
                     disabled={generatingPdf}
-                    className={`w-full px-4 py-2 bg-f1-red text-white rounded-md hover:opacity-90 transition-colors flex items-center justify-center ${generatingPdf ? 'opacity-70' : ''}`}
+                    className={`w-full px-4 py-2 bg-black text-white rounded-md hover:opacity-90 transition-colors flex items-center justify-center ${generatingPdf ? 'opacity-70' : ''}`}
                   >
                     {generatingPdf && (
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -449,6 +642,27 @@ function PaymentBookConfirmedContent() {
                       </svg>
                     )}
                     {generatingPdf ? strings.generatingTicket : strings.downloadTicket}
+                  </button>
+                  
+                  {/* Add to Calendar button */}
+                  <button
+                    onClick={addToCalendar}
+                    className={`w-full px-4 py-2 bg-black text-white rounded-md hover:opacity-90 transition-colors flex items-center justify-center`}
+                  >                    {calendarAdded ? (
+                      <>
+                        <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        {locale === 'tr' ? 'Takvim İndirildi' : 'Calendar Downloaded'}
+                      </>
+                    ) : (
+                      <>
+                        <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {strings.addToCalendar}
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -472,28 +686,96 @@ function PaymentBookConfirmedContent() {
             </div>
           </div>
         </div>
-        
-        {/* Actions */}
+          {/* Actions */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="order-2 md:order-1">
             <Link 
               href="/" 
-              className="px-5 py-2.5 bg-electric-blue text-white rounded-md hover:bg-blue-600 transition-colors"
-            >
-              {strings.backToHome}
+              className="px-5 py-2.5 bg-black text-white rounded-md hover:bg-gray-800 transition-colors"
+            >              {strings.backToHome}
             </Link>
           </div>
-        </div>
-      </div>
-    </div>
-  );
+        </div>    </div>
+    </div>  );
 }
 
 // Export the page component with Suspense boundary
 export default function PaymentBookConfirmed() {
   return (
-    <Suspense fallback={<PaymentConfirmationLoading />}>
-      <PaymentBookConfirmedContent />
-    </Suspense>
+    <>
+      <style jsx global>{`
+        @media (max-width: 768px) {
+          h1 {
+            font-size: 1.5rem !important;
+          }
+          h2 {
+            font-size: 1.25rem !important;
+          }
+          h3, p {
+            font-size: 0.875rem !important;
+          }
+          .w-20 {
+            width: 4rem !important;
+            height: 4rem !important;
+          }
+          .h-20 {
+            height: 4rem !important;
+          }
+          .h-16 {
+            height: 3.5rem !important;
+          }
+          .w-16 {
+            width: 3.5rem !important;
+          }
+          .h-12 {
+            height: 2.5rem !important;
+          }
+          .w-12 {
+            width: 2.5rem !important;
+          }
+          .p-6 {
+            padding: 1rem !important;
+          }
+          .py-12 {
+            padding-top: 1.5rem !important;
+            padding-bottom: 1.5rem !important;
+          }
+          .mb-10 {
+            margin-bottom: 1.5rem !important;
+          }
+          .mb-8 {
+            margin-bottom: 1.25rem !important;
+          }
+          .mb-4 {
+            margin-bottom: 0.75rem !important;
+          }
+          .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 0.75rem !important;
+          }
+          .space-y-3 > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 0.5rem !important;
+          }
+          .px-5 {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+          }
+          .py-2\\.5 {
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+          }
+          .px-4 {
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+          }
+          .py-2 {
+            padding-top: 0.375rem !important;
+            padding-bottom: 0.375rem !important;
+          }
+        }
+      `}</style>
+      <Suspense fallback={<PaymentConfirmationLoading />}>
+        <PaymentBookConfirmedContent />
+      </Suspense>
+    </>
   );
 }

@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function BookingPageHeader() {
+const BookingPageHeader: React.FC = () => {
   return (
     <div className="py-10 md:py-16">
       <div className="text-center">
@@ -16,3 +16,5 @@ export default function BookingPageHeader() {
     </div>
   );
 }
+
+export default React.memo(BookingPageHeader);
