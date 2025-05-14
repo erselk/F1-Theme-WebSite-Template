@@ -1,7 +1,13 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import BlogPageHeader from '@/components/features/blog/BlogPageHeader';
-import BlogContent from '@/components/features/blog/BlogContent';
+import dynamic from 'next/dynamic';
+
+// Dinamik olarak yükleme - sadece ihtiyaç olduğunda
+const BlogContent = dynamic(() => import('@/components/features/blog/BlogContent'), {
+  loading: () => <BlogContentLoading />,
+  ssr: true
+});
 
 export const metadata: Metadata = {
   title: 'Blog | PadokClub',

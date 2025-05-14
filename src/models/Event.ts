@@ -47,7 +47,7 @@ const eventSchema = new Schema({
   description: localizedTextSchema,
   category: {
     type: String,
-    enum: ['workshop', 'meetup', 'conference', 'race', 'other']
+    enum: ['workshop', 'meetup', 'conference', 'race', 'party', 'other']
   },
   // Galeri
   gallery: [String],

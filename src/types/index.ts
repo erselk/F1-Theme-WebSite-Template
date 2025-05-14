@@ -47,7 +47,7 @@ export interface Event {
     tr: string;
     en: string;
   };
-  category: 'workshop' | 'meetup' | 'conference' | 'race' | 'other';
+  category: 'workshop' | 'meetup' | 'conference' | 'race' | 'party' | 'other';
   status?: EventStatus;
   tickets?: {
     id: string;

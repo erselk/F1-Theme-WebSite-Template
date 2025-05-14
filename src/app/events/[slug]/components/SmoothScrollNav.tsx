@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
-import { ScrollbarStyles } from './ScrollbarStyles';
 
 interface NavItem {
   id: string;
@@ -91,7 +90,6 @@ export function SmoothScrollNav({ items }: SmoothScrollNavProps) {
       className={`sticky top-0 z-10 backdrop-blur-md rounded-b-lg shadow-lg border-b border-neon-green/30
         ${isDark ? 'bg-dark-grey/95' : 'bg-gray-100/95'}`}
     >
-      <ScrollbarStyles />
       <ul className="flex items-center overflow-x-auto scrollbar-hide whitespace-nowrap gap-2 px-3 py-3">
         {items.map((item) => (
           <li key={item.id}>

@@ -45,6 +45,11 @@ const mockPrismaClient = {
     update: async () => ({}),
     delete: async () => ({}),
   },
+  contactMessage: {
+    findMany: async () => [],
+    create: async () => ({}),
+    count: async () => 0,
+  },
 };
 
 // Prevent multiple instances of Prisma Client in development
@@ -53,12 +58,16 @@ declare global {
 }
 
 // Veritabanı bağlantısı yoksa mock client kullan
-const useMock = process.env.NODE_ENV === 'production' || !process.env.DATABASE_URL;
+// Eğer DATABASE_URL tanımlanmışsa, gerçek Prisma Client'ı kullan
+const useMock = !process.env.DATABASE_URL; 
 
 // Process environment'ın erişilemediği durumlarda mockPrismaClient'ı kullan
 let prismaClient;
 try {
-  prismaClient = useMock ? mockPrismaClient : new PrismaClient();
+  prismaClient = useMock ? mockPrismaClient : new PrismaClient({
+    log: ['query', 'error', 'warn'],
+  });
+  console.log("Prisma Client bağlantı durumu:", useMock ? "Mock client kullanılıyor" : "Gerçek veritabanına bağlanıldı");
 } catch (error) {
   console.warn('Prisma Client oluşturulamadı, mock client kullanılıyor:', error);
   prismaClient = mockPrismaClient;

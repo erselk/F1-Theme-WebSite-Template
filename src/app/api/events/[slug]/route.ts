@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/mongodb';
-import Event from '@/models/Event';
+import EventModel from '@/models/Event';
 import { getEventStatus } from '@/types';
+import { getEventBySlug } from '@/services/mongo-service';
 
 // Cache kontrollerini ayarla - önbelleğe almayı engelle
 export const dynamic = 'force-dynamic'; // Statik önbelleğe almayı devre dışı bırak
@@ -12,57 +13,24 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   try {
-    // Fix: Await params before using its properties
-    const { slug } = await params;
-    
-    if (!slug) {
-      return NextResponse.json({ 
-        message: 'Etkinlik slug parametresi eksik', 
-        success: false 
-      }, { status: 400 });
-    }
-
-    await connectToDatabase();
-    
-    // Slug'a göre etkinlik getir
-    const event = await Event.findOne({ slug });
+    // Doğrudan MongoDB'den en güncel veriyi alıyoruz
+    const slug = params.slug;
+    const event = await getEventBySlug(slug, { cache: 'no-store' });
     
     if (!event) {
-      return NextResponse.json({ 
-        message: 'Etkinlik bulunamadı', 
-        success: false 
-      }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Etkinlik bulunamadı' },
+        { status: 404 }
+      );
     }
     
-    // Etkinlik durumunu hesapla
-    const status = getEventStatus(event.date);
-    
-    // Etkinlik nesnesini ve ek bilgileri normalize et
-    const eventWithStatus = { 
-      ...event.toObject(), 
-      status,
-      id: event._id.toString(), // MongoDB _id'yi string id'ye çevir
-      tickets: event.tickets || [], // Eğer tickets yoksa boş dizi kullan
-      gallery: event.gallery || [], // Eğer gallery yoksa boş dizi kullan
-    };
-    
-    return NextResponse.json({ 
-      event: eventWithStatus,
-      success: true 
-    }, {
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-      }
-    });
+    return NextResponse.json(event);
   } catch (error) {
-    console.error('Etkinlik verisi getirme hatası:', error);
-    return NextResponse.json({ 
-      message: 'Etkinlik getirilirken bir hata oluştu', 
-      error, 
-      success: false 
-    }, { status: 500 });
+    console.error('API etkinlik getirme hatası:', error);
+    return NextResponse.json(
+      { error: 'Etkinlik verisi getirilirken bir hata oluştu' },
+      { status: 500 }
+    );
   }
 }
 
@@ -72,8 +40,7 @@ export async function PUT(
   { params }: { params: { slug: string } }
 ) {
   try {
-    // Fix: Await params before using its properties
-    const { slug } = await params;
+    const slug = params.slug;
     
     if (!slug) {
       return NextResponse.json({ 
@@ -91,7 +58,7 @@ export async function PUT(
     eventData.slug = slug;
     
     // MongoDB'de etkinliği kontrol et
-    const existingEvent = await Event.findOne({ slug });
+    const existingEvent = await EventModel.findOne({ slug });
     
     if (!existingEvent) {
       return NextResponse.json({ 
@@ -101,7 +68,7 @@ export async function PUT(
     }
 
     // Etkinliği güncelle (yeni özellikler ekleyerek)
-    const updatedEvent = await Event.findOneAndUpdate(
+    const updatedEvent = await EventModel.findOneAndUpdate(
       { slug },
       { $set: eventData },
       { new: true, runValidators: true }
@@ -131,8 +98,7 @@ export async function DELETE(
   { params }: { params: { slug: string } }
 ) {
   try {
-    // Fix: Await params before using its properties
-    const { slug } = await params;
+    const slug = params.slug;
     
     if (!slug) {
       return NextResponse.json({ 
@@ -144,7 +110,7 @@ export async function DELETE(
     await connectToDatabase();
     
     // Etkinliği bul ve sil
-    const result = await Event.findOneAndDelete({ slug });
+    const result = await EventModel.findOneAndDelete({ slug });
     
     if (!result) {
       return NextResponse.json({ 

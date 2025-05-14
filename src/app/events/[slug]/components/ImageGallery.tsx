@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
-import { LanguageType } from '@/lib/ThemeLanguageContext';
+import { LanguageType, useThemeLanguage } from '@/lib/ThemeLanguageContext';
 
 interface ImageGalleryProps {
   images: string[];
@@ -13,6 +13,7 @@ interface ImageGalleryProps {
 export function ImageGallery({ images, title, locale }: ImageGalleryProps) {
   const [activeImage, setActiveImage] = useState<string | null>(images.length > 0 ? images[0] : null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const { isDark } = useThemeLanguage();
 
   // Lightbox açıldığında body scrolling'i devre dışı bırak
   useEffect(() => {
@@ -42,8 +43,8 @@ export function ImageGallery({ images, title, locale }: ImageGalleryProps) {
 
   if (!images.length) {
     return (
-      <div className="text-center p-8 bg-dark-grey/40 rounded-lg border border-dashed border-carbon-grey">
-        <p className="text-silver">
+      <div className={`text-center p-8 border border-dashed ${isDark ? 'bg-dark-grey/80 border-carbon-grey/80' : 'bg-gray-100/80 border-gray-300/80'}`}>
+        <p className={isDark ? 'text-silver' : 'text-gray-600'}>
           {locale === 'tr' ? 'Bu etkinlik için henüz fotoğraf yok.' : 'No photos available for this event yet.'}
         </p>
       </div>
@@ -90,7 +91,7 @@ export function ImageGallery({ images, title, locale }: ImageGalleryProps) {
       {/* Show all photos button if more than grid capacity */}
       {images.length > (gridConfig.cols * gridConfig.rows) && (
         <button 
-          className="w-full mt-3 py-2 text-center bg-dark-grey hover:bg-carbon-grey text-light-grey rounded-lg transition-colors"
+          className={`w-full mt-3 py-2 text-center border ${isDark ? 'bg-dark-grey/80 border-dark-grey/80 text-light-grey' : 'bg-gray-200/80 border-gray-200/80 text-gray-800'} rounded-lg transition-colors`}
           onClick={() => setLightboxOpen(true)}
         >
           {locale === 'tr' 
@@ -102,17 +103,17 @@ export function ImageGallery({ images, title, locale }: ImageGalleryProps) {
       {/* Lightbox */}
       {lightboxOpen && (
         <div 
-          className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
           onClick={() => setLightboxOpen(false)}
         >
           <div 
-            className="max-w-4xl w-full"
+            className={`max-w-4xl w-full p-4 rounded-lg border ${isDark ? 'bg-dark-grey/80 border-gray-700/80' : 'bg-white/80 border-gray-200/80'}`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-end mb-2">
               <button
                 onClick={() => setLightboxOpen(false)}
-                className="text-white hover:text-electric-blue transition-colors"
+                className={`${isDark ? 'text-white hover:text-electric-blue' : 'text-gray-800 hover:text-blue-500'} transition-colors`}
                 aria-label="Close"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -140,7 +141,7 @@ export function ImageGallery({ images, title, locale }: ImageGalleryProps) {
                   <div 
                     key={index} 
                     className={`relative flex-shrink-0 w-24 h-16 cursor-pointer rounded-md overflow-hidden
-                      ${activeImage === img ? 'ring-2 ring-electric-blue' : 'opacity-70 hover:opacity-100'}`}
+                      ${activeImage === img ? 'ring-2 ring-electric-blue/80' : 'opacity-70 hover:opacity-100'}`}
                     onClick={() => setActiveImage(img)}
                   >
                     <Image

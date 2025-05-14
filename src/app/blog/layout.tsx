@@ -1,4 +1,7 @@
-export default function BlogLayout({
+import { memo } from 'react';
+
+// React.memo kullanarak BlogLayout bileşenini optimize et
+const BlogLayout = memo(function BlogLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -8,4 +11,6 @@ export default function BlogLayout({
       {children}
     </div>
   );
-}
+});
+
+export default BlogLayout;

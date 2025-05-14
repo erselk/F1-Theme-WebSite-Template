@@ -1,0 +1,1 @@
+// Bu endpoint artık kullanılmıyor, silindi. 

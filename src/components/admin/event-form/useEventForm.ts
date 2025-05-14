@@ -996,15 +996,29 @@ export default function useEventForm({ event, onSubmit, onCancel }: UseEventForm
         );
       }
       
-      // Ensure the gallery has at least 3 images
-      let gallery = updatedData.gallery || [];
-      if (gallery.length < 3) {
-        const defaultImage = '/images/logouzun.png';
-        const missingCount = 3 - gallery.length;
-        for (let i = 0; i < missingCount; i++) {
-          gallery.push(defaultImage);
-        }
+      // Galeri görsellerini hazırla
+      // Önce default olmayan kullanıcı görsellerini ayır
+      const userGalleryImages = (updatedData.gallery || []).filter(img => 
+        img !== defaultBannerImage && img !== defaultSquareImage
+      );
+      
+      // Kullanıcı görsel sayısına göre varsayılan görselleri ekle
+      let finalGallery = [...userGalleryImages];
+      
+      // Eğer kullanıcı hiç görsel yüklemediyse 3 default görsel ekle
+      if (userGalleryImages.length === 0) {
+        finalGallery = [defaultBannerImage, defaultBannerImage, defaultBannerImage];
+      } 
+      // Eğer kullanıcı 1 görsel yüklediyse, 2 default görsel ekle
+      else if (userGalleryImages.length === 1) {
+        finalGallery.push(defaultBannerImage);
+        finalGallery.push(defaultBannerImage);
       }
+      // Eğer kullanıcı 2 görsel yüklediyse, 1 default görsel ekle
+      else if (userGalleryImages.length === 2) {
+        finalGallery.push(defaultBannerImage);
+      }
+      // Eğer 3 veya daha fazla görsel varsa, sadece kullanıcı görsellerini kullan
       
       // Final data with all fields properly formatted
       updatedData = {
@@ -1012,7 +1026,7 @@ export default function useEventForm({ event, onSubmit, onCancel }: UseEventForm
         slug,
         rules,
         schedule,
-        gallery,
+        gallery: finalGallery,
         date: updatedData.date ? updatedData.date : new Date().toISOString(),
       };
       

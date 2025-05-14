@@ -19,7 +19,11 @@ const ServiceCard = memo(({ emoji, title, description, detail, isDark, imageSrc,
   const [isExpanded, setIsExpanded] = useState(false);
   const { language } = useThemeLanguage();
   const cardRef = useRef<HTMLDivElement>(null);
+  const cardInnerRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [initialAnimDone, setInitialAnimDone] = useState(false);
+  const touchStartX = useRef<number | null>(null);
 
   // Check if screen is mobile
   useEffect(() => {
@@ -39,17 +43,39 @@ const ServiceCard = memo(({ emoji, title, description, detail, isDark, imageSrc,
     };
   }, []);
 
-  // Handle paragraphs with line breaks - correctly parse \n characters
-  const formattedDetail = detail.split('\n\n').map((paragraph, i) => (
-    <p 
-      key={i} 
-      className={`text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed ${
-        isDark ? 'text-light-grey' : 'text-dark-grey'
-      }`}
-    >
-      {paragraph}
-    </p>
-  ));
+  // Initial animation for mobile cards
+  useEffect(() => {
+    if (isMobile && !initialAnimDone && cardInnerRef.current) {
+      // Start animation after a staggered delay based on index
+      const timer = setTimeout(() => {
+        if (cardInnerRef.current) {
+          // Start animation with full 360 rotation
+          cardInnerRef.current.style.transition = 'transform 1.5s ease';
+          cardInnerRef.current.style.transform = 'rotateY(360deg)';
+          
+          // Reset after animation is done
+          const resetTimer = setTimeout(() => {
+            if (cardInnerRef.current) {
+              cardInnerRef.current.style.transition = 'none';
+              cardInnerRef.current.style.transform = 'rotateY(0deg)';
+              
+              // Re-enable transitions after reset
+              setTimeout(() => {
+                if (cardInnerRef.current) {
+                  cardInnerRef.current.style.transition = 'transform 0.7s ease';
+                  setInitialAnimDone(true);
+                }
+              }, 50);
+            }
+          }, 1500);
+          
+          return () => clearTimeout(resetTimer);
+        }
+      }, 300 + index * 200);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isMobile, initialAnimDone, index]);
 
   // This effect handles expanding/collapsing card without affecting the animation
   useEffect(() => {
@@ -87,6 +113,100 @@ const ServiceCard = memo(({ emoji, title, description, detail, isDark, imageSrc,
     }
   };
 
+  // Handle touch start
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (isMobile && initialAnimDone) {
+      touchStartX.current = e.touches[0].clientX;
+    }
+  };
+
+  // Handle touch end
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (isMobile && initialAnimDone && touchStartX.current !== null) {
+      const touchEndX = e.changedTouches[0].clientX;
+      const diffX = touchEndX - touchStartX.current;
+      
+      // If the swipe is significant enough (more than 40px)
+      if (Math.abs(diffX) > 40) {
+        // Herhangi bir yöne kaydırma, mevcut yüzün tersine geçiş yaptırır
+        setIsFlipped(!isFlipped);
+      }
+      
+      // Reset touch start
+      touchStartX.current = null;
+    }
+  };
+
+  // Render card for mobile (flippable with swipe) or desktop
+  if (isMobile) {
+    return (
+      <div
+        ref={cardRef}
+        className="relative min-h-[240px] h-full w-full"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div 
+          ref={cardInnerRef}
+          className={`w-full h-full rounded-xl shadow-lg ${
+            isDark 
+              ? 'bg-graphite shadow-[0_8px_30px_rgb(0,0,0,0.3)]' 
+              : 'bg-white shadow-[0_5px_20px_rgb(0,0,0,0.1)]'
+          }`}
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            transition: 'transform 0.7s ease',
+            perspective: '2000px'
+          }}
+        >
+          {/* Front - Only image and title */}
+          <div 
+            className="absolute w-full h-full rounded-xl overflow-hidden"
+            style={{ backfaceVisibility: 'hidden' }}
+          >
+            <div className="relative h-full w-full">
+              <Image
+                src={imageSrc}
+                alt={title}
+                fill
+                sizes="(max-width: 768px) 100vw"
+                className="object-cover"
+                priority={index < 3}
+              />
+              <div className={`absolute inset-0 bg-gradient-to-t ${
+                isDark ? 'from-black/80 to-transparent' : 'from-black/60 to-transparent'
+              }`}></div>
+              <div className="absolute bottom-4 left-4 text-white">
+                <span className="text-base font-bold font-['Titillium_Web'] leading-tight">{title}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Back - Only short description */}
+          <div 
+            className="absolute w-full h-full rounded-xl overflow-hidden"
+            style={{ 
+              backfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)'
+            }}
+          >
+            <div className={`h-full w-full p-5 flex items-center justify-center ${
+              isDark ? 'bg-graphite text-white' : 'bg-white text-dark-grey'
+            }`}>
+              <p className={`text-sm text-center font-['Inter'] ${
+                isDark ? 'text-light-grey' : 'text-medium-grey'
+              }`}>
+                {description}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop version (original card)
   return (
     <div
       ref={cardRef}
@@ -96,8 +216,8 @@ const ServiceCard = memo(({ emoji, title, description, detail, isDark, imageSrc,
           : 'bg-white shadow-[0_5px_20px_rgb(0,0,0,0.1)]'
       } flex flex-col text-[13px] sm:text-base`}
       style={{ 
-        height: isExpanded && !isMobile ? 'auto' : '', 
-        gridRow: isExpanded && !isMobile ? 'span 2' : '',
+        height: isExpanded ? 'auto' : '', 
+        gridRow: isExpanded ? 'span 2' : '',
         opacity: 1,
         transform: 'translateY(0)' // Apply the transform statically instead of with animation
       }}
@@ -124,53 +244,59 @@ const ServiceCard = memo(({ emoji, title, description, detail, isDark, imageSrc,
         <div className="flex-grow">
           <p className={`text-xs sm:text-sm md:text-base mb-2 sm:mb-3 leading-relaxed font-['Inter'] ${
             isDark ? 'text-silver' : 'text-medium-grey'
-          } ${isMobile || !isExpanded ? 'line-clamp-3' : ''}`}>
+          } ${!isExpanded ? 'line-clamp-3' : ''}`}>
             {description}
           </p>
           
-          {/* Detail area without animation - only show on non-mobile when expanded */}
-          {!isMobile && isExpanded && (
+          {/* Detail area without animation - only show when expanded */}
+          {isExpanded && (
             <div 
               className={`mt-1 sm:mt-2 overflow-hidden ${
                 isDark ? 'text-silver' : 'text-medium-grey'
               }`}
             >
               <div className="space-y-1 sm:space-y-2">
-                {formattedDetail}
+                {detail.split('\n\n').map((paragraph, i) => (
+                  <p 
+                    key={i} 
+                    className={`text-xs mb-2 leading-relaxed ${
+                      isDark ? 'text-light-grey' : 'text-dark-grey'
+                    }`}
+                  >
+                    {paragraph}
+                  </p>
+                ))}
               </div>
             </div>
           )}
         </div>
         
-        {/* Only show button on non-mobile devices */}
-        {!isMobile && (
-          <div className="mt-2 sm:mt-3 md:mt-4">
-            <button
-              onClick={handleToggleExpand}
-              className={`w-full py-1.5 sm:py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium rounded-md transition-all ${
-                isDark 
-                  ? `bg-carbon-grey hover:bg-[#464646] text-white border border-[#4a4a4a]` 
-                  : `bg-light-grey hover:bg-[#e8e8e8] text-dark-grey border border-[#e0e0e0]`
-              } flex items-center justify-center z-10 relative`}
-              aria-expanded={isExpanded}
+        <div className="mt-2 sm:mt-3 md:mt-4">
+          <button
+            onClick={handleToggleExpand}
+            className={`w-full py-1.5 sm:py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium rounded-md transition-all ${
+              isDark 
+                ? `bg-carbon-grey hover:bg-[#464646] text-white border border-[#4a4a4a]` 
+                : `bg-light-grey hover:bg-[#e8e8e8] text-dark-grey border border-[#e0e0e0]`
+            } flex items-center justify-center z-10 relative`}
+            aria-expanded={isExpanded}
+          >
+            <span>
+              {isExpanded 
+                ? (language === 'tr' ? 'Kapat' : 'Close') 
+                : (language === 'tr' ? 'Detaylı Bilgi' : 'View Details')}
+            </span>
+            <svg 
+              className={`ml-1 sm:ml-2 w-3 h-3 sm:w-4 sm:h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24" 
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <span>
-                {isExpanded 
-                  ? (language === 'tr' ? 'Kapat' : 'Close') 
-                  : (language === 'tr' ? 'Detaylı Bilgi' : 'View Details')}
-              </span>
-              <svg 
-                className={`ml-1 sm:ml-2 w-3 h-3 sm:w-4 sm:h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24" 
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-            </button>
-          </div>
-        )}
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   );

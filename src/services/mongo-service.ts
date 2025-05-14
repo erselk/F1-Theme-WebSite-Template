@@ -1,7 +1,11 @@
 'use server';  // This marks the file as server-only code
 
-import { BlogPost, Event, getEventStatus } from '@/types';
+import { BlogPost, Event as EventType, getEventStatus } from '@/types';
 import { MongoClient, Db, ObjectId } from 'mongodb';
+import mongoose from 'mongoose';
+
+// MongoDB modelleri
+import EventModel from '@/models/Event';
 
 // MongoDB connection
 let cachedClient: MongoClient | null = null;
@@ -71,12 +75,13 @@ export async function getBlogBySlug(slug: string): Promise<BlogPost | null> {
   }
 }
 
-export async function getAllEvents(): Promise<Event[]> {
+export async function getAllEvents(): Promise<EventType[]> {
   try {
-    // Use caching instead of 'no-store' to prevent frequent refreshes
+    // Önbelleğe almayı devre dışı bırak
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/events`, {
-      next: {
-        revalidate: 3600 // Cache for 1 hour
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-store, max-age=0'
       }
     });
 
@@ -92,28 +97,39 @@ export async function getAllEvents(): Promise<Event[]> {
   }
 }
 
-export async function getEventBySlug(slug: string): Promise<Event | null> {
+export async function getEventBySlug(
+  slug: string, 
+  options: { cache?: 'force-cache' | 'no-store' } = { cache: 'no-store' }
+): Promise<EventType | null> {
   try {
-    // Use caching instead of 'no-store' to prevent frequent refreshes
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/events/${slug}`, {
-      next: {
-        revalidate: 3600 // Cache for 1 hour
-      }
-    });
-
-    if (!res.ok) {
-      throw new Error('Etkinlik verisini getirirken bir hata oluştu');
+    // MongoDB'ye bağlan
+    await connectToDatabase();
+    
+    // Mongoose modelini kullanarak etkinliği bul
+    const event = await EventModel.findOne({ slug });
+    
+    if (!event) {
+      return null;
     }
-
-    const data = await res.json();
-    return data.event;
+    
+    // Etkinlik nesnesini POJO'ya dönüştür
+    const eventData = event.toObject ? event.toObject() : JSON.parse(JSON.stringify(event));
+    
+    // MongoDB'nin ObjectId'sini string'e dönüştür
+    if (eventData._id) {
+      eventData.id = eventData._id.toString();
+      delete eventData._id;
+    }
+    
+    return eventData as EventType;
+    
   } catch (error) {
-    console.error('Etkinlik verisini getirme hatası:', error);
+    console.error('getEventBySlug hatası:', error);
     return null;
   }
 }
 
-export async function getFeaturedEvents(): Promise<Event[]> {
+export async function getFeaturedEvents(): Promise<EventType[]> {
   try {
     const allEvents = await getAllEvents();
     const featured = allEvents.filter(event => event.isFeatured);
@@ -131,7 +147,7 @@ export async function getFeaturedEvents(): Promise<Event[]> {
   }
 }
 
-export async function getSortedEvents(): Promise<Event[]> {
+export async function getSortedEvents(): Promise<EventType[]> {
   try {
     const events = await getAllEvents();
     return [...events].sort((a, b) => {

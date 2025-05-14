@@ -9,8 +9,16 @@ import { BlogPost } from '@/types';
 export default function BlogPostPage() {
   const { slug } = useParams();
   
-  // SWR ile tek blog verisi çekme
-  const { data, error, isLoading } = useSWRFetch<{ blog: BlogPost, success: boolean }>(`/api/blogs/${slug}`);
+  // SWR ile tek blog verisi çekme - optimize edilmiş ayarlar
+  const { data, error, isLoading } = useSWRFetch<{ blog: BlogPost, success: boolean }>(
+    `/api/blogs/${slug}`,
+    { 
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 300000, // 5 dakika - blog içeriği çok sık değişmez
+    }
+  );
   
   // Sayfa başlığını güncelle
   useEffect(() => {

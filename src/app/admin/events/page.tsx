@@ -120,6 +120,7 @@ export default function EventsListPage() {
       meetup: { tr: 'Buluşma', en: 'Meetup' },
       conference: { tr: 'Konferans', en: 'Conference' },
       race: { tr: 'Yarış', en: 'Race' },
+      party: { tr: 'Parti', en: 'Party' },
       other: { tr: 'Diğer', en: 'Other' }
     };
     

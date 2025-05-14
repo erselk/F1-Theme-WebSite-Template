@@ -17,6 +17,9 @@ importers:
       '@fontsource/inter':
         specifier: ^5.2.5
         version: 5.2.5
+      '@fontsource/noto-sans':
+        specifier: ^5.2.7
+        version: 5.2.7
       '@fontsource/titillium-web':
         specifier: ^5.2.5
         version: 5.2.5
@@ -146,6 +149,9 @@ importers:
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      nodemailer:
+        specifier: ^7.0.3
+        version: 7.0.3
       pnpm:
         specifier: ^10.10.0
         version: 10.10.0
@@ -234,6 +240,9 @@ importers:
       '@types/node':
         specifier: ^20.17.32
         version: 20.17.32
+      '@types/qrcode':
+        specifier: ^1.5.5
+        version: 1.5.5
       '@types/react':
         specifier: ^19.1.2
         version: 19.1.2
@@ -531,6 +540,9 @@ packages:
 
   '@fontsource/inter@5.2.5':
     resolution: {integrity: sha512-kbsPKj0S4p44JdYRFiW78Td8Ge2sBVxi/PIBwmih+RpSXUdvS9nbs1HIiuUSPtRMi14CqLEZ/fbk7dj7vni1Sg==}
+
+  '@fontsource/noto-sans@5.2.7':
+    resolution: {integrity: sha512-mTpMSMft6Nb+ZSF4DSiJVYnLzKCRjHNFieZ/swuxSDQK+v1hjUeDTBxLHKUdfmC+ZPg6TUEWw4oRq2ltnDbSjQ==}
 
   '@fontsource/titillium-web@5.2.5':
     resolution: {integrity: sha512-A8bdnHEIpXcNN4l8lH79pi7hO5QF8TrNcrdrSJr5kHqw4q34H+a7N85MPIuHCeT7nOegL+VSb4A16b7Sv9z4dA==}
@@ -1322,6 +1334,9 @@ packages:
 
   '@types/pbf@3.0.5':
     resolution: {integrity: sha512-j3pOPiEcWZ34R6a6mN07mUkM4o4Lwf6hPNt8eilOeZhTFbxFXmKhvXl9Y28jotFPaI1bpPDJsbCprUoNke6OrA==}
+
+  '@types/qrcode@1.5.5':
+    resolution: {integrity: sha512-CdfBi/e3Qk+3Z/fXYShipBT13OJ2fDO2Q2w5CIP5anLTLIndQG9z6P1cnm+8zCWSpm5dnxMFd/uREtb0EXuQzg==}
 
   '@types/raf@3.4.3':
     resolution: {integrity: sha512-c4YAvMedbPZ5tEyxzQdMoOhhJ4RD3rngZIdwC2/qDN3d7JpEhB6fiBRKVY1lg5B7Wk+uPBjn5f39j1/2MY1oOw==}
@@ -3418,6 +3433,10 @@ packages:
   node-releases@2.0.19:
     resolution: {integrity: sha512-xxOWJsBKtzAq7DY0J+DTzuz58K8e7sJbdgwkbMWQe8UYB6ekmsQ45q0M/tJDsGaZmbC+l7n57UV8Hl5tHxO9uw==}
 
+  nodemailer@7.0.3:
+    resolution: {integrity: sha512-Ajq6Sz1x7cIK3pN6KesGTah+1gnwMnx5gKl3piQlQQE/PwyJ4Mbc8is2psWYxK3RJTVeqsDaCv8ZzXLCDHMTZw==}
+    engines: {node: '>=6.0.0'}
+
   normalize-url@6.1.0:
     resolution: {integrity: sha512-DlL+XwOy3NxAQ8xuC0okPgK46iuVNAK01YN7RueYBqqFeGsBjV9XmCAzAdgt+667bCl5kPh9EqKKDwnaPG1I7A==}
     engines: {node: '>=10'}
@@ -5098,6 +5117,8 @@ snapshots:
 
   '@fontsource/inter@5.2.5': {}
 
+  '@fontsource/noto-sans@5.2.7': {}
+
   '@fontsource/titillium-web@5.2.5': {}
 
   '@heroicons/react@2.2.0(react@19.1.0)':
@@ -5894,6 +5915,10 @@ snapshots:
   '@types/offscreencanvas@2019.7.3': {}
 
   '@types/pbf@3.0.5': {}
+
+  '@types/qrcode@1.5.5':
+    dependencies:
+      '@types/node': 20.17.32
 
   '@types/raf@3.4.3':
     optional: true
@@ -8200,6 +8225,8 @@ snapshots:
       whatwg-url: 5.0.0
 
   node-releases@2.0.19: {}
+
+  nodemailer@7.0.3: {}
 
   normalize-url@6.1.0: {}
 

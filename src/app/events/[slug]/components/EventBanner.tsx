@@ -3,8 +3,15 @@
 import React from 'react';
 import Image from 'next/image';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
-import { CountdownTimer } from './CountdownTimer';
-import { SocialShare } from './SocialShare';
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+import { getThemeColors, getCategoryTranslation } from '@/lib/ThemeColors';
+import { SocialSharePlaceholder } from '@/components/LoadingPlaceholders';
+
+// Lazy load SocialShare bileşeni
+const SocialShare = dynamic(() => import('./SocialShare'), {
+  loading: () => <SocialSharePlaceholder />
+});
 
 interface EventBannerProps {
   event: any;
@@ -14,6 +21,15 @@ interface EventBannerProps {
 
 export function EventBanner({ event, eventStatus, pageUrl }: EventBannerProps) {
   const { language, isDark } = useThemeLanguage();
+  
+  // Tema renklerini getThemeColors yardımcı fonksiyonuyla alalım
+  const {
+    headingColorClass,
+    textColorClass,
+    accentColorClass,
+    categoryTextClass,
+    categoryBgClass
+  } = getThemeColors(isDark);
   
   // Helper function to check if a date is valid
   const isValidDate = (date: any): boolean => {
@@ -67,15 +83,6 @@ export function EventBanner({ event, eventStatus, pageUrl }: EventBannerProps) {
   // Get translations for current language
   const t = translations[language];
   
-  // Enhanced text color classes based on theme - using exact hex codes from ContactContent.tsx
-  const textColorClass = isDark ? 'text-white font-medium' : 'text-very-dark-grey font-medium';
-  const headingColorClass = isDark ? 'text-white' : 'text-very-dark-grey';
-  const accentColorClass = isDark ? 'text-electric-blue' : 'text-neon-red';
-  
-  // Use the same color scheme as in ContactContent.tsx for category badge
-  const categoryTextClass = 'text-white';  // Always keep text white for better contrast
-  const categoryBgClass = isDark ? 'bg-[#00D766]' : 'bg-[#00A14B]';  // Green like in ContactContent
-  
   return (
     <div className="relative w-full aspect-video overflow-hidden">
       {/* Banner görseli */}
@@ -100,50 +107,63 @@ export function EventBanner({ event, eventStatus, pageUrl }: EventBannerProps) {
         } backdrop-blur-[1px]`}
       ></div>
       
+      {/* Kategori badge - sol üst köşede (sadece mobil görünümde) */}
+      <div className="absolute top-3 left-3 md:hidden">
+        <span className={`${categoryBgClass} ${categoryTextClass} px-2 py-0.5 rounded-full text-[10px] font-medium`}>
+          {getCategoryTranslation(event.category, language)}
+        </span>
+      </div>
+      
       {/* İçerik katmanı */}
       <div className="absolute inset-0 flex items-end">
-        <div className="container mx-auto p-4 md:p-8 pl-4 sm:pl-8 md:pl-24">
+        <div className="container mx-auto p-3 md:p-8 pl-3 sm:pl-8 md:pl-24">
           {/* Etkinlik durum göstergesi ve geri sayım */}
-          <div className="flex flex-wrap items-center gap-3 mb-3">
+          <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-2 md:mb-3">
             {eventStatus === 'upcoming' && (
               <>
-                <span className="bg-neon-green text-very-dark-grey px-3 py-1 rounded-full text-sm font-medium">
+                <span className="bg-neon-green text-very-dark-grey px-1.5 py-0.5 rounded-full text-[10px] font-medium inline-block min-w-[30px] text-center whitespace-nowrap">
                   {t.upcoming}
                 </span>
-                <CountdownTimer targetDate={event.date} locale={language} />
               </>
             )}
+            {eventStatus === 'this-month' && (
+              <span className="bg-neon-green text-very-dark-grey px-1.5 py-0.5 rounded-full text-[10px] font-medium inline-block min-w-[30px] text-center whitespace-nowrap">
+                {language === 'tr' ? 'Bu Ay' : 'This Month'}
+              </span>
+            )}
             {eventStatus === 'ongoing' && (
-              <span className="bg-electric-blue text-white px-3 py-1 rounded-full text-sm font-medium">
+              <span className="bg-electric-blue text-white px-1.5 py-0.5 rounded-full text-[10px] font-medium inline-block min-w-[30px] text-center whitespace-nowrap">
                 {t.ongoing}
               </span>
             )}
             {eventStatus === 'past' && (
-              <span className="bg-carbon-grey text-light-grey px-3 py-1 rounded-full text-sm font-medium">
+              <span className="bg-carbon-grey text-light-grey px-1.5 py-0.5 rounded-full text-[10px] font-medium inline-block min-w-[30px] text-center whitespace-nowrap">
                 {t.past}
               </span>
             )}
           </div>
 
           {/* Başlık */}
-          <h1 className={`text-3xl md:text-5xl font-bold mb-3 drop-shadow-lg ${headingColorClass}`}>
+          <h1 className={`text-2xl md:text-5xl font-bold mb-1 md:mb-3 drop-shadow-lg ${headingColorClass}`}>
             {event.title[language]}
           </h1>
 
           {/* Etiketler */}
-          <div className="flex flex-wrap gap-4 mb-5">
-            <div className="flex flex-col items-start">
+          <div className="flex flex-wrap gap-2 md:gap-4 mb-1 md:mb-5">
+            {/* Kategori - sadece desktop görünümde */}
+            <div className="hidden md:flex flex-col items-start">
               <span className={`text-xs mb-1 ${accentColorClass}`}>
                 {t.category}:
               </span>
               <p className="flex items-center text-sm">
                 <span className={`${categoryBgClass} ${categoryTextClass} px-3 py-1 rounded-full font-medium`}>
-                  {typeof event.category === 'object' ? event.category[language] : event.category}
+                  {getCategoryTranslation(event.category, language)}
                 </span>
               </p>
             </div>
             
-            <div className="flex flex-col items-start">
+            {/* Tarih - sadece desktop görünümde */}
+            <div className="hidden md:flex flex-col items-start">
               <span className={`text-xs mb-1 ${accentColorClass}`}>
                 {t.date}:
               </span>
@@ -155,7 +175,8 @@ export function EventBanner({ event, eventStatus, pageUrl }: EventBannerProps) {
               </p>
             </div>
             
-            <div className="flex flex-col items-start">
+            {/* Konum - sadece desktop görünümde */}
+            <div className="hidden md:flex flex-col items-start">
               <span className={`text-xs mb-1 ${accentColorClass}`}>
                 {t.location}:
               </span>
@@ -169,8 +190,10 @@ export function EventBanner({ event, eventStatus, pageUrl }: EventBannerProps) {
           </div>
 
           {/* Sosyal medya paylaşım butonları */}
-          <div className="flex flex-wrap items-center gap-2 text-sm mt-4">
-            <SocialShare url={pageUrl} title={event.title[language]} locale={language} />
+          <div className="flex flex-wrap items-center gap-0.5 md:gap-2 text-xs md:text-sm mt-0.5 md:mt-4">
+            <Suspense fallback={<SocialSharePlaceholder />}>
+              <SocialShare url={pageUrl} title={event.title[language]} locale={language} />
+            </Suspense>
           </div>
         </div>
       </div>

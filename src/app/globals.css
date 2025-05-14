@@ -218,3 +218,30 @@ body, p, li, a {
 .transition-smooth {
   transition: all 0.3s ease;
 }
+
+/* Custom scrollbar styles for dark theme */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #2B2B2B; /* graphite */
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #444444; /* carbon-grey */
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #00CCFF; /* electric-blue */
+}
+
+/* Firefox scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #444444 #2B2B2B; /* thumb track */
+}

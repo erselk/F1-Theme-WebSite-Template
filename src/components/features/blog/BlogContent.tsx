@@ -1,22 +1,33 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, Suspense } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
 import { useSearchParams } from "next/navigation";
 import { BlogPost } from "@/types";
 import useSWRFetch from "@/hooks/useSWRFetch";
+import { BLOG_CATEGORIES, ITEMS_PER_PAGE } from "@/constants/blog";
+import { blogTranslations } from "@/translations/blog";
+import BlogCard from "./BlogCard";
 
 // SearchParams hook'unu kullanan bir bileşen oluşturarak Suspense ile sarmalayacağız
 const BlogContentWithSearch: React.FC = () => {
   const { language, isDark } = useThemeLanguage();
+  const translations = blogTranslations[language];
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [activeAuthor, setActiveAuthor] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const searchParams = useSearchParams();
   
-  // SWR ile blog verilerini çek
-  const { data, error, isLoading, mutate } = useSWRFetch<{ blogs: BlogPost[], success: boolean }>('/api/blogs');
+  // SWR ile blog verilerini çek - optimize edilmiş ayarlar
+  const { data, error, isLoading, mutate } = useSWRFetch<{ blogs: BlogPost[], success: boolean }>(
+    '/api/blogs',
+    { 
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 60000, // 1 dakika
+    }
+  );
   
   // Set active filters from URL query parameters if present
   useEffect(() => {
@@ -29,17 +40,10 @@ const BlogContentWithSearch: React.FC = () => {
     if (authorParam) {
       setActiveAuthor(authorParam);
     }
+    
+    // Sayfa değiştiğinde, sayfa numarasını sıfırla
+    setPage(1);
   }, [searchParams]);
-
-  // Categories
-  const categories = [
-    { id: "all", name: { tr: "Tümü", en: "All" } },
-    { id: "f1", name: { tr: "Formula 1", en: "Formula 1" } },
-    { id: "technology", name: { tr: "Teknoloji", en: "Technology" } },
-    { id: "events", name: { tr: "Etkinlikler", en: "Events" } },
-    { id: "interviews", name: { tr: "Röportajlar", en: "Interviews" } },
-    { id: "other", name: { tr: "Diğer", en: "Other" } }
-  ];
 
   // Sort blogs by date (newest to oldest) and filter by category and/or author
   const filteredBlogs = useMemo(() => {
@@ -59,6 +63,16 @@ const BlogContentWithSearch: React.FC = () => {
     });
   }, [activeCategory, activeAuthor, data?.blogs]);
   
+  // Sayfalandırılmış blogları al
+  const paginatedBlogs = useMemo(() => {
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filteredBlogs.slice(startIndex, endIndex);
+  }, [filteredBlogs, page]);
+  
+  // Toplam sayfa sayısını hesapla
+  const totalPages = Math.ceil(filteredBlogs.length / ITEMS_PER_PAGE);
+  
   // Format date based on language
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -73,6 +87,7 @@ const BlogContentWithSearch: React.FC = () => {
   // Handle clearing author filter
   const clearAuthorFilter = () => {
     setActiveAuthor(null);
+    setPage(1);
   };
 
   // Verileri manuel olarak yenileme fonksiyonu
@@ -80,20 +95,28 @@ const BlogContentWithSearch: React.FC = () => {
     mutate(); // SWR'nin mutate fonksiyonu ile verileri yenile
   };
 
+  // Daha fazla göster butonuna tıklandığında sayfayı artır
+  const handleShowMore = () => {
+    setPage(prevPage => prevPage + 1);
+  };
+
+  // Kategori adını bul
+  const getCategoryName = (categoryId: string) => {
+    return BLOG_CATEGORIES.find(c => c.id === categoryId)?.name[language] || categoryId;
+  };
+
   // Eğer hata varsa, hata durumu göster
   if (error) {
     return (
       <div className="text-center py-8">
         <p className="text-red-500 mb-4">
-          {language === 'tr' 
-            ? 'Blog içeriklerini yüklerken bir hata oluştu.' 
-            : 'An error occurred while loading blog content.'}
+          {translations.loadingError}
         </p>
         <button 
           onClick={refreshData}
           className={`px-4 py-2 rounded ${isDark ? 'bg-neon-red' : 'bg-f1-red'} text-white`}
         >
-          {language === 'tr' ? 'Tekrar Dene' : 'Try Again'}
+          {translations.tryAgain}
         </button>
       </div>
     );
@@ -106,25 +129,15 @@ const BlogContentWithSearch: React.FC = () => {
 
   return (
     <div className="mb-12 sm:mb-16 px-2 sm:px-4 md:px-8 lg:px-12 text-[13px] sm:text-base">
-      {/* Yenileme butonu */}
-      <div className="flex justify-end mb-4">
-        <button 
-          onClick={refreshData}
-          className="text-xs sm:text-sm text-medium-grey dark:text-silver hover:underline flex items-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          {language === 'tr' ? 'Yenile' : 'Refresh'}
-        </button>
-      </div>
-      
       {/* Category filters */}
       <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8 justify-center">
-        {categories.map((category) => (
+        {BLOG_CATEGORIES.map((category) => (
           <button
             key={category.id}
-            onClick={() => setActiveCategory(category.id)}
+            onClick={() => {
+              setActiveCategory(category.id);
+              setPage(1); // Kategori değiştiğinde sayfa sıfırlanmalı
+            }}
             className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all text-xs sm:text-base font-medium ${
               activeCategory === category.id
                 ? isDark
@@ -134,6 +147,7 @@ const BlogContentWithSearch: React.FC = () => {
                   ? 'bg-graphite text-silver hover:bg-graphite/80 border-2 border-transparent'
                   : 'bg-very-light-grey text-medium-grey hover:bg-light-grey border-2 border-transparent'
             }`}
+            aria-pressed={activeCategory === category.id}
           >
             {category.name[language]}
           </button>
@@ -145,12 +159,12 @@ const BlogContentWithSearch: React.FC = () => {
         <div className="flex items-center justify-center mb-4 sm:mb-6">
           <div className={`inline-flex items-center px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm text-white ${isDark ? 'bg-graphite' : 'bg-medium-grey'}`}>
             <span className="mr-1 sm:mr-2">
-              {language === 'tr' ? 'Yazar:' : 'Author:'} {activeAuthor}
+              {translations.author} {activeAuthor}
             </span>
             <button 
               onClick={clearAuthorFilter}
               className="hover:text-light-grey"
-              aria-label={language === 'tr' ? 'Yazar filtresini kaldır' : 'Clear author filter'}
+              aria-label={translations.clearAuthorFilter}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -172,76 +186,46 @@ const BlogContentWithSearch: React.FC = () => {
           </div>
           <h3 className="text-lg sm:text-xl font-bold font-titillium-web mb-2">
             {activeAuthor 
-              ? language === 'tr' 
-                ? `${activeAuthor} tarafından yazılmış blog bulunamadı` 
-                : `No blogs found written by ${activeAuthor}`
-              : language === 'tr' 
-                ? 'Bu kategoride blog bulunamadı' 
-                : 'No blogs found in this category'
+              ? `${activeAuthor} ${translations.noBlogsFoundByAuthor}`
+              : translations.noBlogsFoundInCategory
             }
           </h3>
           <p className="text-xs sm:text-base text-medium-grey dark:text-silver max-w-md mx-auto mb-6 sm:mb-8">
-            {language === 'tr' 
-              ? 'Lütfen farklı bir kategori seçin veya daha sonra tekrar kontrol edin.' 
-              : 'Please select a different category or check back later.'}
+            {translations.selectDifferentCategory}
           </p>
         </div>
       ) : (
-        /* Blog grid layout - adjusted to ensure minimum 2 cards per row on all screens */
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8">
-          {filteredBlogs.map((blog) => (
-            <div key={blog.id} className="group">
-              <Link href={`/blog/${blog.slug}`} className="block">
-                <div className="relative aspect-video overflow-hidden rounded-lg mb-2 sm:mb-3">
-                  <Image 
-                    src={blog.thumbnailImage} 
-                    alt={blog.title[language]} 
-                    fill 
-                    sizes="(max-width: 640px) 50vw, (min-width: 641px) and (max-width: 1023px) 50vw, (min-width: 1024px) and (max-width: 1279px) 33vw, 25vw"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-                
-                <div className="space-y-1 sm:space-y-1.5">
-                  <div className="flex items-center text-[10px] sm:text-xs text-medium-grey dark:text-silver">
-                    <span>{formatDate(blog.publishDate)}</span>
-                    <span className="mx-1 sm:mx-1.5">•</span>
-                    <span className="capitalize">{categories.find(c => c.id === blog.category)?.name[language]}</span>
-                  </div>
-                  
-                  <h3 className={`text-sm sm:text-base md:text-lg font-semibold font-titillium-web line-clamp-2 transition-colors ${isDark ? 'group-hover:text-neon-red' : 'group-hover:text-f1-red'}`}>
-                    {blog.title[language]}
-                  </h3>
-                  
-                  <p className="text-[10px] sm:text-xs text-medium-grey dark:text-silver line-clamp-2">
-                    {blog.excerpt[language]}
-                  </p>
-                  
-                  <div className="flex items-center pt-1 sm:pt-1.5">
-                    <div 
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent triggering the parent link
-                        window.location.href = `/blog?author=${encodeURIComponent(blog.author.name)}`;
-                      }}
-                      className="flex items-center group cursor-pointer"
-                    >
-                      <div className="relative w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full overflow-hidden mr-1.5 sm:mr-2">
-                        {blog.author.avatar ? (
-                          <Image src={blog.author.avatar} alt={blog.author.name} fill className="object-cover" />
-                        ) : (
-                          <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-graphite text-silver' : 'bg-light-grey text-dark-grey'}`}>
-                            {blog.author.name.charAt(0)}
-                          </div>
-                        )}
-                      </div>
-                      <span className="text-[10px] sm:text-xs font-medium group-hover:underline">{blog.author.name}</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
+        /* Blog grid layout ve pagination */
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8">
+            {paginatedBlogs.map((blog) => (
+              <BlogCard 
+                key={blog.id}
+                blog={blog}
+                language={language}
+                isDark={isDark}
+                formatDate={formatDate}
+                categoryName={getCategoryName(blog.category)}
+              />
+            ))}
+          </div>
+          
+          {/* "Daha Fazla Göster" butonu - sadece gösterilecek daha fazla blog varsa */}
+          {page < totalPages && (
+            <div className="flex justify-center mt-8 sm:mt-12">
+              <button
+                onClick={handleShowMore}
+                className={`px-5 py-2 rounded-full text-sm sm:text-base font-medium transition-colors ${
+                  isDark
+                    ? 'bg-graphite text-silver hover:bg-graphite/80'
+                    : 'bg-very-light-grey text-medium-grey hover:bg-light-grey'
+                }`}
+              >
+                {translations.showMore}
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { EventCard } from './EventCard';
 import { EventFilter, EventFilters } from './EventFilter';
 import { EventBanner } from './EventBanner';
@@ -12,9 +12,11 @@ export function EventList() {
   const { language } = useThemeLanguage();
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [currentFilters, setCurrentFilters] = useState<EventFilters>({});
-
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  
   // SWR ile etkinlik verilerini çek
-  const { data: eventsData, error: eventsError, isLoading: eventsLoading, mutate: refreshEvents } = 
+  const { data: eventsData, error: eventsError, isLoading: eventsLoading } = 
     useSWRFetch<{ events: Event[], success: boolean }>('/api/events');
   
   // SWR ile öne çıkan etkinlikleri çek
@@ -29,6 +31,30 @@ export function EventList() {
       const currentStatus = getEventStatus(event.date);
       return { ...event, status: currentStatus };
     });
+  }, []);
+
+  // IntersectionObserver ile bileşenin görünürlüğünü izle
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setIsVisible(true);
+        } else {
+          setIsVisible(false);
+        }
+      },
+      { threshold: 0.1 } // %10'u görünür olduğunda tetikle
+    );
+
+    if (listRef.current) {
+      observer.observe(listRef.current);
+    }
+
+    return () => {
+      if (listRef.current) {
+        observer.unobserve(listRef.current);
+      }
+    };
   }, []);
 
   // Etkinliklere filtre uygula
@@ -59,40 +85,36 @@ export function EventList() {
         result = result.filter(event => event.status === currentFilters.status);
       }
       
-      // Özel sıralama: Şu anki saatten geleceğe ve sonra geçmişe doğru sırala
+      // Optimize edilmiş sıralama mantığı
       const now = new Date();
-      const futureEvents = result
-        .filter(event => new Date(event.date) >= now)
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      
-      const pastEvents = result
-        .filter(event => new Date(event.date) < now)
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      
-      // Önce gelecek sonra geçmiş etkinlikler
-      result = [...futureEvents, ...pastEvents];
+      result.sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        const nowTime = now.getTime();
+        
+        // Önce gelecek-geçmiş durumunu karşılaştır
+        const aIsFuture = dateA >= nowTime;
+        const bIsFuture = dateB >= nowTime;
+        
+        if (aIsFuture !== bIsFuture) {
+          return aIsFuture ? -1 : 1; // Gelecek etkinlikler önce
+        }
+        
+        // Aynı durumda iseler (ikisi de gelecek veya geçmiş)
+        if (aIsFuture) {
+          return dateA - dateB; // Gelecek etkinlikler için kronolojik
+        } else {
+          return dateB - dateA; // Geçmiş etkinlikler için ters kronolojik
+        }
+      });
       
       setFilteredEvents(result);
     }
   }, [eventsData, currentFilters, language, updateEventStatuses]);
 
-  // Her dakikada bir durum güncelle
-  useEffect(() => {
-    const statusInterval = setInterval(() => {
-      setFilteredEvents(prev => updateEventStatuses(prev));
-    }, 60000); // Her dakika güncelle
-
-    return () => clearInterval(statusInterval);
-  }, [updateEventStatuses]);
-
   // Filtreleme değişiklikleri
   const handleFilterChange = (filters: EventFilters) => {
     setCurrentFilters(filters);
-  };
-
-  // Verileri yenile
-  const handleRefresh = () => {
-    refreshEvents();
   };
 
   // Hata mesajı
@@ -104,12 +126,11 @@ export function EventList() {
             ? 'Etkinlikleri yüklerken bir hata oluştu.' 
             : 'An error occurred while loading events.'}
         </p>
-        <button 
-          onClick={handleRefresh}
-          className="px-4 py-2 rounded bg-red-500 text-white"
-        >
-          {language === 'tr' ? 'Tekrar Dene' : 'Try Again'}
-        </button>
+        <p className="text-sm text-gray-600">
+          {language === 'tr' 
+            ? 'Lütfen sayfayı yenileyin veya daha sonra tekrar deneyin.' 
+            : 'Please refresh the page or try again later.'}
+        </p>
       </div>
     );
   }
@@ -119,27 +140,14 @@ export function EventList() {
     return <EventListSkeleton />;
   }
 
-  // Öne çıkan etkinlikleri hazırla
+  // Öne çıkan etkinlikleri hazırla - geçmiş etkinlikleri filtreleyerek
   const featuredEvents = featuredData?.events 
-    ? updateEventStatuses(featuredData.events)
+    ? updateEventStatuses(featuredData.events).filter(event => event.status !== 'past')
     : [];
 
   return (
-    <div className="space-y-4 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">
-      {/* Yenileme butonu */}
-      <div className="flex justify-end">
-        <button 
-          onClick={handleRefresh}
-          className="text-xs sm:text-sm text-medium-grey dark:text-silver hover:underline flex items-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          {language === 'tr' ? 'Yenile' : 'Refresh'}
-        </button>
-      </div>
-      
-      {/* Featured Events Banner */}
+    <div ref={listRef} className="space-y-4 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">
+      {/* Featured Events Banner - sadece geçmiş OLMAYAN etkinlikleri göster */}
       {featuredEvents.length > 0 && <EventBanner events={featuredEvents} />}
       
       {/* Filters */}
@@ -172,11 +180,6 @@ export function EventList() {
 function EventListSkeleton() {
   return (
     <div className="space-y-4 px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">
-      {/* Yükleme animasyonu */}
-      <div className="flex justify-end">
-        <div className="w-16 h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
-      </div>
-      
       {/* Banner Loading Skeleton - 16:9 aspect ratio */}
       <div className="w-full aspect-video bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse" />
       

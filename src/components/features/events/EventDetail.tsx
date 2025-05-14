@@ -26,9 +26,8 @@ export function EventDetail({ event: initialEvent }: EventDetailProps) {
 
     // Update status immediately and then every minute
     updateEventStatus();
-    const statusInterval = setInterval(updateEventStatus, 60000); // 60 seconds
     
-    return () => clearInterval(statusInterval);
+    // Otomatik güncelleme kaldırıldı - sayfa yavaşlamaması için
   }, [initialEvent.date, event.status]);
   
   const getStatusLabel = () => {
@@ -48,6 +47,7 @@ export function EventDetail({ event: initialEvent }: EventDetailProps) {
       case 'meetup': return language === 'tr' ? 'Buluşma' : 'Meetup';
       case 'conference': return language === 'tr' ? 'Konferans' : 'Conference';
       case 'race': return language === 'tr' ? 'Yarış' : 'Race';
+      case 'party': return language === 'tr' ? 'Parti' : 'Party';
       case 'other': return language === 'tr' ? 'Diğer' : 'Other';
       default: return '';
     }
@@ -116,7 +116,10 @@ export function EventDetail({ event: initialEvent }: EventDetailProps) {
           
           {/* Status Badge */}
           <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-medium shadow-md ${getStatusColor()}`}>
-            {getStatusLabel()}
+            {/* "upcoming" yazısı için inline stil eklendi */}
+            <span className="inline-block">
+              {getStatusLabel()}
+            </span>
           </div>
           
           {/* Price Badge - Hide for past events */}

@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { Event } from '@/data/events';
 import { formatEventDate } from '@/data/events';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
+import React from 'react';
 
 type EventCardProps = {
   event: Event;
 };
 
-export function EventCard({ event }: EventCardProps) {
+// React.memo ile sarmalayarak gereksiz yeniden render'ları önleme
+export const EventCard = React.memo(function EventCard({ event }: EventCardProps) {
   const { language, isDark } = useThemeLanguage();
   
   const { 
@@ -50,7 +52,7 @@ export function EventCard({ event }: EventCardProps) {
 
   // Status label styles - Fiyat badge'i ile aynı stil
   const getStatusClasses = () => {
-    const baseClasses = "absolute top-2 left-2 md:top-4 md:left-4 px-1.5 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-medium z-10 shadow-md";
+    const baseClasses = "absolute top-2 left-2 md:top-4 md:left-4 px-1 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[10px] font-medium z-10 shadow-sm";
     
     if (status === 'past') {
       return `${baseClasses} bg-gray-400 text-white`;
@@ -68,8 +70,22 @@ export function EventCard({ event }: EventCardProps) {
       case 'today': return language === 'tr' ? 'Bugün' : 'Today';
       case 'tomorrow': return language === 'tr' ? 'Yarın' : 'Tomorrow';
       case 'this-week': return language === 'tr' ? 'Bu Hafta' : 'This Week';
+      case 'this-month': return language === 'tr' ? 'Bu Ay' : 'This Month';
       case 'upcoming': return language === 'tr' ? 'Yakında' : 'Upcoming';
       case 'past': return language === 'tr' ? 'Geçmiş Etkinlik' : 'Past Event';
+      default: return 'Status: ' + status; // Hata ayıklama için status değerini gösterelim
+    }
+  };
+
+  // Kategori label fonksiyonu
+  const getCategoryLabel = () => {
+    switch (event.category) {
+      case 'workshop': return language === 'tr' ? 'Atölye Çalışması' : 'Workshop';
+      case 'meetup': return language === 'tr' ? 'Buluşma' : 'Meetup';
+      case 'conference': return language === 'tr' ? 'Konferans' : 'Conference';
+      case 'race': return language === 'tr' ? 'Yarış' : 'Race';
+      case 'party': return language === 'tr' ? 'Parti' : 'Party';
+      case 'other': return language === 'tr' ? 'Diğer' : 'Other';
       default: return '';
     }
   };
@@ -116,12 +132,15 @@ export function EventCard({ event }: EventCardProps) {
         <div className="relative aspect-square">
           {/* Status Badge */}
           <div className={getStatusClasses()}>
-            {getStatusLabel()}
+            {/* Daha kompakt badge stillemesi */}
+            <span className="inline-block min-w-[30px] text-center whitespace-nowrap">
+              {getStatusLabel()}
+            </span>
           </div>
           
           {/* Price Badge - Geçmiş etkinlikler için gösterme */}
           {status !== 'past' && (
-            <div className={`absolute top-2 right-2 md:top-4 md:right-4 px-1.5 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-bold z-10 shadow-md ${
+            <div className={`absolute top-2 right-2 md:top-4 md:right-4 px-1 py-0.5 md:px-2 md:py-0.5 rounded-full text-[8px] md:text-[10px] font-bold z-10 shadow-sm ${
               isDark 
                 ? 'bg-[#FF0000]/70 text-white shadow-[#FF0000]/30 border border-[#FF0000]/50' 
                 : 'bg-[#E10600]/70 text-white shadow-[#E10600]/30 border border-[#E10600]/50'
@@ -182,4 +201,4 @@ export function EventCard({ event }: EventCardProps) {
       </div>
     </Link>
   );
-}
+});

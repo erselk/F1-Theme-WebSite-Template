@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
+import React from 'react';
 
 export interface EventFilters {
   search: string;
@@ -13,7 +14,8 @@ interface EventFilterProps {
   onFilterChange: (filters: EventFilters) => void;
 }
 
-export function EventFilter({ onFilterChange }: EventFilterProps) {
+// React.memo ile sarmalayarak gereksiz yeniden render'ları önleme
+export const EventFilter = React.memo(function EventFilter({ onFilterChange }: EventFilterProps) {
   const { language, isDark } = useThemeLanguage();
   const [filters, setFilters] = useState<EventFilters>({
     search: '',
@@ -146,6 +148,9 @@ export function EventFilter({ onFilterChange }: EventFilterProps) {
                 <option value="race">
                   {language === 'tr' ? 'Yarış' : 'Race'}
                 </option>
+                <option value="party">
+                  {language === 'tr' ? 'Parti' : 'Party'}
+                </option>
                 <option value="other">
                   {language === 'tr' ? 'Diğer' : 'Other'}
                 </option>
@@ -204,4 +209,4 @@ export function EventFilter({ onFilterChange }: EventFilterProps) {
       </div>
     </div>
   );
-}
+});

@@ -49,29 +49,65 @@ export function EventBanner({ events }: EventBannerProps) {
               fill
               className="object-cover"
               priority={index === currentSlide}
+              loading={index === currentSlide ? "eager" : "lazy"}
             />
-            <div className={`absolute inset-0 ${isDark ? 'bg-gradient-to-t from-graphite via-transparent to-transparent' : 'bg-gradient-to-t from-dark-grey/70 via-transparent to-transparent'}`}></div>
-            <div className="absolute bottom-0 left-0 right-0 p-3 md:p-6 text-white">
-              <div className={`inline-block px-2 py-1 mb-2 md:px-3 md:py-1 md:mb-3 text-xs md:text-sm rounded-full shadow-md ${
-                isDark 
-                  ? 'bg-neon-red shadow-neon-red/20' 
-                  : 'bg-f1-red shadow-f1-red/20'
-              }`}>
-                {event.status === 'today' && (language === 'tr' ? 'Bugün' : 'Today')}
-                {event.status === 'tomorrow' && (language === 'tr' ? 'Yarın' : 'Tomorrow')}
-                {event.status === 'this-week' && (language === 'tr' ? 'Bu Hafta' : 'This Week')}
-                {event.status === 'upcoming' && (language === 'tr' ? 'Yakında' : 'Upcoming')}
-                {event.status === 'past' && (language === 'tr' ? 'Geçmiş Etkinlik' : 'Past Event')}
+            {/* Tema bazlı filigran (gradyan overlay) */}
+            <div 
+              className="absolute inset-0"
+              style={{ 
+                background: isDark 
+                  ? 'linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.4) 90%)'
+                  : 'linear-gradient(to top, rgba(255,255,255,0.7), rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 90%)'
+              }}
+            ></div>
+            <div className="absolute bottom-0 left-0 right-0 p-3 md:p-6">
+              {/* Durum etiketi - renkler düzeltildi */}
+              <div 
+                className="inline-block px-2 py-1 mb-2 md:px-3 md:py-1.5 md:mb-3 text-xs md:text-sm rounded-full shadow-md text-white font-medium border-2"
+                style={{ 
+                  backgroundColor: isDark ? 'var(--f1-red)' : 'var(--f1-red)',
+                  borderColor: isDark ? 'var(--f1-red)' : 'var(--f1-red)'
+                }}
+              >
+                <span className="inline-block min-w-[40px] text-center whitespace-nowrap font-semibold">
+                  {event.status === 'today' 
+                    ? (language === 'tr' ? 'Bugün' : 'Today')
+                    : event.status === 'tomorrow'
+                    ? (language === 'tr' ? 'Yarın' : 'Tomorrow')
+                    : event.status === 'this-week'
+                    ? (language === 'tr' ? 'Bu Hafta' : 'This Week')
+                    : event.status === 'this-month'
+                    ? (language === 'tr' ? 'Bu Ay' : 'This Month')
+                    : event.status === 'upcoming'
+                    ? (language === 'tr' ? 'Yakında' : 'Upcoming')
+                    : event.status === 'past'
+                    ? (language === 'tr' ? 'Geçmiş Etkinlik' : 'Past Event')
+                    : 'Status: ' + event.status
+                  }
+                </span>
               </div>
-              <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-1 md:mb-2 drop-shadow-lg truncate">{event.title[language]}</h2>
-              <p className="text-xs sm:text-sm md:text-base mb-2 md:mb-4 max-w-2xl drop-shadow-md line-clamp-2 md:line-clamp-3">{event.description[language]}</p>
+              {/* Başlık - light temada siyah, dark temada beyaz */}
+              <h2 
+                className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-extrabold mb-2 md:mb-4 drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)] truncate"
+                style={{ color: isDark ? 'white' : 'var(--dark-grey)' }}
+              >
+                {event.title[language]}
+              </h2>
+              {/* Açıklama - light temada siyah, dark temada beyaz */}
+              <p 
+                className="text-xs sm:text-sm md:text-base mb-4 md:mb-6 max-w-2xl font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] line-clamp-2 md:line-clamp-3"
+                style={{ color: isDark ? 'white' : 'var(--dark-grey)' }}
+              >
+                {event.description[language]}
+              </p>
+              {/* Buton - durum etiketi ile aynı renk ve stil */}
               <Link 
                 href={`/events/${event.slug}`} 
-                className={`inline-block px-3 py-1 md:px-4 md:py-2 text-sm md:text-base rounded-md transition-colors shadow-md ${
-                  isDark 
-                    ? 'bg-electric-blue hover:bg-electric-blue/80 shadow-electric-blue/20' 
-                    : 'bg-race-blue hover:bg-race-blue/90 shadow-race-blue/20'
-                } text-white`}
+                className="inline-block px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm rounded-full shadow-md text-white font-medium border-2"
+                style={{ 
+                  backgroundColor: isDark ? 'var(--f1-red)' : 'var(--f1-red)',
+                  borderColor: isDark ? 'var(--f1-red)' : 'var(--f1-red)'
+                }}
               >
                 {language === 'tr' ? 'Detayları Gör' : 'View Details'}
               </Link>
@@ -80,25 +116,45 @@ export function EventBanner({ events }: EventBannerProps) {
         ))}
       </div>
 
-      {/* Slider Controls - positioned correctly for 16:9 layout */}
+      {/* Slayt geçiş butonları - gölge kaldırıldı */}
       <button 
         onClick={prevSlide}
-        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
+        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center transition-colors"
         aria-label={language === 'tr' ? 'Önceki Slayt' : 'Previous Slide'}
       >
         {/* Left chevron SVG */}
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="24" 
+          height="24" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke={isDark ? "white" : "black"} 
+          strokeWidth="3" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+        >
           <polyline points="15 18 9 12 15 6"></polyline>
         </svg>
       </button>
       
       <button 
         onClick={nextSlide}
-        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
+        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center transition-colors"
         aria-label={language === 'tr' ? 'Sonraki Slayt' : 'Next Slide'}
       >
         {/* Right chevron SVG */}
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="24" 
+          height="24" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke={isDark ? "white" : "black"} 
+          strokeWidth="3" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+        >
           <polyline points="9 18 15 12 9 6"></polyline>
         </svg>
       </button>

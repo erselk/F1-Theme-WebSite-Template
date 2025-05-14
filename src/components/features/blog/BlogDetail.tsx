@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
 import { BlogPost } from "@/data/blogs";
+import { BLOG_CATEGORIES, DEFAULT_BLUR_DATA_URL } from "@/constants/blog";
+import { blogTranslations } from "@/translations/blog";
 
 interface BlogDetailProps {
   blog: BlogPost;
@@ -12,6 +14,7 @@ interface BlogDetailProps {
 
 const BlogDetail: React.FC<BlogDetailProps> = ({ blog }) => {
   const { language, isDark } = useThemeLanguage();
+  const translations = blogTranslations[language];
 
   // Format date based on language
   const formatDate = (dateString: string) => {
@@ -33,41 +36,42 @@ const BlogDetail: React.FC<BlogDetailProps> = ({ blog }) => {
     ));
   };
 
-  // Categories - consistent with BlogContent component
-  const categories = [
-    { id: "all", name: { tr: "Tümü", en: "All" } },
-    { id: "f1", name: { tr: "Formula 1", en: "Formula 1" } },
-    { id: "technology", name: { tr: "Teknoloji", en: "Technology" } },
-    { id: "events", name: { tr: "Etkinlikler", en: "Events" } },
-    { id: "interviews", name: { tr: "Röportajlar", en: "Interviews" } },
-    { id: "other", name: { tr: "Diğer", en: "Other" } }
-  ];
-
-  const categoryName = categories.find(c => c.id === blog.category)?.name[language] || blog.category;
+  const categoryName = BLOG_CATEGORIES.find(c => c.id === blog.category)?.name[language] || blog.category;
 
   return (
-    <article className="max-w-4xl mx-auto">
+    <article className="max-w-4xl mx-auto" aria-labelledby="blog-title">
       {/* Back button */}
       <div className="mb-8">
         <Link href="/blog" className={`inline-flex items-center text-sm ${isDark ? 'text-silver hover:text-neon-red' : 'text-medium-grey hover:text-f1-red'} transition-colors`}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
-          {language === 'tr' ? 'Tüm Blog Yazıları' : 'All Blog Posts'}
+          {translations.allBlogPosts}
         </Link>
       </div>
 
       {/* Title */}
-      <h1 className="text-3xl md:text-4xl font-bold font-titillium-web mb-6">
+      <h1 id="blog-title" className="text-3xl md:text-4xl font-bold font-titillium-web mb-6">
         {blog.title[language]}
       </h1>
 
       {/* Meta information */}
-      <div className="flex flex-wrap items-center gap-4 mb-8 text-sm text-medium-grey dark:text-silver">
-        <Link href={`/blog?author=${encodeURIComponent(blog.author.name)}`} className="flex items-center hover:underline">
+      <div className="flex flex-wrap items-center gap-4 mb-8 text-sm text-medium-grey dark:text-silver" aria-label="Blog detayları">
+        <Link 
+          href={`/blog?author=${encodeURIComponent(blog.author.name)}`} 
+          className="flex items-center hover:underline"
+          aria-label={`${translations.author} ${blog.author.name}`}
+        >
           <div className="relative w-10 h-10 rounded-full overflow-hidden mr-3">
             {blog.author.avatar ? (
-              <Image src={blog.author.avatar} alt={blog.author.name} fill className="object-cover" />
+              <Image 
+                src={blog.author.avatar} 
+                alt={blog.author.name} 
+                fill 
+                className="object-cover"
+                placeholder="blur"
+                blurDataURL={DEFAULT_BLUR_DATA_URL}
+              />
             ) : (
               <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-graphite text-silver' : 'bg-light-grey text-dark-grey'}`}>
                 {blog.author.name.charAt(0)}
@@ -82,7 +86,11 @@ const BlogDetail: React.FC<BlogDetailProps> = ({ blog }) => {
           </svg>
           <span>{formatDate(blog.publishDate)}</span>
         </div>
-        <Link href={`/blog?category=${blog.category}`} className="flex items-center hover:underline">
+        <Link 
+          href={`/blog?category=${blog.category}`} 
+          className="flex items-center hover:underline"
+          aria-label={`${translations.category} ${categoryName}`}
+        >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
@@ -100,6 +108,8 @@ const BlogDetail: React.FC<BlogDetailProps> = ({ blog }) => {
           sizes="(min-width: 768px) 100vw, 100vw"
           priority
           className="object-cover"
+          placeholder="blur"
+          blurDataURL={DEFAULT_BLUR_DATA_URL}
         />
       </div>
 
@@ -114,7 +124,7 @@ const BlogDetail: React.FC<BlogDetailProps> = ({ blog }) => {
           {/* Share links */}
           <div className="flex items-center mb-4 sm:mb-0">
             <span className="mr-4 text-medium-grey dark:text-silver">
-              {language === 'tr' ? 'Paylaş:' : 'Share:'}
+              {translations.share}
             </span>
             <div className="flex space-x-3">
               {/* X */}
@@ -170,7 +180,7 @@ const BlogDetail: React.FC<BlogDetailProps> = ({ blog }) => {
                 ? 'bg-neon-red text-white hover:bg-neon-red/90' 
                 : 'bg-f1-red text-black hover:bg-f1-red/90' // Light theme'de siyah metin
             } transition-colors`}
-            aria-label={`${language === 'tr' ? 'Kategori:' : 'Category:'} ${categoryName}`}
+            aria-label={`${translations.category} ${categoryName}`}
           >
             {categoryName}
           </Link>
@@ -180,4 +190,4 @@ const BlogDetail: React.FC<BlogDetailProps> = ({ blog }) => {
   );
 };
 
-export default BlogDetail;
+export default React.memo(BlogDetail);

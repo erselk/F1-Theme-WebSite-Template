@@ -1,6 +1,6 @@
 'use client';
 
-import { LanguageType } from '@/lib/ThemeLanguageContext';
+import { LanguageType, useThemeLanguage } from '@/lib/ThemeLanguageContext';
 
 interface ScheduleItem {
   time: string;
@@ -20,6 +20,13 @@ interface EventScheduleProps {
 }
 
 export function EventSchedule({ schedule, locale }: EventScheduleProps) {
+  // Use theme context to get the current theme mode
+  const { isDark } = useThemeLanguage();
+  
+  // Theme-dependent color classes
+  const titleColorClass = isDark ? 'text-white' : 'text-very-dark-grey';
+  const descriptionColorClass = isDark ? 'text-silver' : 'text-slate-700';
+  
   // Debug: Log the schedule prop to see what's being passed
   console.log('EventSchedule Component - Schedule prop:', schedule);
   
@@ -48,18 +55,18 @@ export function EventSchedule({ schedule, locale }: EventScheduleProps) {
               className="flex flex-col md:flex-row gap-4 p-4 rounded-lg bg-dark-grey hover:bg-carbon-grey/40 transition-colors"
             >
               <div className="md:w-24 flex-shrink-0">
-                <div className="flex items-center justify-center md:justify-start">
-                  <span className="bg-electric-blue/20 text-electric-blue px-3 py-1 rounded-full font-mono text-sm">
+                <div className="flex items-center justify-start">
+                  <span className="bg-electric-blue/20 text-electric-blue px-3 py-1 rounded-full font-mono text-sm font-bold">
                     {item.time}
                   </span>
                 </div>
               </div>
               <div>
-                <h3 className="text-xl font-bold mb-1 text-white">
+                <h3 className={`text-xl font-bold mb-1 ${titleColorClass}`}>
                   {item.title && item.title[locale] ? item.title[locale] : 'Untitled'}
                 </h3>
                 {item.description && item.description[locale] && (
-                  <p className="text-silver">{item.description[locale]}</p>
+                  <p className={descriptionColorClass}>{item.description[locale]}</p>
                 )}
               </div>
             </div>

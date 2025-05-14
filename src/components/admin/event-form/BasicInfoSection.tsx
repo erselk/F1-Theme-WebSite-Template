@@ -59,8 +59,6 @@ export default function BasicInfoSection({
       const defaultTime = setMinutes(setHours(today, 21), 0);
       const defaultDate = format(defaultTime, "yyyy-MM-dd'T'HH:mm");
       
-      console.log('Date-fns ile varsayılan tarih ayarlanıyor:', defaultDate);
-      
       // Direkt DOM'a etki etmesi için setTimeout kullan
       setTimeout(() => {
         // State'i güncelle
@@ -83,18 +81,11 @@ export default function BasicInfoSection({
         
         // Tarih başlatıldı olarak işaretle
         setDateInitialized(true);
-        
-        console.log('Tarih güncellendi, yeni değer:', defaultDate);
       }, 0);
     } catch (error) {
-      console.error('Tarih ayarlama hatası:', error);
+      // Hata durumunda sessizce devam et
     }
   }, [dateInputValue, setDateInputValue, onInputChange, dateInitialized]);
-
-  // Debug için
-  useEffect(() => {
-    console.log('Güncel dateInputValue:', dateInputValue);
-  }, [dateInputValue]);
 
   return (
     <div className={`p-2 sm:p-4 border rounded-md mb-2 sm:mb-4 ${
@@ -167,6 +158,7 @@ export default function BasicInfoSection({
             <option value="meetup">{formLanguage === 'tr' ? 'Buluşma' : 'Meetup'}</option>
             <option value="conference">{formLanguage === 'tr' ? 'Konferans' : 'Conference'}</option>
             <option value="party">{formLanguage === 'tr' ? 'Parti' : 'Party'}</option>
+            <option value="race">{formLanguage === 'tr' ? 'Yarış' : 'Race'}</option>
             <option value="other">{formLanguage === 'tr' ? 'Diğer' : 'Other'}</option>
           </select>
         </div>

@@ -2,22 +2,49 @@
 
 import React, { useEffect } from 'react';
 import { LanguageType, useThemeLanguage } from '@/lib/ThemeLanguageContext';
-import { ScrollbarStyles } from './ScrollbarStyles';
-import { EventBanner } from './EventBanner';
-import { SmoothScrollNav } from './SmoothScrollNav';
-import { ImageGallery } from './ImageGallery';
-import { TicketSidebar } from './TicketSidebar';
-import { EventSchedule } from './EventSchedule';
-import { SimilarEvents } from './SimilarEvents';
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+import { getThemeColors, getCategoryTranslation } from '@/lib/ThemeColors';
+import { 
+  ImagePlaceholder, 
+  ContentPlaceholder, 
+  TicketPlaceholder, 
+  BannerPlaceholder,
+  SocialSharePlaceholder
+} from '@/components/LoadingPlaceholders';
+import { getEventStatus } from '@/types';
+
+// Lazy loaded components
+const ImageGallery = dynamic(() => import('./ImageGallery').then(mod => ({ default: mod.ImageGallery })), { 
+  loading: () => <ImagePlaceholder />
+});
+
+const TicketSidebar = dynamic(() => import('./TicketSidebar').then(mod => ({ default: mod.TicketSidebar })), {
+  loading: () => <TicketPlaceholder />
+});
+
+const EventSchedule = dynamic(() => import('./EventSchedule').then(mod => ({ default: mod.EventSchedule })), {
+  loading: () => <ContentPlaceholder height="h-32" />
+});
+
+const EventBanner = dynamic(() => import('./EventBanner').then(mod => ({ default: mod.EventBanner })), {
+  loading: () => <BannerPlaceholder />
+});
+
+// SocialShare bileşenini de lazy loading ile yükleyelim
+const SocialShare = dynamic(() => import('./SocialShare'), {
+  loading: () => <SocialSharePlaceholder />
+});
 
 interface EventDetailContentProps {
   event: any;
   eventStatus: string;
   pageUrl: string;
   locale: LanguageType;
+  slug: string;
 }
 
-export function EventDetailContent({ event, eventStatus, pageUrl, locale }: EventDetailContentProps) {
+export function EventDetailContent({ event, eventStatus, pageUrl, locale, slug }: EventDetailContentProps) {
   const { language, isDark, setLanguage } = useThemeLanguage();
   
   // Only sync server locale once during initialization, not on every language change
@@ -29,6 +56,13 @@ export function EventDetailContent({ event, eventStatus, pageUrl, locale }: Even
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array means this only runs once during initialization
   
+  // Tema renklerini getThemeColors yardımcı fonksiyonuyla alalım
+  const {
+    headingColorClass,
+    textColorClass,
+    paragraphColorClass
+  } = getThemeColors(isDark);
+  
   // Text translations
   const translations = {
     tr: {
@@ -36,23 +70,17 @@ export function EventDetailContent({ event, eventStatus, pageUrl, locale }: Even
       schedule: 'Program Akışı',
       rules: 'Etkinlik Kuralları',
       gallery: 'Galeri',
-      similarEvents: 'Benzer Etkinlikler',
     },
     en: {
       details: 'Event Details',
       schedule: 'Event Schedule',
       rules: 'Event Rules',
       gallery: 'Gallery',
-      similarEvents: 'Similar Events',
     }
   };
   
   // Use language from ThemeLanguageContext instead of passed locale
   const t = translations[language];
-  
-  // Theme-dependent color classes
-  const headingColorClass = isDark ? 'text-white' : 'text-very-dark-grey';
-  const textColorClass = isDark ? 'text-light-grey' : 'text-slate-700';
 
   // CheckMongoDB URL - Eğer bir MongoDB URL'si (/api/files ile başlıyorsa) doğrudan kullan
   const getImageUrl = (url: string) => {
@@ -62,33 +90,44 @@ export function EventDetailContent({ event, eventStatus, pageUrl, locale }: Even
 
   return (
     <main className="w-full bg-very-dark-grey overflow-x-hidden">
-      <ScrollbarStyles />
-      
-      {/* Banner kısmını client component olarak ayırdık */}
-      <EventBanner 
-        event={{
-          ...event,
-          bannerImage: getImageUrl(event.bannerImage)
-        }}
-        eventStatus={eventStatus}
-        pageUrl={pageUrl}
-      />
-
-      {/* Yapışkan (Sticky) Navigasyon - Banner'ın hemen altında */}
-      <SmoothScrollNav 
-        items={[
-          { id: 'details', label: { en: 'Details', tr: 'Detaylar' } },
-          { id: 'schedule', label: { en: 'Schedule', tr: 'Program' } },
-          { id: 'rules', label: { en: 'Rules', tr: 'Kurallar' } },
-          { id: 'gallery', label: { en: 'Gallery', tr: 'Galeri' } },
-        ]}
-      />
+      {/* Banner kısmını lazy loading olarak yükleyelim */}
+      <Suspense fallback={<BannerPlaceholder />}>
+        <EventBanner 
+          event={{
+            ...event,
+            bannerImage: getImageUrl(event.bannerImage)
+          }}
+          eventStatus={eventStatus}
+          pageUrl={pageUrl}
+        />
+      </Suspense>
 
       {/* Sayfanın ana içeriği */}
       <div className="container mx-auto px-3 md:px-8 py-4 md:py-6">
         {/* Mobil görünüm için bilet formunu üstte göster */}
         <div className="lg:hidden mb-4">
-          <TicketSidebar event={event} locale={language} />
+          {eventStatus === 'past' ? (
+            <div className="p-4 rounded-lg border border-carbon-grey bg-graphite shadow-md">
+              <div className="flex items-center justify-center mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className={`text-center font-bold text-lg ${headingColorClass} mb-2`}>
+                {language === 'tr' ? 'Etkinlik Sona Erdi' : 'Event Has Ended'}
+              </h3>
+              <p className={`text-center ${paragraphColorClass}`}>
+                {language === 'tr' 
+                  ? 'Bu etkinlik için bilet satışı artık mevcut değil.' 
+                  : 'Ticket sales are no longer available for this event.'
+                }
+              </p>
+            </div>
+          ) : (
+            <Suspense fallback={<div className="w-full h-64 bg-carbon-grey/50 animate-pulse rounded-lg"></div>}>
+              <TicketSidebar event={event} locale={language} />
+            </Suspense>
+          )}
         </div>
         
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
@@ -121,10 +160,12 @@ export function EventDetailContent({ event, eventStatus, pageUrl, locale }: Even
                     {t.schedule}
                   </h2>
                   
-                  <EventSchedule 
-                    schedule={event.schedule} 
-                    locale={language}
-                  />
+                  <Suspense fallback={<div className="w-full h-32 bg-carbon-grey/50 animate-pulse rounded-lg"></div>}>
+                    <EventSchedule 
+                      schedule={event.schedule} 
+                      locale={language}
+                    />
+                  </Suspense>
                 </div>
               </section>
 
@@ -143,7 +184,7 @@ export function EventDetailContent({ event, eventStatus, pageUrl, locale }: Even
                     {/* Check if rules exists and has the current language data */}
                     {event.rules && Array.isArray(event.rules) && event.rules.length > 0 ? (
                       <ul className={`list-disc pl-4 lg:pl-5 space-y-1.5 lg:space-y-2 ${textColorClass}`}>
-                        {event.rules.map((rule, index) => (
+                        {event.rules.map((rule: { id?: string | number, content?: Record<string, string> }, index: number) => (
                           <li key={rule.id || index} className="text-sm lg:text-base">{rule.content?.[language] || ""}</li>
                         ))}
                       </ul>
@@ -172,47 +213,58 @@ export function EventDetailContent({ event, eventStatus, pageUrl, locale }: Even
                       {t.gallery}
                     </h2>
                     
-                    <ImageGallery 
-                      images={event.gallery || [
-                        "/images/about1.jpg",
-                        "/images/about2.jpg",
-                        "/images/about3.jpg"
-                      ]} 
-                      title={event.title[language]} 
-                      locale={language} 
-                    />
+                    <Suspense fallback={<div className="w-full aspect-square bg-carbon-grey/50 animate-pulse rounded-lg"></div>}>
+                      <ImageGallery 
+                        images={event.gallery || [
+                          "/images/about1.jpg",
+                          "/images/about2.jpg",
+                          "/images/about3.jpg"
+                        ]} 
+                        title={event.title[language]} 
+                        locale={language} 
+                      />
+                    </Suspense>
                   </div>
                 </section>
               </div>
-
-              {/* Similar Events Section */}
-              <section className="mb-4 lg:mb-6">
-                <div className="p-4 lg:p-5 bg-graphite rounded-lg border border-carbon-grey shadow-sm">
-                  <h2 className={`text-xl lg:text-2xl font-bold mb-3 lg:mb-4 flex items-center ${headingColorClass}`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 lg:h-5 lg:w-5 mr-2 text-neon-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                    </svg>
-                    {t.similarEvents}
-                  </h2>
-                  
-                  <SimilarEvents 
-                    currentEventId={event.id} 
-                    category={event.category}
-                    locale={language}
-                    maxEvents={4}
-                    showPastEvents={false}
-                  />
-                </div>
-              </section>
             </div>
           </div>
           
-          {/* Sağ tarafta bilet satın alma bölümü - sadece masaüstü görünümde göster */}
-          <div className="w-full lg:w-[350px] shrink-0 hidden lg:block">
-            <div className="sticky top-24" style={{ height: 'max-content' }}>
-              <TicketSidebar event={event} locale={language} />
+          {/* Sağ sütun - bilet formu ile yan panel */}
+          <div className="w-full lg:w-80 lg:flex-shrink-0 lg:sticky lg:top-24 self-start">
+            {/* Ticket Sidebar Component - Only visible on desktop */}
+            <div className="hidden lg:block">
+              {eventStatus === 'past' ? (
+                <div className="p-4 rounded-lg border border-carbon-grey bg-graphite shadow-md">
+                  <div className="flex items-center justify-center mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className={`text-center font-bold text-lg ${headingColorClass} mb-2`}>
+                    {language === 'tr' ? 'Etkinlik Sona Erdi' : 'Event Has Ended'}
+                  </h3>
+                  <p className={`text-center ${paragraphColorClass}`}>
+                    {language === 'tr' 
+                      ? 'Bu etkinlik için bilet satışı artık mevcut değil.' 
+                      : 'Ticket sales are no longer available for this event.'
+                    }
+                  </p>
+                </div>
+              ) : (
+                <Suspense fallback={<div className="w-full h-64 bg-carbon-grey/50 animate-pulse rounded-lg"></div>}>
+                  <TicketSidebar event={event} locale={language} />
+                </Suspense>
+              )}
             </div>
           </div>
+        </div>
+
+        {/* Sosyal medya paylaşım butonları */}
+        <div className="flex flex-wrap items-center gap-0.5 md:gap-2 text-xs md:text-sm mt-0.5 md:mt-4">
+          <Suspense fallback={<div className="w-[100px] h-6 bg-carbon-grey/50 animate-pulse rounded-lg"></div>}>
+            <SocialShare url={pageUrl} title={event.title[language]} locale={language} />
+          </Suspense>
         </div>
       </div>
     </main>
