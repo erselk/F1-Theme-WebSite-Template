@@ -15,7 +15,6 @@ type Event = {
   title: { [key: string]: string };
   date: string;
   category: string;
-  price?: number;
   tickets?: { name: string | { [key: string]: string }; price: number }[];
   squareImage: string;
 };
@@ -130,7 +129,7 @@ export default function EventsListPage() {
   // Etkinliğin en düşük bilet fiyatını bul
   const getMinTicketPrice = (event: Event) => {
     if (!event.tickets || !event.tickets.length) {
-      return event.price || 0;
+      return 0;
     }
     
     const prices = event.tickets.map((ticket) => ticket.price);

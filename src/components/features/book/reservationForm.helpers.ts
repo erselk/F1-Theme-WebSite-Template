@@ -12,9 +12,14 @@ export const getFormattedTimeString = (hour: string, minute: string): string => 
 };
 
 // Get venue display name
-export const getVenueName = (id: string, venueOptions: { id: string; title: string }[]): string => {
+export const getVenueName = (id: string, venueOptions: { id: string; title: { tr: string; en: string } }[], language: 'tr' | 'en'): string => {
   const venue = venueOptions.find(v => v.id === id);
-  return venue ? venue.title : id;
+  if (venue && venue.title && venue.title[language]) {
+    return venue.title[language];
+  } else if (venue && venue.title && venue.title.tr) { // Fallback to Turkish if specific language title not found
+    return venue.title.tr;
+  }
+  return id; // Fallback to id if venue or title is not found
 };
 
 // Get formatted date string for confirmation based on language

@@ -3,7 +3,6 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/mongodb';
 import Event from '@/models/Event';
-import { updateEventReservationTracking } from '@/services/event-reservation-service';
 
 export async function GET() {
   try {
@@ -20,8 +19,9 @@ export async function GET() {
     // Her etkinlik için rezervasyon takip kaydı oluştur/güncelle
     for (const event of events) {
       try {
-        await updateEventReservationTracking(event);
-        successCount++;
+        // await updateEventReservationTracking(event);
+        // İşlem kaldırıldığı için successCount artırılmıyor, gerekirse bu kısım güncellenmeli
+        successCount++; // Bu satır şimdilik kalabilir veya event.length olarak ayarlanabilir.
       } catch (error) {
         errorCount++;
         errors.push({
@@ -33,7 +33,7 @@ export async function GET() {
     
     return NextResponse.json({
       success: true,
-      message: `Migration completed. ${successCount} events synced with reservation tracking system.`,
+      message: `Migration completed. ${successCount} events processed (tracking function removed).`,
       stats: {
         total: events.length,
         success: successCount,

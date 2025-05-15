@@ -27,7 +27,7 @@ type TodayEvent = {
 
 type TodayBooking = {
   refNumber: string;
-  venue: string;
+  venue: string | { [key: string]: string };
   startTime: string;
   name: string;
   people: number;
@@ -277,7 +277,9 @@ export default function AdminDashboard() {
                 >
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-1">
                     <h3 className={`text-sm md:text-base font-semibold truncate ${isDark ? 'text-white' : 'text-dark-grey'}`}>
-                      {booking.venue}
+                      {typeof booking.venue === 'object' 
+                        ? (booking.venue[language] || booking.venue.en || booking.venue.tr) 
+                        : booking.venue}
                     </h3>
                     <span className={`text-xs md:text-sm ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
                       {formatDate(booking.startTime)}

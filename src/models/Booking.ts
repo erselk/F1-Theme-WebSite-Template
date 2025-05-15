@@ -15,7 +15,10 @@ const bookingSchema = new mongoose.Schema({
     type: String,
   },
   phone: String,
-  venue: String,
+  venue: {
+    tr: String,
+    en: String
+  },
   startTime: {
     type: Date,
     required: true

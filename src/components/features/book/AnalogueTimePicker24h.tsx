@@ -22,6 +22,7 @@ interface TimePickerProps {
   selectedDate?: Date;
   showPrice?: boolean;
   price?: number;
+  className?: string;
 }
 
 interface TimePickerState {
@@ -51,6 +52,7 @@ const AnalogueTimePicker24h: React.FC<TimePickerProps> = ({
   selectedDate = new Date(),
   showPrice = false,
   price = 0,
+  className,
 }) => {
   // State
   const [state, setState] = useState<TimePickerState>({
@@ -529,7 +531,7 @@ const AnalogueTimePicker24h: React.FC<TimePickerProps> = ({
   const t = texts[language];
 
   return (
-    <div className={styles.timePickerContainer}>
+    <div className={`${styles.timePickerContainer} ${className || ''}`}>
       <div className={styles.timePickerLayout}>
         {/* Clock face */}
         <div 

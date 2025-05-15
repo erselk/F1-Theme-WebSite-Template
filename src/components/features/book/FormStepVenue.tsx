@@ -5,8 +5,8 @@ import { motion } from 'framer-motion';
 
 interface VenueOption {
   id: string;
-  title: string;
-  description: string; 
+  title: { tr: string; en: string };
+  description: { tr: string; en: string }; 
   icon: string;
 }
 
@@ -14,6 +14,7 @@ interface FormStepVenueProps {
   venueOptions: VenueOption[];
   selectedVenueId: string;
   onVenueSelect: (venueId: string) => void;
+  language: 'tr' | 'en';
   translations: {
     whichVenue: string;
   };
@@ -23,6 +24,7 @@ const FormStepVenue: React.FC<FormStepVenueProps> = ({
   venueOptions,
   selectedVenueId,
   onVenueSelect,
+  language,
   translations,
 }) => {
   return (
@@ -44,15 +46,15 @@ const FormStepVenue: React.FC<FormStepVenueProps> = ({
             onClick={() => onVenueSelect(venue.id)}
           >
             <div className="text-[10px] leading-tight sm:text-sm font-medium break-words whitespace-normal">
-              {venue.title === "F1 Yarış Simülasyonu" ? (
+              {venue.id === 'f1' ? (
                 <>
                   <span className="sm:hidden">
-                    F1 Yarış <br />Simü-<br />lasyonu
+                    {language === 'tr' ? (<>F1 Yarış <br />Simü-<br />lasyonu</>) : (<>F1 Racing <br />Simu-<br />lation</>)}
                   </span>
-                  <span className="hidden sm:inline">F1 Yarış Simülasyonu</span>
+                  <span className="hidden sm:inline">{venue.title[language]}</span>
                 </>
               ) : (
-                venue.title
+                venue.title[language]
               )}
             </div>
             <div className="text-base sm:text-2xl self-center">{venue.icon}</div>

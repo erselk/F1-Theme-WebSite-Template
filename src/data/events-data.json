@@ -4,7 +4,6 @@
     "slug": "istanbul-grand-prix-2025",
     "bannerImage": "/images/suan.jpg",
     "squareImage": "/images/suan.jpg",
-    "price": 1500,
     "isFeatured": true,
     "date": "2025-04-22T10:00:00.000Z",
     "location": {
@@ -26,7 +25,6 @@
     "slug": "f1-simulation-day",
     "bannerImage": "/images/suan.jpg",
     "squareImage": "/images/suan.jpg",
-    "price": 750,
     "isFeatured": true,
     "date": "2025-04-23T14:30:00.000Z",
     "location": {
@@ -48,7 +46,6 @@
     "slug": "motorsport-photography-workshop",
     "bannerImage": "/images/suan.jpg",
     "squareImage": "/images/suan.jpg",
-    "price": 500,
     "isFeatured": false,
     "date": "2025-04-24T09:00:00.000Z",
     "location": {

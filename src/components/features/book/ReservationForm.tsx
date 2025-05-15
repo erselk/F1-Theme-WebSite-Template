@@ -6,6 +6,7 @@ import DatePicker, { registerLocale } from "@/lib/datepicker/dist";
 import "@/lib/datepicker/dist/react-datepicker.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { tr, enUS } from 'date-fns/locale';
+import style from 'styled-jsx/style';
 import CallPromptModal from './CallPromptModal';
 import FormStepIndicator from './FormStepIndicator';
 import FormStepVenue from './FormStepVenue';
@@ -109,6 +110,7 @@ export default function ReservationForm({
               venueOptions={venueOptions}
               selectedVenueId={formData.venue}
               onVenueSelect={handleVenueSelect}
+              language={language}
               translations={{
                 whichVenue: t.whichVenue
               }}
@@ -196,7 +198,7 @@ export default function ReservationForm({
           {currentStep === 4 && (
             <FormStepConfirmation 
               formData={formData} 
-              getVenueName={(id) => getVenueNameHelper(id, venueOptions)}
+              getVenueName={(id) => getVenueNameHelper(id, venueOptions, language)}
               getFormattedDate={(dateStr) => getFormattedDateHelper(dateStr, language)}
               getFormattedTime={getFormattedTimeString}
               showPrice={showPrice}

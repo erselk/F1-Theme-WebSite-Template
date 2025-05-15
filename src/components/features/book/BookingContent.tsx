@@ -87,8 +87,10 @@ const BookingContentWithParams: React.FC = () => {
   // Format venues with the correct language
   const localizedVenues = venues.map(venue => ({
     ...venue,
-    title: venue.title[language as 'tr' | 'en'],
-    description: venue.description[language as 'tr' | 'en']
+    // title: venue.title[language as 'tr' | 'en'], // Keep the title object
+    // description: venue.description[language as 'tr' | 'en'] // Keep the description object
+    // title ve description objelerini doğrudan aktaracağız.
+    // Dil seçimi artık ReservationForm veya alt bileşenlerde yapılacak.
   }));
 
   const handleFormSubmit = () => {

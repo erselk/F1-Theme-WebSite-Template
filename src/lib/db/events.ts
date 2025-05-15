@@ -48,7 +48,6 @@ export async function createEvent(eventData: {
   slug: string;
   bannerImage?: string;
   squareImage?: string;
-  price: number;
   isFeatured?: boolean;
   date: Date | string;
   location: LocalizedText;
@@ -65,7 +64,6 @@ export async function createEvent(eventData: {
       date: typeof eventData.date === 'string' 
         ? new Date(eventData.date) 
         : eventData.date,
-      comments: [],
       status: getEventStatus(eventData.date.toString())
     }
   });
@@ -86,26 +84,6 @@ export async function deleteEvent(slug: string) {
   });
 }
 
-// Add comment to event
-export async function addCommentToEvent(
-  slug: string, 
-  comment: { id: string; userId: string; text: string; createdAt: Date }
-) {
-  const event = await prisma.event.findUnique({
-    where: { slug },
-    select: { comments: true }
-  });
-  
-  if (!event) throw new Error('Event not found');
-  
-  const comments = [...event.comments, comment];
-  
-  return prisma.event.update({
-    where: { slug },
-    data: { comments }
-  });
-}
-
 // Import events from file system
 export async function importEventsFromFiles(events: any[]) {
   // First clear all existing events
@@ -118,7 +96,6 @@ export async function importEventsFromFiles(events: any[]) {
         slug: eventData.slug,
         bannerImage: eventData.bannerImage,
         squareImage: eventData.squareImage,
-        price: eventData.price,
         isFeatured: eventData.isFeatured || false,
         date: new Date(eventData.date),
         location: eventData.location,
@@ -128,7 +105,6 @@ export async function importEventsFromFiles(events: any[]) {
         tickets: eventData.tickets,
         rules: eventData.rules || null,
         gallery: eventData.gallery || [],
-        comments: [],
         status: getEventStatus(eventData.date)
       }
     });

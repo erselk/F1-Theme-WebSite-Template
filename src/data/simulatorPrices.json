@@ -1,0 +1,19 @@
+{
+  "simulators": [
+    {
+      "id": "f1",
+      "name": "F1 Simülatörü",
+      "pricePerHour": 1000
+    },
+    {
+      "id": "vr",
+      "name": "VR Alanı",
+      "pricePerHour": 650
+    },
+    {
+      "id": "gaming_pc",
+      "name": "Bilgisayar Salonu",
+      "pricePerHour": 270
+    }
+  ]
+}

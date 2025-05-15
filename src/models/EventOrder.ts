@@ -3,7 +3,10 @@ import mongoose, { Schema } from 'mongoose';
 // Ticket item schema for an order
 export interface OrderTicket {
   id: string;
-  name: string;
+  name: {
+    tr: string;
+    en: string;
+  };
   price: number;
   quantity: number;
 }
@@ -17,6 +20,14 @@ export interface EventOrder {
     tr: string;
     en: string;
   };
+  eventLocation?: {
+    tr: string;
+    en: string;
+  };
+  eventSchedule?: {
+    tr: string[];
+    en: string[];
+  };
   customerInfo: {
     fullName: string;
     email: string;
@@ -24,7 +35,8 @@ export interface EventOrder {
   };
   tickets: OrderTicket[];
   totalAmount: number;
-  orderDate: Date;
+  eventDate: Date;
+  orderPlacementTime: Date;
 }
 
 const eventOrderSchema = new Schema({
@@ -35,6 +47,14 @@ const eventOrderSchema = new Schema({
     tr: { type: String, required: true },
     en: { type: String, required: true }
   },
+  eventLocation: {
+    tr: { type: String, required: false },
+    en: { type: String, required: false }
+  },
+  eventSchedule: {
+    tr: { type: [String], required: false },
+    en: { type: [String], required: false }
+  },
   customerInfo: {
     fullName: { type: String, required: true },
     email: { type: String, required: true },
@@ -42,12 +62,16 @@ const eventOrderSchema = new Schema({
   },
   tickets: [{
     id: { type: String, required: true },
-    name: { type: Schema.Types.Mixed, required: true }, // Can be string or object with language keys
+    name: {
+      tr: { type: String, required: true },
+      en: { type: String, required: true }
+    },
     price: { type: Number, required: true },
     quantity: { type: Number, required: true }
   }],
   totalAmount: { type: Number, required: true },
-  orderDate: { type: Date, required: true, default: Date.now }
+  eventDate: { type: Date, required: true },
+  orderPlacementTime: { type: Date, required: true }
 }, {
   timestamps: true
 });

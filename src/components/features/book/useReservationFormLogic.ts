@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { format, addHours, isBefore, isToday, parseISO, getDay } from 'date-fns';
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext"; // Assuming this context provides language
+import simulatorPriceData from '@/data/simulatorPrices.json'; // JSON fiyatlarını import et
 import { 
   getFormattedTimeString,
   getVenueName as getVenueNameHelper,
@@ -19,8 +20,8 @@ import { OPENING_HOURS, getInitialTimeValues } from './reservationForm.config';
 
 export interface VenueOption {
   id: string;
-  title: string;
-  description: string;
+  title: { tr: string; en: string };
+  description: { tr: string; en: string };
   icon: string;
 }
 
@@ -36,7 +37,9 @@ export const useReservationFormLogic = ({
   onFormSubmitProp,
 }: UseReservationFormLogicProps) => {
   const { language, isDark } = useThemeLanguage(); // Assuming language comes from here
-  const initialValues = getInitialTimeValues();
+  const initialValuesFromConfig = getInitialTimeValues();
+
+  const [currentOpeningHourForSelectedDate, setCurrentOpeningHourForSelectedDate] = useState<number>(() => getOpeningHourForDate(initialValuesFromConfig.initialDate));
 
   const [currentStep, setCurrentStep] = useState(0);
   const [price, setPrice] = useState(0);
@@ -45,23 +48,23 @@ export const useReservationFormLogic = ({
   const [showPaymentRedirect, setShowPaymentRedirect] = useState(false); // This might be local to component if only for a temporary message
   const [showCallPrompt, setShowCallPrompt] = useState(false);
   const [contactStep, setContactStep] = useState(0);
-  const [selectedDate, setSelectedDate] = useState<Date>(initialValues.initialDate);
-  const [timeRange, setTimeRange] = useState<[string, string] | null>(initialValues.initialTimeRange);
+  const [selectedDate, setSelectedDate] = useState<Date>(initialValuesFromConfig.initialDate);
+  const [timeRange, setTimeRange] = useState<[string, string] | null>(null);
   const [dateTimeError, setDateTimeError] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     venue: initialSelectedVenue || "",
     people: "",
-    date: initialValues.initialFormattedDate,
-    startHour: initialValues.initialStartHour,
-    startMinute: "00",
-    endHour: initialValues.initialEndHour,
-    endMinute: "00",
+    date: initialValuesFromConfig.initialFormattedDate,
+    startHour: "",
+    startMinute: "",
+    endHour: "",
+    endMinute: "",
     name: "",
     surname: "",
     phone: "",
-    duration: initialValues.initialDuration,
+    duration: 0,
   });
 
   // Update venue when selectedVenue prop changes and skip to people count step
@@ -77,29 +80,48 @@ export const useReservationFormLogic = ({
     const startTime = timeRange ? timeRange[0] : '';
     const endTime = timeRange ? timeRange[1] : '';
     
-    // Only calculate price if relevant step and data is available
     if (currentStep >= 2 && formData.venue && startTime && endTime) {
-      const start = new Date(`2000-01-01T${startTime}`); // Use a fixed date for time comparison
+      const start = new Date(`2000-01-01T${startTime}`);
       const end = new Date(`2000-01-01T${endTime}`);
       
       if (end <= start) {
-        // setPrice(0); // Optionally reset price if time range is invalid
-        // setShowPrice(false);
+        setPrice(0);
+        setShowPrice(false);
         return;
       }
       
       const durationHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
       
       let basePrice = 0;
-      if (formData.venue === "f1") {
-        if (durationHours <= 1) basePrice = 100;
-        else if (durationHours <= 2) basePrice = 200;
-        else basePrice = 300; // Assuming max 3 hours based on previous logic, or adjust
-      } else if (formData.venue === "vr") {
-        basePrice = 50 * Math.ceil(durationHours);
-      } else if (formData.venue === "computers") {
-        basePrice = 20 * Math.ceil(durationHours);
+      // Önce "computers" ID'si için özel bir kontrol ekleyelim, eğer "gaming_pc" bekleniyorsa.
+      const currentVenueId = formData.venue === "computers" ? "gaming_pc" : formData.venue;
+      const venuePriceData = simulatorPriceData.simulators.find(sim => sim.id === currentVenueId);
+
+      if (venuePriceData) {
+        // Tüm venue'ler için JSON'daki pricePerHour'ı kullan ve süreyle çarp
+        basePrice = venuePriceData.pricePerHour * Math.ceil(durationHours);
+      } else {
+        // Eğer JSON'da venue bulunamazsa veya formData.venue tanımsızsa, basePrice 0 olur.
+        // Mevcut hardcoded fallback'leri (aşağıdaki if/else if blokları) kaldırabiliriz.
+        // Ancak, "computers" ID'si JSON'da "gaming_pc" olarak geçtiği için bir eşleşme problemi olabilir.
+        // Şimdilik eski mantığı yorum satırına alıp, ID eşleşmesine dikkat edeceğimizi belirtelim.
+        // Eğer formData.venue === "computers" ise ve JSON'da "gaming_pc" varsa, eşleşme için bunu handle etmeliyiz.
+        // Ya da formData.venue değerini JSON ID'leri ile tutarlı hale getirmeliyiz.
+        // Örnek: formData.venue "computers" yerine "gaming_pc" olmalı.
+        // Şimdilik, doğrudan JSON ID'si ile eşleşme varsayıyorum.
+        // Eğer eşleşme olmazsa basePrice 0 kalacak.
       }
+
+      // Eski hardcoded mantık:
+      // if (formData.venue === "f1") {
+      //   if (durationHours <= 1) basePrice = 100;
+      //   else if (durationHours <= 2) basePrice = 200;
+      //   else basePrice = 300;
+      // } else if (formData.venue === "vr") {
+      //   basePrice = 50 * Math.ceil(durationHours);
+      // } else if (formData.venue === "computers") { // JSON'da bu ID "gaming_pc"
+      //   basePrice = 20 * Math.ceil(durationHours);
+      // }
       
       const peopleCount = parseInt(formData.people) || 1;
       const totalPrice = basePrice * peopleCount;
@@ -149,7 +171,13 @@ export const useReservationFormLogic = ({
       minuteLabel: "Dakika",
       successTitle: "Rezervasyonunuz Onaylandı!",
       successMessage: "Seçtiğiniz alan ve saat için rezervasyonunuz başarıyla oluşturuldu.",
-      earlyArrival: "Rezervasyon saatinizden 10 dakika önce merkezimizde bulunmanızı rica ederiz."
+      earlyArrival: "Rezervasyon saatinizden 10 dakika önce merkezimizde bulunmanızı rica ederiz.",
+      dateTimeInvalidError: "Lütfen geçerli bir tarih ve saat aralığı seçin.",
+      openingHoursNotFoundError: "Seçilen gün için çalışma saati bulunamadı.",
+      startTimeBeforeOpeningError: "Seçtiğiniz başlangıç saati ({startTime}), o günkü açılış saatimizden ({openingTime}) önce. Lütfen çalışma saatlerimizi kontrol edin.",
+      endTimeAfterClosingError: "Seçtiğiniz bitiş saati ({endTime}), o günkü kapanış saatimizden ({closingTime}) sonra. Lütfen çalışma saatlerimizi kontrol edin.",
+      startTimeNotBeforeEndTimeError: "Başlangıç saati, bitiş saatinden önce olmalıdır.",
+      free: "Ücretsiz"
     },
     en: {
       reservation: "Reservation",
@@ -183,7 +211,13 @@ export const useReservationFormLogic = ({
       minuteLabel: "Minute",
       successTitle: "Reservation Confirmed!",
       successMessage: "Your reservation for the selected venue and time has been successfully created.",
-      earlyArrival: "We kindly request you to arrive at our center 10 minutes before your reservation time."
+      earlyArrival: "We kindly request you to arrive at our center 10 minutes before your reservation time.",
+      dateTimeInvalidError: "Please select a valid date and time range.",
+      openingHoursNotFoundError: "Opening hours not found for the selected day.",
+      startTimeBeforeOpeningError: "The selected start time ({startTime}) is before our opening time ({openingTime}) on that day. Please check our opening hours.",
+      endTimeAfterClosingError: "The selected end time ({endTime}) is after our closing time ({closingTime}) on that day. Please check our opening hours.",
+      startTimeNotBeforeEndTimeError: "Start time must be before end time.",
+      free: "Free"
     }
   }), []);
 
@@ -225,7 +259,7 @@ export const useReservationFormLogic = ({
         
         const getVenueId = (venueName: string | null) => {
           if (!venueName) return '';
-          const venue = venueOptions.find(v => v.title === venueName);
+          const venue = venueOptions.find(v => v.title.tr === venueName || v.title.en === venueName);
           return venue ? venue.id : '';
         };
         
@@ -269,8 +303,6 @@ export const useReservationFormLogic = ({
       }
     }
   }), []);
-
-  const currentOpeningHourForSelectedDate = useMemo(() => getOpeningHourForDate(selectedDate), [selectedDate]);
 
   // Handler Functions
   const handleChange = useCallback((
@@ -377,206 +409,185 @@ export const useReservationFormLogic = ({
     }
   }, []);
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setIsSubmitting(true);
-    if (typeof window !== "undefined") {
+    setPaymentError(null);
+
+    const venueNeedsPay = venueNeedsPaymentHelper(formData.venue);
+    const bookingRef = `REF-${Date.now()}`.slice(0, 12);
+
+    const selectedVenueObject = venueOptions.find(v => v.id === formData.venue);
+    const venueNameObject = selectedVenueObject ? selectedVenueObject.title : { tr: "Bilinmeyen Alan", en: "Unknown Venue" };
+    // Potentially, if description is also needed as an object:
+    // const venueDescriptionObject = selectedVenueObject ? selectedVenueObject.description : { tr: "", en: "" };
+
+    const paymentDataForStorage = {
+      orderId: bookingRef,
+      refNumber: bookingRef,
+      totalAmount: price,
+      currency: "TRY",
+      customerName: `${formData.name} ${formData.surname}`,
+      customerEmail: `anonymous-${Date.now().toString(36)}@padok.com`, // More robust anonymous email
+      customerPhone: formData.phone,
+      bookingDetails: {
+        venueId: formData.venue,
+        venueName: venueNameObject, // This is the {tr, en} object
+        // description: venueDescriptionObject, // If you plan to use it
+        numberOfPeople: formData.people,
+        date: formData.date, // Already formatted string like "YYYY-MM-DD"
+        startTime: timeRange ? timeRange[0] : "",
+        endTime: timeRange ? timeRange[1] : "",
+        duration: formData.duration, // in hours
+        notes: `Mekan: ${venueNameObject[language as 'tr' | 'en']}, Kişi: ${formData.people}, Zaman: ${timeRange ? `${timeRange[0]} - ${timeRange[1]}` : 'N/A'}`,
+      },
+      language: language,
+      type: 'booking'
+    };
+
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem('pendingPayment', JSON.stringify(paymentDataForStorage));
         localStorage.removeItem('payment_error');
-    }
+      }
 
-    const reservationRef = `PDK${Math.random().toString(36).substring(2, 6).toUpperCase()}${Date.now().toString().substring(9, 13)}`;
-    const venueName = getVenueNameHelper(formData.venue, venueOptions);
-    const formattedDate = getFormattedDateHelper(formData.date, language);
-    const formattedTimeRange = timeRange ? `${timeRange[0]} - ${timeRange[1]}` : '';
-    const fullName = `${formData.name} ${formData.surname}`;
-
-    if (typeof window !== "undefined") {
-        localStorage.setItem('reservation_ref', reservationRef);
-        localStorage.setItem('reservation_venue', venueName);
-        localStorage.setItem('reservation_name', fullName);
-        localStorage.setItem('reservation_date', formattedDate);
-        localStorage.setItem('reservation_time', formattedTimeRange);
-        localStorage.setItem('reservation_people', formData.people);
-        localStorage.setItem('reservation_price', venueNeedsPaymentHelper(formData.venue) ? `${price} TL` : (t.free || 'Ücretsiz'));
-        localStorage.setItem('reservation_phone', formData.phone);
-        localStorage.setItem('reservation_date_raw', formData.date);
-        localStorage.setItem('reservation_startTime', timeRange ? timeRange[0] : '');
-        localStorage.setItem('reservation_endTime', timeRange ? timeRange[1] : '');
-
-        const paymentData = {
-            orderId: reservationRef,
-            eventTitle: { tr: venueName, en: venueName },
-            fullName: fullName,
-            email: `${formData.phone.replace(/\D/g, '')}@anonymous.user`,
-            phone: formData.phone,
-            amount: venueNeedsPaymentHelper(formData.venue) ? price * 100 : 0,
-            venue: venueName,
-            people: formData.people,
-            timestamp: new Date().toISOString(),
-            eventDate: new Date(formData.date).toISOString(),
-            eventLocation: { tr: 'Padok Club', en: 'Padok Club' },
-            refNumber: reservationRef,
-            date: formData.date,
-            startTime: timeRange ? timeRange[0] : '',
-            endTime: timeRange ? timeRange[1] : '',
-            totalPrice: venueNeedsPaymentHelper(formData.venue) ? price : 0,
-            isFree: !venueNeedsPaymentHelper(formData.venue)
+      if (venueNeedsPay) {
+        setShowPaymentRedirect(true);
+        window.location.href = `/payment?type=booking&ref=${bookingRef}`;
+      } else {
+        // For free bookings, prepare data for confirmation page
+        const freeBookingResultForStorage = {
+            success: true,
+            orderId: bookingRef, // or paymentDataForStorage.orderId
+            message: "Ücretsiz rezervasyon onaylandı (simüle edildi).",
+            bookingDetails: paymentDataForStorage.bookingDetails, // Pass along the details
+            type: 'booking',
+            totalAmount: 0, // Free
+            customerName: paymentDataForStorage.customerName
         };
-        localStorage.setItem('pendingPayment', JSON.stringify(paymentData));
-
-        if (venueNeedsPaymentHelper(formData.venue)) {
-            window.location.href = `/payment/paymentbook?ref=${reservationRef}&venue=${encodeURIComponent(venueName)}&name=${encodeURIComponent(fullName)}&date=${encodeURIComponent(formattedDate)}&time=${encodeURIComponent(formattedTimeRange)}&people=${formData.people}&price=${encodeURIComponent(price + " TL")}&phone=${encodeURIComponent(formData.phone)}&dateRaw=${encodeURIComponent(formData.date)}&startTime=${encodeURIComponent(timeRange ? timeRange[0] : '')}&endTime=${encodeURIComponent(timeRange ? timeRange[1] : '')}`;
-        } else {
-            try {
-                // const response = await fetch('/api/bookings/create-free', { // API call commented out for now
-                // method: 'POST',
-                // headers: { 'Content-Type': 'application/json' },
-                // body: JSON.stringify({
-                //     refNumber: reservationRef,
-                //     name: fullName,
-                //     phone: formData.phone,
-                //     date: formData.date,
-                //     startTime: timeRange ? timeRange[0] : '',
-                //     endTime: timeRange ? timeRange[1] : '',
-                //     people: parseInt(formData.people, 10) || 1,
-                //     venue: venueName
-                // })
-                // });
-                window.location.href = `/payment/paymentbook/confirmed?ref=${reservationRef}&free=true`;
-            } catch (error) {
-                console.error('Error saving free booking:', error);
-                window.location.href = `/payment/paymentbook/confirmed?ref=${reservationRef}&free=true`;
-            }
+        if (typeof window !== "undefined") {
+            localStorage.setItem('paymentResult', JSON.stringify(freeBookingResultForStorage));
         }
+        window.location.href = `/confirmation/booking/${bookingRef}?free=true`;
+      }
+    } catch (error) {
+      console.error("Rezervasyon işlenirken hata:", error);
+      const errorMessage = error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu.";
+      setPaymentError(translations[language as 'tr' | 'en'].confirmingReservation + ": " + errorMessage);
+      if (typeof window !== "undefined") {
+        localStorage.setItem('payment_error', errorMessage);
+      }
+    } finally {
+      // setIsSubmitting(false); // Redirects happen, so might not be needed or set earlier if no redirect
     }
-    // onFormSubmitProp(); // Call the original onSubmit passed from parent if needed after all logic
-    setIsSubmitting(false); // Should be set based on actual submission success/failure
-  }, [formData, price, timeRange, language, venueOptions, setIsSubmitting, onFormSubmitProp, t]);
+    // onFormSubmitProp(); // Call only if not redirecting or if it handles state post-redirect
+  };
 
-  const handleDateChange = useCallback((newDate: Date | null) => {
-    if (newDate) {
-      setSelectedDate(newDate);
-      const newDateFormatted = format(newDate, 'yyyy-MM-dd');
-      const openHour = getOpeningHourForDate(newDate);
-      const { close: closeHour } = getDayOpeningHours(newDate);
-      const defaultEndHour = Math.min(openHour + 1, closeHour);
+  const handleDateChange = useCallback((date: Date | null) => {
+    if (date) {
+      setSelectedDate(date);
+      const formattedDate = format(date, 'yyyy-MM-dd');
+      setCurrentOpeningHourForSelectedDate(getOpeningHourForDate(date));
 
-      const newStartTime = `${String(openHour).padStart(2, '0')}:00`;
-      const newEndTime = `${String(defaultEndHour).padStart(2, '0')}:00`;
-
-      setTimeRange([newStartTime, newEndTime]);
-      setFormData(prev => ({ 
-        ...prev, 
-        date: newDateFormatted,
-        startHour: String(openHour).padStart(2, '0'),
-        startMinute: '00',
-        endHour: String(defaultEndHour).padStart(2, '0'),
-        endMinute: '00',
-        duration: Math.max(1, defaultEndHour - openHour)
+      setFormData(prev => ({
+        ...prev,
+        date: formattedDate,
+        startHour: "", 
+        startMinute: "",
+        endHour: "",
+        endMinute: "",
+        duration: 0
       }));
-      setDateTimeError(null); 
+    } else {
+      // Handle null date (e.g., user clears the date picker)
+      setSelectedDate(new Date()); // veya bir başlangıç tarihi
+      setCurrentOpeningHourForSelectedDate(getOpeningHourForDate(new Date()));
+      setFormData(prev => ({
+        ...prev,
+        date: format(new Date(), 'yyyy-MM-dd'),
+        startHour: "",
+        startMinute: "",
+        endHour: "",
+        endMinute: "",
+        duration: 0
+      }));
     }
-  }, [setSelectedDate, setTimeRange, setFormData, setDateTimeError]);
-
-  const handleAnalogueTimeChange = useCallback((data: { startTime: { hours: number; minutes: number; }; endTime: { hours: number; minutes: number; }; /*currentType: 'start' | 'end'*/ }) => {
-    const startTimeStr = `${data.startTime.hours.toString().padStart(2, '0')}:${data.startTime.minutes.toString().padStart(2, '0')}`;
-    const endTimeStr = `${data.endTime.hours.toString().padStart(2, '0')}:${data.endTime.minutes.toString().padStart(2, '0')}`;
-    
-    setTimeRange([startTimeStr, endTimeStr]);
-    setFormData(prev => ({
-      ...prev,
-      startHour: startTimeStr.split(':')[0],
-      startMinute: startTimeStr.split(':')[1],
-      endHour: endTimeStr.split(':')[0],
-      endMinute: endTimeStr.split(':')[1],
-      // Recalculate duration based on new analogue time
-      duration: (() => {
-          const start = new Date(`2000-01-01T${startTimeStr}`);
-          const end = new Date(`2000-01-01T${endTimeStr}`);
-          if (end > start) {
-            return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60));
-          }
-          return prev.duration; // or 0 or 1
-      })()
-    }));
-    setDateTimeError(null); 
-  }, [setTimeRange, setFormData, setDateTimeError]);
+    setTimeRange(null);
+    setDateTimeError(null);
+  }, [getOpeningHourForDate]);
 
   const handleDropdownTimeChange = useCallback((field: string, value: string) => {
-    let newFormData = { ...formData, [field]: value };
-
-    if (field === 'startHour' || field === 'startMinute') {
-      const startH = parseInt(newFormData.startHour);
-      const startM = parseInt(newFormData.startMinute);
-      const { open, close } = getDayOpeningHours(selectedDate); // Get opening/closing for selected date
-
-      let endH = startH + 1; // Default to 1 hour later
-      let endM = startM;
-
-      if (endH > close || (endH === close && endM > 0)) { // If 1 hour later exceeds closing time
-        endH = close; // Set to closing hour
-        endM = 0;     // Set to :00 minute
-        // If even closing time is before or at the start time (e.g. start time is closing time)
-        // or if the calculated duration is less than a minimum (e.g. 15 mins), adjust further or flag as invalid.
-        // For now, we try to set the longest possible duration if 1hr is not possible.
-        if (startH > endH || (startH === endH && startM >= endM)) {
-            // This case means start time is at or after closing, or makes any duration impossible.
-            // Fallback: keep end time same as start time or clear it, validation should prevent submission.
-            // Or, try to find the absolute latest possible minute within the same hour if any.
-            // This part can become complex. For now, if endH became invalid, we might reset it or rely on validation.
-            // Let's try to set it to the maximum possible within closing constraints.
-            // If startH is already 'close', then no valid endM can be set other than 00 if startM is 00.
-            // This logic aims to provide a sensible default, not to perfectly validate all edge cases here.
-             endH = newFormData.endHour; // Revert to old endHour if calc is bad, or set to a safe default.
-             endM = newFormData.endMinute;
-        }
-      }
-      
-      // Ensure end time is not before start time after adjustment.
-      // This can happen if closing time is very soon after start time.
-      if (endH < startH || (endH === startH && endM <= startM)){
-          // Attempt to set the latest possible time if the 1-hour rule made it invalid.
-          // This means the slot is less than 1 hour.
-          endH = close; // Maximize to closing hour
-          endM = 0; // At :00
-          // If start time is already at closing time (e.g., starts at 22:00, closes at 22:00)
-          // then this will make startTime = endTime. Validation should catch this.
-          if (endH < startH || (endH === startH && endM <= startM)){
-            // If still invalid, it implies a very tight window or an invalid start time near closing.
-            // For example, if start is 21:45 and close is 22:00. Max end is 22:00.
-            // The dropdown options should ideally prevent such selections for start time.
-            // If we must set something, set end equal to start and let validation fail.
-            endH = startH;
-            endM = startM;
-          }
-      }
-
-      newFormData.endHour = String(endH).padStart(2, '0');
-      newFormData.endMinute = String(endM).padStart(2, '0');
-    }
+    // Ensure field is one of the expected types for safety, although ReservationForm should pass correct ones.
+    const type = field as 'startHour' | 'startMinute' | 'endHour' | 'endMinute';
     
-    setFormData(newFormData);
+    setFormData(prev => {
+      const newFormData = { ...prev, [type]: value };
 
-    if (newFormData.startHour && newFormData.startMinute && newFormData.endHour && newFormData.endMinute) {
-      const startTimeStr = `${newFormData.startHour}:${newFormData.startMinute}`;
-      const endTimeStr = `${newFormData.endHour}:${newFormData.endMinute}`;
-      setTimeRange([startTimeStr, endTimeStr]);
-      
-      const start = new Date(`2000-01-01T${startTimeStr}`);
-      const end = new Date(`2000-01-01T${endTimeStr}`);
-      if (end > start) {
-        const durationHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-        // Update duration in a separate step to avoid race condition with setFormData
-        setFormData(prev => ({...prev, duration: Math.ceil(durationHours)})); 
-      } else {
-        setFormData(prev => ({...prev, duration: 0})); 
+      if ((type === 'startHour' || type === 'startMinute') && newFormData.startHour && newFormData.startMinute) {
+        try {
+          const startDateObj = parseISO(newFormData.date);
+          const startHourInt = parseInt(newFormData.startHour, 10);
+          const startMinuteInt = parseInt(newFormData.startMinute, 10);
+
+          if (!isNaN(startHourInt) && !isNaN(startMinuteInt) && startHourInt >= 0 && startHourInt <= 23 && startMinuteInt >= 0 && startMinuteInt <= 59) {
+            const startDateTime = new Date(startDateObj.getFullYear(), startDateObj.getMonth(), startDateObj.getDate(), startHourInt, startMinuteInt);
+            let endDateTime = addHours(startDateTime, 1);
+            const { close: closingHour } = getDayOpeningHours(selectedDate);
+
+            if (endDateTime.getHours() > closingHour || (endDateTime.getHours() === closingHour && endDateTime.getMinutes() > 0)) {
+              endDateTime = new Date(startDateTime.getFullYear(), startDateTime.getMonth(), startDateTime.getDate(), closingHour, 0);
+            }
+
+            if (isBefore(startDateTime, endDateTime)) {
+              newFormData.endHour = String(endDateTime.getHours()).padStart(2, '0');
+              newFormData.endMinute = String(endDateTime.getMinutes()).padStart(2, '0');
+            } else {
+              newFormData.endHour = "";
+              newFormData.endMinute = "";
+            }
+          } else {
+            newFormData.endHour = "";
+            newFormData.endMinute = "";
+          }
+        } catch (e) {
+          console.error("Error auto-setting end time:", e);
+          newFormData.endHour = "";
+          newFormData.endMinute = "";
+        }
+      } else if ((type === 'startHour' || type === 'startMinute') && (!newFormData.startHour || !newFormData.startMinute)) {
+        newFormData.endHour = "";
+        newFormData.endMinute = "";
       }
-    } else {
-      // If any part of the time is missing, clear the time range and duration
-      setTimeRange(null);
-      setFormData(prev => ({...prev, duration: 0})); 
-    }
-  }, [formData, setFormData, selectedDate, setTimeRange, getDayOpeningHours]); // Added getDayOpeningHours dependency
+
+      if (newFormData.startHour && newFormData.startMinute && newFormData.endHour && newFormData.endMinute) {
+        setTimeRange([`${newFormData.startHour}:${newFormData.startMinute}`, `${newFormData.endHour}:${newFormData.endMinute}`]);
+      } else {
+        setTimeRange(null);
+      }
+      return newFormData;
+    });
+    setDateTimeError(null);
+  }, [selectedDate, getDayOpeningHours]);
+
+  const handleAnalogueTimeChange = useCallback((data: { startTime: { hours: number; minutes: number; }; endTime: { hours: number; minutes: number; }; currentType: "end" | "start"; }) => {
+    const { startTime, endTime } = data;
+    
+    const formatTimeValue = (timeVal: { hours: number; minutes: number; }) => {
+      return `${String(timeVal.hours).padStart(2, '0')}:${String(timeVal.minutes).padStart(2, '0')}`;
+    };
+
+    const startTimeString = formatTimeValue(startTime);
+    const endTimeString = formatTimeValue(endTime);
+
+    setFormData(prev => ({
+      ...prev,
+      startHour: String(startTime.hours).padStart(2, '0'),
+      startMinute: String(startTime.minutes).padStart(2, '0'),
+      endHour: String(endTime.hours).padStart(2, '0'),
+      endMinute: String(endTime.minutes).padStart(2, '0'),
+    }));
+    setTimeRange([startTimeString, endTimeString]);
+    setDateTimeError(null);
+  }, []);
 
   // Constants for UI that don't depend on state directly, or depend on language (t)
   const peopleOptions = useMemo(() => [1, 2, 3, 4, 5, 6, 7, '8+'], []);
@@ -623,8 +634,8 @@ export const useReservationFormLogic = ({
     makeCall,
     handleSubmit,
     handleDateChange,
-    handleAnalogueTimeChange,
     handleDropdownTimeChange,
+    handleAnalogueTimeChange,
     // Prop from parent, to be called by handleSubmit
     onFormSubmitProp 
   };

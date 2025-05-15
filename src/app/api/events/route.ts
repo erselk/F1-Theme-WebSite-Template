@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/mongodb';
 import Event from '@/models/Event';
 import { getEventStatus } from '@/types';
-import { updateEventReservationTracking } from '@/services/event-reservation-service';
 
 // Cache kontrollerini ayarla - önbelleğe almayı engelle
 export const dynamic = 'force-dynamic'; // Statik önbelleğe almayı devre dışı bırak
@@ -69,9 +68,6 @@ export async function POST(request: Request) {
     const newEvent = new Event(eventData);
     await newEvent.save();
     
-    // Rezervasyon takip veritabanına da kaydet
-    await updateEventReservationTracking(newEvent);
-    
     // Başarılı yanıt döndür
     return NextResponse.json({
       success: true,
@@ -120,9 +116,6 @@ export async function PUT(request: Request) {
       }, { status: 404 });
     }
 
-    // Rezervasyon takip veritabanında da güncelle
-    await updateEventReservationTracking(updatedEvent);
-    
     // Başarılı yanıt döndür
     return NextResponse.json({
       success: true,

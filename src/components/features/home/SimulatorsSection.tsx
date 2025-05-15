@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
 import { motion, useAnimation } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
+import simulatorPriceData from '@/data/simulatorPrices.json'; // Fiyatları import et
 
 type SimulatorsSectionProps = {
   translations: {
@@ -27,6 +28,12 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
   const [animationsTriggered, setAnimationsTriggered] = useState(false);
   const [language, setLanguage] = useState("tr");
   
+  // Fiyatları JSON'dan al
+  const prices = simulatorPriceData.simulators;
+  const f1Price = prices.find(p => p.id === 'f1')?.pricePerHour || 0;
+  const vrPrice = prices.find(p => p.id === 'vr')?.pricePerHour || 0;
+  const gamingPcPrice = prices.find(p => p.id === 'gaming_pc')?.pricePerHour || 0;
+
   const simulator1Controls = useAnimation();
   const simulator2Controls = useAnimation();
   const simulator3Controls = useAnimation();
@@ -296,7 +303,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                           repeatType: "reverse",
                         }}
                       >
-                        ₺100 <span className="text-[6px] sm:text-xs md:text-sm">{translations.hourPrice}</span>
+                        ₺{f1Price} <span className="text-[6px] sm:text-xs md:text-sm">{translations.hourPrice}</span>
                       </motion.div>
                       
                       <motion.div
@@ -448,7 +455,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                           repeatType: "reverse",
                         }}
                       >
-                        ₺50 <span className="text-[6px] sm:text-xs md:text-sm">{translations.hourPrice}</span>
+                        ₺{vrPrice} <span className="text-[6px] sm:text-xs md:text-sm">{translations.hourPrice}</span>
                       </motion.div>
                       
                       <motion.div
@@ -600,7 +607,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                           repeatType: "reverse",
                         }}
                       >
-                        ₺20 <span className="text-[6px] sm:text-xs md:text-sm">{translations.hourPrice}</span>
+                        ₺{gamingPcPrice} <span className="text-[6px] sm:text-xs md:text-sm">{translations.hourPrice}</span>
                       </motion.div>
                       
                       <motion.div

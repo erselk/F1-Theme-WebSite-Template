@@ -80,6 +80,7 @@ export function middleware(request: NextRequest) {
     '/contact', 
     '/book',
     '/payment', // Added payment path to allowed paths
+    '/confirmation', // Yeni eklendi: Onay sayfalarına izin ver
     '/privacy',
     '/terms',
     '/admin'

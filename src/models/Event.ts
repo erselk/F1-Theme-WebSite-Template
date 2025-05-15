@@ -39,7 +39,6 @@ const eventSchema = new Schema({
   },
   bannerImage: String,
   squareImage: String,
-  price: Number,
   isFeatured: Boolean,
   date: String, // ISO date string
   location: localizedTextSchema,
@@ -68,16 +67,6 @@ const eventSchema = new Schema({
   // Biletler
   tickets: {
     type: [ticketSchema],
-    default: []
-  },
-  // Yorumlar
-  comments: {
-    type: [{
-      id: String,
-      name: String,
-      timestamp: String,
-      content: String
-    }],
     default: []
   }
 }, {

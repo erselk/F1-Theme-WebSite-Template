@@ -30,6 +30,17 @@ export function EventDetail({ event: initialEvent }: EventDetailProps) {
     // Otomatik güncelleme kaldırıldı - sayfa yavaşlamaması için
   }, [initialEvent.date, event.status]);
   
+  const getMinTicketPriceFromEvent = (currentEvent: Event) => {
+    if (!currentEvent.tickets || currentEvent.tickets.length === 0) {
+      return 0; // Bilet yoksa veya bilet dizisi boşsa ücretsiz kabul et
+    }
+    const prices = currentEvent.tickets.map(ticket => ticket.price);
+    if (prices.length === 0) return 0; // Fiyat yoksa (beklenmez ama kontrol)
+    return Math.min(...prices);
+  };
+
+  const displayPrice = getMinTicketPriceFromEvent(event);
+
   const getStatusLabel = () => {
     switch (event.status) {
       case 'today': return language === 'tr' ? 'Bugün' : 'Today';
@@ -125,9 +136,9 @@ export function EventDetail({ event: initialEvent }: EventDetailProps) {
           {/* Price Badge - Hide for past events */}
           {event.status !== 'past' ? (
             <div className={`absolute top-4 right-4 px-4 py-1 rounded-full text-sm font-bold shadow-md ${getPriceStyles()}`}>
-              {event.price === 0 
+              {displayPrice === 0 
                 ? (language === 'tr' ? 'Ücretsiz' : 'Free') 
-                : `${event.price} ₺`
+                : `${displayPrice} ₺`
               }
             </div>
           ) : null}

@@ -16,7 +16,7 @@
     "@fontsource/noto-sans": "^5.2.7",
     "@fontsource/titillium-web": "^5.2.5",
     "@heroicons/react": "^2.2.0",
-    "@prisma/client": "^6.7.0",
+    "@prisma/client": "^6.6.0",
     "@react-spring/web": "^9.7.5",
     "@react-three/drei": "^10.0.7",
     "@react-three/fiber": "^9.1.2",
@@ -93,6 +93,7 @@
     "@types/uuid": "^10.0.0",
     "eslint": "^9.26.0",
     "eslint-config-next": "15.3.1",
+    "prisma": "6.6.0",
     "react-devtools": "^6.1.2",
     "tailwindcss": "^4.1.6",
     "typescript": "^5.8.3"

@@ -28,7 +28,6 @@ export interface Event {
   slug: string;
   bannerImage: string;
   squareImage: string;
-  price: number; 
   isFeatured: boolean;
   date: string; 
   location: {
@@ -62,12 +61,6 @@ export interface Event {
     isSoldOut?: boolean;
     isComingSoon?: boolean;
   }[]; 
-  comments?: {
-    id: string;
-    name: string;
-    timestamp: string;
-    content: string;
-  }[];
   rules?: {
     id: string;
     content: {

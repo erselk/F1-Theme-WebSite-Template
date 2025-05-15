@@ -45,26 +45,26 @@ model Simulator {
 
 // Geliştirilmiş Etkinlik modeli
 model Event {
-  id          String                 @id @default(auto()) @map("_id") @db.ObjectId
-  slug        String                 @unique
-  bannerImage String?
-  squareImage String?
-  isFeatured  Boolean                @default(false)
-  date        DateTime
-  price       Float
-  category    String
-  location    Json                   // {tr: String, en: String}
-  title       Json                   // {tr: String, en: String}
-  description Json                   // {tr: String, en: String}
-  tickets     Json[]                 // [{id: String, name: {tr: String, en: String}, price: Float, description: {tr: String, en: String}}]
-  rules       Json?                  // {tr: String[], en: String[]}
-  gallery     String[]  
-  comments    Json[]                 // [{id: String, userId: String, text: String, createdAt: DateTime}]
-  status      String?                // 'today', 'tomorrow', 'this-week', 'upcoming', 'past'
-  createdAt   DateTime               @default(now())
-  updatedAt   DateTime               @updatedAt
-  bookings    Booking[]
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  slug          String    @unique
+  bannerImage   String?
+  squareImage   String?
+  isFeatured    Boolean   @default(false)
+  date          DateTime
+  category      String
+  location      Json // {tr: String, en: String}
+  title         Json // {tr: String, en: String}
+  description   Json // {tr: String, en: String}
+  tickets       Json[] // [{id: String, name: {tr: String, en: String}, price: Float, description: {tr: String, en: String}}]
+  rules         Json? // {tr: String[], en: String[]}
+  gallery       String[]
+  status        String?   // 'today', 'tomorrow', 'this-week', 'upcoming', 'past'
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bookings      Booking[]
   ticketPurchases TicketPurchase[]
+
+  @@index([date])
 }
 
 // Blog modeli

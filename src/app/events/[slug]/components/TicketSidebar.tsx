@@ -316,11 +316,18 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
         eventSchedule: formattedSchedule, // Use the formatted schedule with both languages
         eventRules: event.rules, // Store complete rules object with all language versions
         tickets: selectedTickets.map(ticket => {
-          const ticketType = ticketTypes.find(t => t.id === ticket.id);
+          // selectedTickets içindeki ticket.originalName {tr, en} objesini tutuyor.
+          // Bunu doğrudan 'name' olarak kullanmalıyız.
+          const nameObj = (typeof ticket.originalName === 'object' && ticket.originalName.tr && ticket.originalName.en)
+                          ? ticket.originalName
+                          : { tr: String(ticket.name), en: String(ticket.name) }; // Fallback
+
           return {
-            ...ticket,
-            name: ticketType?.name || ticket.name, // Current language name
-            originalName: ticketType?.originalName || ticket.name // All language versions
+            id: ticket.id,
+            name: nameObj, // Artık {tr, en} objesi
+            price: ticket.price,
+            quantity: ticket.quantity,
+            variant: ticket.variant
           };
         }),
         allTickets: event.tickets, // Store all tickets with their language versions
@@ -329,7 +336,8 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
         timestamp: Date.now(),
         returnUrl: window.location.href,
         eventId: event.id, // Add the event ID to make it easier to check on return
-        eventSlug: event.slug // <<<--- EKLENEN SATIR: Gerçek event slug'ını ekle
+        eventSlug: event.slug, // <<<--- EKLENEN SATIR: Gerçek event slug'ını ekle
+        type: 'event' // Etkinlik olduğunu belirtmek için
       };
       
       // Save payment data to localStorage so we can retrieve it when returning from payment page
@@ -342,15 +350,25 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
           status: 'success',
           orderId,
           paymentId: `free-${orderId}`,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          type: 'event',
+          eventTitle: paymentData.eventTitle,
+          eventDate: paymentData.eventDate,
+          eventLocation: paymentData.eventLocation,
+          eventSlug: paymentData.eventSlug,
+          fullName: paymentData.fullName,
+          email: paymentData.email,
+          phone: paymentData.phone,
+          tickets: paymentData.tickets,
+          amount: 0
         };
         localStorage.setItem('paymentResult', JSON.stringify(successResult));
         
         // Go directly to payment confirmed page
-        window.location.href = `/payment/confirmed?orderId=${orderId}`;
+        window.location.href = `/confirmation/event/${orderId}?free=true`;
       } else {
         // Regular payment flow - redirect to the payment simulation page
-        window.location.href = `/payment/simulate?orderId=${orderId}`;
+        window.location.href = `/payment?type=event&orderId=${orderId}`;
       }
       
     } catch (error) {
