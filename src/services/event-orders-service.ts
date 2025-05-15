@@ -34,7 +34,8 @@ function normalizeOrderData(order: any): any {
   return {
     ...serializedOrder,
     orderId: serializedOrder.orderId || 'unknown',
-    eventSlug: serializedOrder.eventSlug || 'unknown-event',
+    eventId: serializedOrder.eventId || 'unknown-event-id',
+    eventSlug: serializedOrder.eventSlug || 'unknown-event-slug',
     eventName: typeof serializedOrder.eventName === 'object' ? serializedOrder.eventName : { tr: 'Bilinmeyen Etkinlik', en: 'Unknown Event' },
     customerInfo: serializedOrder.customerInfo || { fullName: 'Unknown', email: 'unknown@example.com', phone: '' },
     tickets: tickets,

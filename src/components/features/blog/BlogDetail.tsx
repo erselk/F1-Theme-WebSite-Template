@@ -4,12 +4,21 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
-import { BlogPost } from "@/data/blogs";
+import { BlogPost as OriginalBlogPost } from "@/types";
 import { BLOG_CATEGORIES, DEFAULT_BLUR_DATA_URL } from "@/constants/blog";
 import { blogTranslations } from "@/translations/blog";
 
+// Populate edilmiş author nesnesini de içerecek şekilde BlogPost tipini genişletelim
+interface PopulatedBlogPost extends OriginalBlogPost {
+  author?: { 
+    _id?: string;
+    name?: string; 
+    profileImage?: string; 
+  };
+}
+
 interface BlogDetailProps {
-  blog: BlogPost;
+  blog: PopulatedBlogPost;
 }
 
 const BlogDetail: React.FC<BlogDetailProps> = ({ blog }) => {
@@ -57,29 +66,31 @@ const BlogDetail: React.FC<BlogDetailProps> = ({ blog }) => {
 
       {/* Meta information */}
       <div className="flex flex-wrap items-center gap-4 mb-8 text-sm text-medium-grey dark:text-silver" aria-label="Blog detayları">
-        <Link 
-          href={`/blog?author=${encodeURIComponent(blog.author.name)}`} 
-          className="flex items-center hover:underline"
-          aria-label={`${translations.author} ${blog.author.name}`}
-        >
-          <div className="relative w-10 h-10 rounded-full overflow-hidden mr-3">
-            {blog.author.avatar ? (
-              <Image 
-                src={blog.author.avatar} 
-                alt={blog.author.name} 
-                fill 
-                className="object-cover"
-                placeholder="blur"
-                blurDataURL={DEFAULT_BLUR_DATA_URL}
-              />
-            ) : (
-              <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-graphite text-silver' : 'bg-light-grey text-dark-grey'}`}>
-                {blog.author.name.charAt(0)}
-              </div>
-            )}
-          </div>
-          <span>{blog.author.name}</span>
-        </Link>
+        {blog.author && (
+          <Link 
+            href={blog.author._id ? `/blog?authorId=${encodeURIComponent(blog.author._id)}` : (blog.author.name ? `/blog?author=${encodeURIComponent(blog.author.name)}` : '#')} 
+            className="flex items-center hover:underline"
+            aria-label={`${translations.author} ${blog.author.name || 'Bilinmeyen'}`}
+          >
+            <div className="relative w-10 h-10 rounded-full overflow-hidden mr-3">
+              {blog.author.profileImage ? (
+                <Image 
+                  src={blog.author.profileImage} 
+                  alt={blog.author.name || 'Author'} 
+                  fill 
+                  className="object-cover"
+                  placeholder="blur"
+                  blurDataURL={DEFAULT_BLUR_DATA_URL}
+                />
+              ) : (
+                <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-graphite text-silver' : 'bg-light-grey text-dark-grey'}`}>
+                  {blog.author.name?.charAt(0) || 'A'}
+                </div>
+              )}
+            </div>
+            <span>{blog.author.name || 'Bilinmeyen Yazar'}</span>
+          </Link>
+        )}
         <div className="flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />

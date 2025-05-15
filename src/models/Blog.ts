@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
+import './Author'; // Author modelinin Mongoose'a register edilmesi için import ediyoruz.
 
 // Blog şeması
 const blogSchema = new Schema({
@@ -12,8 +13,9 @@ const blogSchema = new Schema({
   thumbnailImage: String,
   publishDate: String,
   author: {
-    name: String,
-    avatar: String
+    type: Schema.Types.ObjectId,
+    ref: 'Author',
+    // required: true // Eğer yazar zorunlu ise bu satır eklenebilir
   },
   title: {
     tr: String,

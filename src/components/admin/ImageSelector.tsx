@@ -20,7 +20,7 @@ interface ImageSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (image: ImageFile) => void;
-  category: 'banner' | 'square' | 'gallery';
+  category: 'banner' | 'square' | 'gallery' | 'blog';
   currentImage?: string;
 }
 

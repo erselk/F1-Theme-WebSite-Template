@@ -11,6 +11,7 @@ export interface OrderTicket {
 // Event order schema
 export interface EventOrder {
   orderId: string;
+  eventId: string;
   eventSlug: string;
   eventName: {
     tr: string;
@@ -28,6 +29,7 @@ export interface EventOrder {
 
 const eventOrderSchema = new Schema({
   orderId: { type: String, required: true, unique: true },
+  eventId: { type: String, required: true, index: true },
   eventSlug: { type: String, required: true, index: true },
   eventName: {
     tr: { type: String, required: true },

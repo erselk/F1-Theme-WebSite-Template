@@ -4,6 +4,7 @@ import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { Event } from '@/types';
 import { LanguageType } from '@/lib/ThemeLanguageContext';
 import { FormErrors, ImageFile, Rule, Schedule, Ticket, UseEventFormReturn, generateEventId, generateSlugFromEnglishTitle } from './types';
+import { format, parseISO } from 'date-fns';
 
 interface UseEventFormProps {
   event?: Event;
@@ -95,43 +96,42 @@ export default function useEventForm({ event, onSubmit, onCancel }: UseEventForm
       }];
       
       // Rules handling - convert from API format to form format if needed
-      let rules = [];
+      let rules: Rule[] = []; // Explicitly type rules as Rule[]
       if (event.rules) {
-        if (typeof event.rules === 'object' && event.rules.tr && event.rules.en) {
-          // Convert from API { tr: [str1, str2], en: [str1, str2] } format 
-          // to form format: [{id: 'rule-xxx', content: {tr: str1, en: str1}}]
-          rules = [];
-          // Get the maximum length of either tr or en array
-          const maxLength = Math.max(
-            Array.isArray(event.rules.tr) ? event.rules.tr.length : 0, 
-            Array.isArray(event.rules.en) ? event.rules.en.length : 0
-          );
+        if (typeof event.rules === 'object' && !Array.isArray(event.rules) && (event.rules as any).tr && (event.rules as any).en) {
+          // This block handles the case where event.rules is an object like { tr: string[], en: string[] }
+          // It seems this was the original intent for the object check.
+          const rulesTr = (event.rules as any).tr as string[];
+          const rulesEn = (event.rules as any).en as string[];
+          const maxLength = Math.max(rulesTr.length, rulesEn.length);
           
           for (let i = 0; i < maxLength; i++) {
             const ruleId = `rule-${Date.now()}-${i}`;
             rules.push({
               id: ruleId,
               content: {
-                tr: Array.isArray(event.rules.tr) && i < event.rules.tr.length ? event.rules.tr[i] : '',
-                en: Array.isArray(event.rules.en) && i < event.rules.en.length ? event.rules.en[i] : ''
+                tr: rulesTr[i] || '',
+                en: rulesEn[i] || ''
               }
             });
           }
         } else if (Array.isArray(event.rules)) {
-          // If rules is already in array format
-          // Eski format {tr: '', en: ''} veya yeni format {id: '', content: {tr: '', en: ''}} olabilir
-          rules = event.rules.map(rule => {
-            if (rule.id && rule.content) {
-              // Zaten yeni formatta
+          // This block handles the case where event.rules is an array, potentially with nulls
+          rules = (event.rules as (Rule | null)[]) // Cast to indicate it might contain nulls
+            .filter((rule): rule is Rule => rule != null) // Type guard to ensure rule is Rule after filter
+            .map(rule => {
+            // At this point, rule is guaranteed to be of type Rule.
+            if (rule.id && rule.content && typeof rule.content === 'object' && 'tr' in rule.content && 'en' in rule.content) {
+              // Zaten yeni formatta ve content doğru yapıda
               return rule;
             } else {
-              // Eski formattan yeni formata dönüştür
+              // Eski format {tr: '', en: ''} veya eksik content yapısı
               const ruleId = `rule-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
               return {
                 id: ruleId,
                 content: {
-                  tr: rule.tr || '',
-                  en: rule.en || ''
+                  tr: (rule as any).tr || (rule.content as any)?.tr || '',
+                  en: (rule as any).en || (rule.content as any)?.en || ''
                 }
               };
             }
@@ -195,13 +195,21 @@ export default function useEventForm({ event, onSubmit, onCancel }: UseEventForm
       // Initialize date input value if there's an event date
       if (event.date) {
         try {
-          const dateObj = new Date(event.date);
-          const formattedDate = dateObj.toISOString().slice(0, 16); // Format as YYYY-MM-DDThh:mm
-          setDateInputValue(formattedDate);
+          const utcDate = parseISO(event.date);
+          const localFormattedDateForInput = format(utcDate, "yyyy-MM-dd'T'HH:mm");
+          setDateInputValue(localFormattedDateForInput);
         } catch (e) {
-          console.error("Error formatting date:", e);
-          setDateInputValue('');
+          console.error("Error parsing or formatting event date for input:", e);
+          const today = new Date();
+          const fallbackDate = format(today, "yyyy-MM-dd'T'HH:mm");
+          setDateInputValue(fallbackDate);
         }
+      } else {
+        const today = new Date();
+        today.setHours(21, 0, 0, 0);
+        const defaultFormattedDate = format(today, "yyyy-MM-dd'T'HH:mm");
+        setDateInputValue(defaultFormattedDate);
+        setFormData(prev => ({ ...prev, date: today.toISOString() }));
       }
       
       // Initialize gallery previews
@@ -303,62 +311,51 @@ export default function useEventForm({ event, onSubmit, onCancel }: UseEventForm
   
   // Tickets handlers
   const handleTicketChange = (index: number, field: string, value: string | number | boolean) => {
-    console.log(`Bilet değişiyor - index: ${index}, alan: ${field}, değer:`, value);
-    
-    if (!formData.tickets) {
-      console.error("formData.tickets bulunamadı");
-      return;
-    }
-    
-    const updatedTickets = [...formData.tickets];
-    
-    // `name` ve `description` gibi dil anahtarları içeren nesneler için özel işlem
-    if (field === 'name' || field === 'description') {
-      console.log(`${field} alanı için dil güncelleniyor: ${formLanguage}`);
-      
-      // Mevcut nesneyi kopyala veya boş bir nesne oluştur
-      const currentValue = updatedTickets[index][field] || { tr: '', en: '' };
-      
-      // Sadece geçerli dil değerini güncelle
-      updatedTickets[index] = {
-        ...updatedTickets[index],
-        [field]: {
-          ...currentValue,
-          [formLanguage]: value
+    setFormData((prev: Partial<Event>) => {
+      const updatedTickets = [...(prev.tickets || [])] as Ticket[];
+
+      if (field === 'isSoldOut') {
+        updatedTickets[index] = {
+          ...updatedTickets[index],
+          isSoldOut: !!value, // Değeri boolean'a çevir
+          isComingSoon: !!value ? false : updatedTickets[index].isComingSoon, // isSoldOut true ise isComingSoon'u false yap
+        };
+      } else if (field === 'isComingSoon') {
+        updatedTickets[index] = {
+          ...updatedTickets[index],
+          isComingSoon: !!value, // Değeri boolean'a çevir
+          isSoldOut: !!value ? false : updatedTickets[index].isSoldOut, // isComingSoon true ise isSoldOut'u false yap
+        };
+      } else if (field === 'name' || field === 'description') {
+        const currentValue = updatedTickets[index][field] || { tr: '', en: '' };
+        updatedTickets[index] = {
+          ...updatedTickets[index],
+          [field]: {
+            ...currentValue,
+            [formLanguage]: value,
+          },
+        };
+      } else if (field === 'price') {
+        let numValue = 0;
+        if (typeof value === 'number') {
+          numValue = Math.max(0, Math.floor(value));
+        } else if (typeof value === 'string') {
+          const parsed = parseInt(value, 10);
+          numValue = !isNaN(parsed) ? Math.max(0, parsed) : 0;
         }
-      };
-    } 
-    // Nokta içeren alan adları için (kullanılmıyorsa kaldırılabilir)
-    else if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      console.log(`Noktalı alan: ${parent}.${child}`);
-      
-      // Ebeveyn nesneyi kopyala veya boş bir nesne oluştur
-      const parentObj = updatedTickets[index][parent as keyof Ticket] || {};
-      
-      // Update the nested property
-      updatedTickets[index] = {
-        ...updatedTickets[index],
-        [parent]: {
-          ...parentObj,
-          [child]: value
-        }
-      };
-    } else {
-      // Normal alanlar için direkt güncelleme
-      console.log(`Normal alan güncelleniyor: ${field}`);
-      updatedTickets[index] = {
-        ...updatedTickets[index],
-        [field]: value
-      };
-    }
-    
-    console.log("Güncellenmiş biletler:", updatedTickets);
-    
-    setFormData(prev => ({
-      ...prev,
-      tickets: updatedTickets
-    }));
+        updatedTickets[index] = {
+          ...updatedTickets[index],
+          price: numValue,
+        };
+      } else {
+        updatedTickets[index] = {
+          ...updatedTickets[index],
+          [field]: value,
+        };
+      }
+
+      return { ...prev, tickets: updatedTickets };
+    });
   };
   
   const increaseTicketPrice = (index: number) => {

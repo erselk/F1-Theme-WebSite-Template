@@ -37,20 +37,34 @@ function PaymentConfirmedContent() {
           // Save order data to MongoDB if not already saved
           if (!savedToDb && data) {
             // Get eventSlug from various possible sources in the data
-            const eventSlug = data.slug || data.eventSlug || (typeof data.event === 'object' ? data.event.slug : null);
+            // Öncelik sırası: data.eventSlug (doğrudan TicketSidebar'dan gelmeli), sonra data.slug, sonra data.event.slug
+            let determinedEventSlug = data.eventSlug;
+
+            if (!determinedEventSlug) {
+              console.log("data.eventSlug was not found in localStorage data. Trying data.slug...");
+              determinedEventSlug = data.slug;
+            }
+
+            if (!determinedEventSlug && typeof data.event === 'object' && data.event !== null) {
+              console.log("data.slug was not found. Trying data.event.slug...");
+              determinedEventSlug = data.event.slug;
+            }
             
-            // If still no eventSlug, try to extract it from other fields
-            const fallbackSlug = eventSlug || 
-              (data.eventId ? `event-${data.eventId}` : null) || 
-              'unknown-event';
+            // If still no eventSlug, try to extract it from other fields as a last resort
+            if (!determinedEventSlug && data.eventId) {
+              console.log("No direct slug found. Falling back to eventId to construct slug.");
+              determinedEventSlug = `event-${data.eventId}`;
+            }
             
-            console.log('Using event slug for order:', fallbackSlug);
+            const finalEventSlug = determinedEventSlug || 'unknown-event';
+            
+            console.log('Using event slug for order:', finalEventSlug);
             
             // Prepare data for saving to database
             const orderData = {
               orderId: data.orderId,
               eventId: data.eventId || '',
-              eventSlug: fallbackSlug,
+              eventSlug: finalEventSlug, // Güncellenmiş slug kullanılıyor
               eventName: {
                 tr: typeof data.eventTitle === 'object' ? 
                   (data.eventTitle.tr || 'Etkinlik') : 'Etkinlik',
@@ -452,30 +466,30 @@ function PaymentConfirmedContent() {
         pdf.setFont('helvetica', 'normal');
         pdf.setTextColor(80, 80, 80);
         
-        // Use event rules if available, otherwise show default rules
-        let rules: string[] = [];
-        if (paymentData.eventRules) {
-          rules = locale === 'tr' 
-            ? (Array.isArray(paymentData.eventRules.tr) 
-               ? paymentData.eventRules.tr 
-               : typeof paymentData.eventRules === 'string' 
-                 ? [paymentData.eventRules] 
-                 : [])
-            : (Array.isArray(paymentData.eventRules.en) 
-               ? paymentData.eventRules.en 
-               : typeof paymentData.eventRules === 'string' 
-                 ? [paymentData.eventRules] 
-                 : []);
-        }
-        
-        // If no rules are provided, don't show default rules
-        if (rules.length > 0) {
-          rules.forEach((rule: string) => {
-            if (yPosition < (pageHeight - margin - 10)) {
-              pdf.text(processText(rule), margin, yPosition);
-              yPosition += 6;
+        // Use event rules from paymentData.eventRules
+        const actualRules = paymentData.eventRules;
+        if (actualRules && Array.isArray(actualRules) && actualRules.length > 0) {
+          actualRules.forEach((ruleItem: any) => { 
+            if (yPosition < (pageHeight - margin - 15)) { 
+              const ruleText = ruleItem.content?.[locale] || ruleItem.content?.en || ruleItem.content?.tr || "";
+              if (ruleText) {
+                const textLines = pdf.splitTextToSize(processText(ruleText), pageWidth - (margin * 2));
+                if (yPosition + (textLines.length * 5) < (pageHeight - margin - 10)) { 
+                   pdf.text(textLines, margin, yPosition);
+                   yPosition += (textLines.length * 5) + (textLines.length > 0 ? 3 : 0); 
+                }
+              }
             }
           });
+        } else {
+          if (yPosition < (pageHeight - margin - 15)) {
+            const noRulesMsg = locale === 'tr' ? 'Bu etkinlik için özel kural belirtilmemiştir.' : 'No specific rules provided for this event.';
+            const textLines = pdf.splitTextToSize(processText(noRulesMsg), pageWidth - (margin * 2));
+            if (yPosition + (textLines.length * 5) < (pageHeight - margin - 10)) {
+                pdf.text(textLines, margin, yPosition);
+                yPosition += (textLines.length * 5) + (textLines.length > 0 ? 3 : 0);
+            }
+          }
         }
       }
       
@@ -839,19 +853,32 @@ function PaymentConfirmedContent() {
                     <h3 className={`text-base font-medium ${textClass} mb-2`}>
                       {locale === 'tr' ? 'Önemli Bilgiler' : 'Important Information'}
                     </h3>
-                    {paymentData.eventRules && (
-                      <div className="space-y-1">
-                        {typeof paymentData.eventRules === 'object' ? (
-                          <ul className="space-y-1">
-                            {paymentData.eventRules[locale]?.map((rule: string, index: number) => (
-                              <li key={`rule-${index}`} className={`${secondaryTextClass} text-xs`}>{rule}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p className={`${secondaryTextClass} text-xs`}>{paymentData.eventRules}</p>
-                        )}
-                      </div>
-                    )}
+                    {(() => {
+                      const displayRules = paymentData.eventRules;
+                      if (displayRules && Array.isArray(displayRules) && displayRules.length > 0) {
+                        return (
+                          <div className="space-y-1">
+                            <ul className="space-y-1 list-disc list-inside pl-4">
+                              {displayRules.map((ruleItem: any, index: number) => {
+                                const ruleContent = ruleItem.content?.[locale] || ruleItem.content?.en || ruleItem.content?.tr;
+                                if (!ruleContent) return null;
+                                return (
+                                  <li key={ruleItem.id || `rule-item-${index}`} className={`${secondaryTextClass} text-xs`}>
+                                    {ruleContent}
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <p className={`${secondaryTextClass} text-xs`}>
+                            {locale === 'tr' ? 'Bu etkinlik için özel kural belirtilmemiştir.' : 'No specific rules provided for this event.'}
+                          </p>
+                        );
+                      }
+                    })()}
                   </div>
                 </div>
               </div>

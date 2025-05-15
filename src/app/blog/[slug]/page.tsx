@@ -13,8 +13,8 @@ export default function BlogPostPage() {
   const { data, error, isLoading } = useSWRFetch<{ blog: BlogPost, success: boolean }>(
     `/api/blogs/${slug}`,
     { 
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
+      revalidateOnFocus: true,  // Sekmeye odaklanıldığında yeniden doğrula
+      revalidateIfStale: true, // Veri bayatsa yeniden doğrula
       revalidateOnReconnect: false,
       dedupingInterval: 300000, // 5 dakika - blog içeriği çok sık değişmez
     }

@@ -1,6 +1,7 @@
 'use client';
 
 import { ChangeEvent } from 'react';
+import Link from 'next/link';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { BlogPost } from '@/types';
 import { FormErrors, Author } from './types';
@@ -79,22 +80,22 @@ export default function MainInformation({
         {/* Author Selection */}
         <div className="mb-2 sm:mb-3">
           <label className={`block text-xs sm:text-sm font-medium mb-1 ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
-            {formLanguage === 'tr' ? 'Yazar' : 'Author'}
+            {formLanguage === 'tr' ? 'Yazar *' : 'Author *'}
           </label>
           
           <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
             <div className="flex-1">
               <select
-                name="author.id"
-                value={formData.author?._id || ''}
+                name="author_id"
+                value={formData.author_id || ''}
                 onChange={onAuthorSelect}
                 className={`w-full px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md border ${
                   isDark 
                     ? 'bg-dark-grey border-carbon-grey text-silver focus:border-electric-blue' 
                     : 'bg-white border-light-grey text-medium-grey focus:border-race-blue'
-                } ${hasError('author.name') ? 'border-red-500' : ''}`}
+                } ${hasError('author_id') ? 'border-red-500' : ''}`}
               >
-                <option value="">{formLanguage === 'tr' ? 'Yazar Seçin' : 'Select Author'}</option>
+                <option value="">{formLanguage === 'tr' ? 'Yazar Seçin *' : 'Select Author *'}</option>
                 {authors && authors.length > 0 ? (
                   authors.map(author => (
                     <option key={author._id} value={author._id}>
@@ -105,12 +106,11 @@ export default function MainInformation({
                   <option value="" disabled>{formLanguage === 'tr' ? 'Yazarlar yükleniyor...' : 'Loading authors...'}</option>
                 )}
               </select>
-              <ErrorMessage show={hasError('author.name')} formLanguage={formLanguage} />
+              <ErrorMessage show={hasError('author_id')} formLanguage={formLanguage} />
             </div>
             
-            <button
-              type="button"
-              onClick={onAuthorSelectorOpen}
+            <Link 
+              href="/admin/authors/add"
               className={`px-2 py-1 sm:px-3 sm:py-2 text-xs rounded-md ${
                 isDark
                   ? 'bg-electric-blue text-white hover:bg-electric-blue/80'
@@ -119,7 +119,7 @@ export default function MainInformation({
             >
               <PlusIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               {formLanguage === 'tr' ? 'Yeni Yazar Ekle' : 'Add New Author'}
-            </button>
+            </Link>
           </div>
         </div>
 

@@ -47,6 +47,7 @@ export async function saveEventOrder(orderData: {
     // EventOrder modeline uygun veri hazırlama
     const eventOrder = new EventOrder({
       orderId: orderData.orderId,
+      eventId: orderData.eventId,
       eventSlug: orderData.eventSlug,
       eventName: orderData.eventName,
       customerInfo: {

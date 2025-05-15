@@ -90,11 +90,12 @@ export default function EventOrdersPage() {
     data: orders,
     searchTerm,
     searchFields: [
-      'customerInfo.fullName', 
-      'customerInfo.email', 
-      'customerInfo.phone', 
-      'eventName.tr', 
-      'eventName.en'
+      'customerInfo.fullName',
+      'customerInfo.email',
+      'customerInfo.phone',
+      'eventName.tr',
+      'eventName.en',
+      'eventSlug'
     ],
     sortField: sorting.field,
     sortDirection: sorting.direction,

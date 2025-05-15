@@ -7,7 +7,7 @@ import { LanguageType } from '@/lib/ThemeLanguageContext';
 import { createTimezoneDate, getCurrentDate, toISOStringWithTimezone, DEFAULT_TIMEZONE } from '@/lib/date-utils';
 
 interface UseBlogFormProps {
-  blog?: BlogPost;
+  blog?: BlogPost & { author?: Author };
   onSubmit: (blogData: Partial<BlogPost>) => void;
   onCancel: () => void;
 }
@@ -35,10 +35,7 @@ export default function useBlogForm({ blog, onSubmit, onCancel }: UseBlogFormPro
     excerpt: { tr: '', en: '' },
     content: { tr: '', en: '' },
     publishDate: toISOStringWithTimezone(new Date(), DEFAULT_TIMEZONE),
-    author: {
-      name: '',
-      avatar: '/images/avatar.webp'
-    },
+    author_id: '',
     coverImage: defaultCoverImage,
     thumbnailImage: defaultThumbnailImage,
     category: 'f1',
@@ -82,22 +79,35 @@ export default function useBlogForm({ blog, onSubmit, onCancel }: UseBlogFormPro
   // Initialize form with blog data if in edit mode
   useEffect(() => {
     if (blog) {
-      console.log('Blog düzenleme modunda başlatılıyor, yazar:', blog.author);
+      console.log('Blog düzenleme modunda başlatılıyor, gelen blog verisi:', blog);
       
-      // Yazarın ID bilgisi varsa onu da ekleyelim
-      const authorData = {
-        ...blog.author,
-        _id: blog.author?._id  // Eğer blog.author içinde _id varsa kullanıyoruz
-      };
+      let authorIdToSet = '';
+      // Gelen blog verisinde populate edilmiş author nesnesi olabilir veya sadece author_id olabilir.
+      if ((blog as any).author && typeof (blog as any).author === 'object' && (blog as any).author._id) {
+        authorIdToSet = (blog as any).author._id;
+      } else if (blog.author_id) { 
+        authorIdToSet = blog.author_id;
+      }
+
+      // FormData'yı blog verisiyle ve çıkarılan author_id ile güncelle
+      // Önce blogdaki diğer alanları al, sonra bizim author_id'mizi ekle/üzerine yaz
+      const { author, ...restOfBlog } = blog as any; // author'ı ayır
       
-      setFormData({
-        ...blog,
-        // Create deep copies to avoid direct references
-        title: { ...blog.title },
-        excerpt: { ...blog.excerpt },
-        content: { ...blog.content },
-        author: authorData
-      });
+      setFormData(prev => ({
+        ...prev, // Önceki state'i koru (başlangıç değerleri vb.)
+        ...restOfBlog, // Gelen blog verisindeki diğer alanları al (title, content vb.)
+        title: { ...(blog.title || { tr: '', en: '' }) }, // title, excerpt, content için deep copy
+        excerpt: { ...(blog.excerpt || { tr: '', en: '' }) },
+        content: { ...(blog.content || { tr: '', en: '' }) },
+        author_id: authorIdToSet, // author_id'yi ayarla
+        // publishDate, coverImage, thumbnailImage, category, slug gibi alanlar restOfBlog'dan gelmeli
+        // veya blog objesinden direkt alınmalı. BlogPost tipiyle uyumlu olmalı.
+        publishDate: blog.publishDate || prev.publishDate,
+        coverImage: blog.coverImage || prev.coverImage,
+        thumbnailImage: blog.thumbnailImage || prev.thumbnailImage,
+        category: blog.category || prev.category,
+        slug: blog.slug || prev.slug,
+      }));
       
       // Initialize date input value if there's a blog publish date
       if (blog.publishDate) {
@@ -112,32 +122,6 @@ export default function useBlogForm({ blog, onSubmit, onCancel }: UseBlogFormPro
       }
     }
   }, [blog]);
-
-  // Yazarlar yüklendiğinde, eğer blog varsa ve blog yazarının adı varsa ama ID'si yoksa
-  // yazarlar listesinden eşleşen yazarı bul ve ID'sini ayarla
-  useEffect(() => {
-    if (blog && blog.author?.name && !blog.author?._id && authors.length > 0) {
-      console.log('Yazarlar yüklendi, blog yazarı için ID aranıyor...');
-      
-      // İsme göre yazarı ara
-      const matchingAuthor = authors.find(author => author.name === blog.author?.name);
-      
-      if (matchingAuthor) {
-        console.log('Yazara ait ID bulundu:', matchingAuthor._id);
-        
-        // FormData içindeki yazara ID bilgisini ekle
-        setFormData(prev => ({
-          ...prev,
-          author: {
-            ...prev.author!,
-            _id: matchingAuthor._id
-          }
-        }));
-      } else {
-        console.log('Yazarın ismi ile eşleşen bir yazar bulunamadı:', blog.author?.name);
-      }
-    }
-  }, [authors, blog]);
 
   // Fetch authors from the server
   const fetchAuthors = async () => {
@@ -182,7 +166,6 @@ export default function useBlogForm({ blog, onSubmit, onCancel }: UseBlogFormPro
     const { name, value } = e.target;
     
     if (name === 'publishDate') {
-      // Special handling for date field with timezone
       setDateInputValue(value);
       setFormData(prev => ({
         ...prev,
@@ -191,46 +174,27 @@ export default function useBlogForm({ blog, onSubmit, onCancel }: UseBlogFormPro
       return;
     }
 
-    if (name === 'author.name') {
-      // Handling for author.name field
-      setFormData(prev => ({
-        ...prev,
-        author: {
-          ...prev.author!,
-          name: value
-        }
-      }));
-      return;
-    }
-    
     if (name === 'title' || name === 'excerpt' || name === 'content') {
-      // Direct handling for title, excerpt, content fields
-      setFormData(prev => ({
-        ...prev,
-        [name]: {
-          ...prev[name as keyof typeof prev]!,
-          [formLanguage]: value
-        }
-      }));
-    } else if (name.includes('.')) {
-      // Handle nested properties
-      const parts = name.split('.');
-      
-      if (parts.length === 2) {
-        // For other nested properties that don't need translation
+      setFormData(prev => {
+        // prev[name] 'in bir nesne olduğundan emin olalım.
+        const currentLanguagedFields = prev[name as 'title' | 'excerpt' | 'content'];
+        return {
+          ...prev,
+          [name]: {
+            ...(typeof currentLanguagedFields === 'object' && currentLanguagedFields !== null ? currentLanguagedFields : { tr: '', en: '' }),
+            [formLanguage]: value
+          }
+        };
+      });
+    } else { 
+      // Diğer düz string alanlar (slug, category)
+      // author_id dropdown ile yönetildiği için buraya girmemeli.
+      if (name !== 'author_id') {
         setFormData(prev => ({
           ...prev,
-          [parts[0]]: {
-            ...prev[parts[0] as keyof typeof prev],
-            [parts[1]]: value
-          }
+          [name]: value
         }));
       }
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
     }
   };
 
@@ -255,27 +219,18 @@ export default function useBlogForm({ blog, onSubmit, onCancel }: UseBlogFormPro
       // Reset author info
       setFormData(prev => ({
         ...prev,
-        author: {
-          name: '',
-          avatar: '/images/avatar.webp'
-        }
+        author_id: ''
       }));
       return;
     }
     
-    // Find the selected author from authors array
-    console.log('Mevcut yazarlar:', authors);
     const selectedAuthor = authors.find(author => author._id === selectedAuthorId);
     console.log('Bulunan yazar:', selectedAuthor);
     
     if (selectedAuthor) {
       setFormData(prev => ({
         ...prev,
-        author: {
-          _id: selectedAuthor._id, // Yazar ID'sini de kaydediyoruz
-          name: selectedAuthor.name,
-          avatar: selectedAuthor.profileImage || '/images/avatar.webp'
-        }
+        author_id: selectedAuthor._id
       }));
     } else {
       console.error(`ID'si ${selectedAuthorId} olan yazar bulunamadı!`);
@@ -293,37 +248,32 @@ export default function useBlogForm({ blog, onSubmit, onCancel }: UseBlogFormPro
     if (!formData.title?.[currentLang]?.trim()) {
       errors['title'] = true;
     }
-    
-    if (!dateInputValue) {
-      errors['publishDate'] = true;
-    }
-    
     if (!formData.excerpt?.[currentLang]?.trim()) {
       errors['excerpt'] = true;
     }
-
     if (!formData.content?.[currentLang]?.trim()) {
       errors['content'] = true;
     }
-
-    // Yazar ID veya name değeri eksikse hata
-    if (!formData.author?._id && !formData.author?.name?.trim()) {
-      errors['author.name'] = true;
+    if (!formData.slug?.trim()) {
+      errors['slug'] = true;
     }
-
-    if (!formData.category?.trim()) {
-      errors['category'] = true;
+    if (!formData.publishDate) { // publishDate için null/undefined/boş string kontrolü
+      errors['publishDate'] = true;
     }
-    
-    // Kapak görseli ve küçük resim de zorunlu
     if (!formData.coverImage) {
       errors['coverImage'] = true;
     }
-    
     if (!formData.thumbnailImage) {
       errors['thumbnailImage'] = true;
     }
-    
+    if (!formData.category) {
+      errors['category'] = true;
+    }
+    // Yazar seçimi zorunlu
+    if (!formData.author_id) {
+      errors['author_id'] = true;
+    }
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -539,39 +489,44 @@ export default function useBlogForm({ blog, onSubmit, onCancel }: UseBlogFormPro
       
       // SLUG kontrolü - title.en değerinden oluşturulacak
       // Boşsa veya geçersizse yeniden oluştur
-      let slug = updatedData.slug;
-      if (!slug || slug.trim() === '' || slug === 'undefined' || slug.includes('undefined')) {
-        if (updatedData.title?.en) {
-          slug = generateSlugFromEnglishTitle(updatedData.title.en);
-        } else if (updatedData.title?.tr) {
-          // İngilizce başlık yoksa Türkçeyi kullan
-          slug = generateSlugFromEnglishTitle(updatedData.title.tr);
-        } else {
-          // Fallback olarak random bir slug oluştur
-          const randomPart = Math.random().toString(36).substring(2, 8);
-          slug = `blog-${randomPart}`;
-        }
-      }
+      let slug = updatedData.slug || (updatedData.title?.en ? generateSlugFromEnglishTitle(updatedData.title.en) : '');
       
       // Yazar için articles dizisini güncelleme
-      if (updatedData.author?._id) {
+      if (updatedData.author_id) {
         try {
-          // MongoDB'ye yazar güncellemesi yap
-          // 1. Eğer düzenleme yapılıyorsa ve eski bir yazar varsa, o yazarın makale listesinden çıkar
-          if (isEditMode && blog?.author?._id && blog.author._id !== updatedData.author._id) {
-            await fetch(`/api/authors/${blog.author._id}/remove-article`, {
+          // 1. Eğer düzenleme yapılıyorsa ve eski bir yazar ID'si varsa ve bu ID yeni seçilen yazar ID'sinden farklıysa
+          // Eski yazardan bu makaleyi çıkar.
+          // blog?.author eski yapıda bir nesne ise blog.author._id, yeni yapıda ise blog.author_id olacak.
+          // BlogPost tipini güncellediğimiz için blog.author_id olmalı.
+          // Şimdilik blog.author'ın _id taşıyan bir nesne olduğunu varsayıyoruz (eski API yanıtı)
+          // veya blog.author_id'nin doğrudan geldiğini.
+
+          let previousAuthorId: string | undefined = undefined;
+          if (isEditMode && blog) {
+            if ((blog as any).author && typeof (blog as any).author === 'object' && (blog as any).author._id) {
+              previousAuthorId = (blog as any).author._id;
+            } else if (blog.author_id) {
+              previousAuthorId = blog.author_id;
+            }
+          }
+
+          if (isEditMode && previousAuthorId && previousAuthorId !== updatedData.author_id) {
+            await fetch(`/api/authors/${previousAuthorId}/remove-article`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ slug: blog.slug })
+              body: JSON.stringify({ slug: blog?.slug }) // blog slug'ı sabit kalmalı
             });
           }
           
-          // 2. Yeni yazara ekle (veya var olan yazarın makale listesini güncelle)
-          await fetch(`/api/authors/${updatedData.author._id}/add-article`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ slug })
-          });
+          // 2. Yeni (veya mevcut) yazara makaleyi ekle
+          // Sadece yeni bir blog oluşturuluyorsa veya yazar değiştiyse ekle
+          if (!isEditMode || (isEditMode && previousAuthorId !== updatedData.author_id)) {
+            await fetch(`/api/authors/${updatedData.author_id}/add-article`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ slug }) // yeni veya güncellenmiş slug
+            });
+          }
         } catch (error) {
           console.error('Yazar güncellemesi sırasında hata:', error);
         }
@@ -581,11 +536,12 @@ export default function useBlogForm({ blog, onSubmit, onCancel }: UseBlogFormPro
       updatedData = {
         ...updatedData,
         slug: slug,
-        publishDate: updatedData.publishDate ? updatedData.publishDate : toISOStringWithTimezone(new Date()),
+        publishDate: updatedData.publishDate || toISOStringWithTimezone(new Date()),
       };
       
       // Deep clone the data to avoid any reference issues
       const finalData = JSON.parse(JSON.stringify(updatedData));
+      console.log('onSubmit çağrısına gönderilecek son veri:', finalData);
       
       onSubmit(finalData);
     } catch (error) {

@@ -13,7 +13,7 @@ export default function AddAuthorPage() {
   // Form state
   const [formData, setFormData] = useState({
     name: '',
-    profileImage: '/api/files/680e8849803166580a5ca610'
+    profileImage: '/images/logokare.png'
   });
   
   // File upload state

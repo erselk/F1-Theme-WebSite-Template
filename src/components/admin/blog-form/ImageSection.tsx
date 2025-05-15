@@ -25,6 +25,9 @@ export default function ImageSection({
   isDark,
   formLanguage
 }: ImageSectionProps) {
+  const defaultCoverImage = '/images/logouzun.png';
+  const defaultThumbnailImage = '/images/logokare.png';
+
   return (
     <div className={`p-2 sm:p-4 border rounded-md mb-4 sm:mb-6 ${
       isDark ? 'border-carbon-grey bg-dark-grey bg-opacity-50' : 'border-light-grey bg-very-light-grey bg-opacity-50'
@@ -65,10 +68,15 @@ export default function ImageSection({
                 />
               </div>
             ) : (
-              <div className="w-full aspect-[16/9] flex items-center justify-center bg-gray-100 rounded-md">
-                <span className={`text-xs sm:text-sm ${isDark ? 'text-carbon-grey' : 'text-light-grey'}`}>
-                  {formLanguage === 'tr' ? 'Görsel yok' : 'No image'}
-                </span>
+              <div className="relative w-full aspect-[16/9] bg-gray-100 rounded-md overflow-hidden">
+                <Image 
+                  src={defaultCoverImage} 
+                  alt={formLanguage === 'tr' ? "Varsayılan kapak" : "Default cover"} 
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="(max-width: 640px) 160px, 284px"
+                  priority
+                />
               </div>
             )}
           </div>
@@ -120,10 +128,15 @@ export default function ImageSection({
                 />
               </div>
             ) : (
-              <div className="w-full aspect-square flex items-center justify-center bg-gray-100 rounded-md">
-                <span className={`text-xs sm:text-sm ${isDark ? 'text-carbon-grey' : 'text-light-grey'}`}>
-                  {formLanguage === 'tr' ? 'Görsel yok' : 'No image'}
-                </span>
+              <div className="relative w-full aspect-square bg-gray-100 rounded-md overflow-hidden">
+                <Image 
+                  src={defaultThumbnailImage} 
+                  alt={formLanguage === 'tr' ? "Varsayılan küçük görsel" : "Default thumbnail"} 
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="(max-width: 640px) 160px, 160px"
+                  priority
+                />
               </div>
             )}
           </div>

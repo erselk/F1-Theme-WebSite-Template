@@ -12,8 +12,8 @@ export async function GET() {
   try {
     await connectToDatabase();
     
-    // Tüm blogları getir ve tarihe göre tersinden sırala (en yenisi önce)
-    const blogs = await Blog.find({}).sort({ publishDate: -1 });
+    // Tüm blogları getir, tarihe göre tersinden sırala ve yazar bilgilerini populate et
+    const blogs = await Blog.find({}).sort({ publishDate: -1 }).populate('author', 'name profileImage _id');
     
     // Cache-Control başlıklarını ayarla
     return NextResponse.json({ 
@@ -28,9 +28,11 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Blog verilerini getirme hatası:', error);
+    // Hata mesajını güvenli bir şekilde string yap
+    const errorMessage = error instanceof Error ? error.message : 'Bloglar yüklenirken bilinmeyen bir sunucu hatası oluştu.';
     return NextResponse.json({ 
-      message: 'Bloglar getirilirken bir hata oluştu', 
-      error, 
+      message: 'Bloglar getirilirken bir hata oluştu: ' + errorMessage, 
+      error: errorMessage, // Sadece string mesajı gönderelim
       success: false 
     }, { status: 500 });
   }
@@ -51,7 +53,7 @@ export async function POST(request: Request) {
     }
     
     // Blogda olması gereken zorunlu alanları kontrol et
-    const requiredFields = ['title', 'excerpt', 'content', 'author', 'publishDate', 'category'];
+    const requiredFields = ['title', 'excerpt', 'content', 'author_id', 'publishDate', 'category'];
     for (const field of requiredFields) {
       if (!data[field]) {
         return NextResponse.json({ 
@@ -72,51 +74,45 @@ export async function POST(request: Request) {
     
     // Şimdi ve createdAt ve updatedAt ekle
     const now = new Date();
-    data.createdAt = now;
-    data.updatedAt = now;
+    // data.createdAt = now; // Mongoose timestamps:true bunu otomatik yapar
+    // data.updatedAt = now;
     
-    // Yeni blog oluştur
-    const newBlog = new Blog(data);
+    // Yeni blog oluştururken author alanına author_id atanacak
+    const blogDataForModel: any = { ...data };
+    if (data.author_id) {
+      blogDataForModel.author = data.author_id; // Şemadaki 'author' alanına ata
+      delete blogDataForModel.author_id; // Orijinal author_id anahtarını kaldır
+    }
+
+    const newBlog = new Blog(blogDataForModel);
     await newBlog.save();
     
     // Yazarın articles dizisine blog slug'ını ekle
-    if (data.author && data.author.name) {
+    // data.author nesnesi yerine data.author_id kullanılacak
+    if (data.author_id) { // author_id varsa devam et
       try {
-        // MongoDB bağlantısı üzerinden test veritabanına eriş
-        // Önceden db = mongoose.connection.db kullanılıyordu, test veritabanını açıkça belirt
-        const testDb = mongoose.connection.useDb('test');
+        const testDb = mongoose.connection.useDb('test'); // 'test' veritabanı adı doğru mu kontrol edilmeli
         
-        // Yazarı adına göre bul (büyük/küçük harf duyarlılığını azaltmak için regex kullanıyoruz)
-        const authorName = data.author.name.trim();
-        const authorRegex = new RegExp(`^${authorName}$`, 'i');
-        const author = await testDb.collection('authors').findOne({ name: authorRegex });
+        // Yazarı ID'sine göre bul
+        const author = await testDb.collection('authors').findOne({ _id: new Types.ObjectId(data.author_id) });
         
         if (author) {
-          // Yazarın articles dizisine slug'ı ekle (eğer yoksa)
           const articles = author.articles || [];
-          
           if (!articles.includes(data.slug)) {
             await testDb.collection('authors').updateOne(
               { _id: author._id },
               { 
                 $push: { articles: data.slug },
-                $set: { updatedAt: now }
+                $set: { updatedAt: new Date() } // updatedAt timestamp'ini güncelle
               }
             );
-            console.log(`Blog slug'ı "${data.slug}" yazarın (${author.name}) articles dizisine eklendi. (test veritabanı)`);
+            console.log(`Blog slug'ı "${data.slug}" yazarın (_id: ${author._id}) articles dizisine eklendi.`);
           }
         } else {
-          console.log(`Yazar bulunamadı: ${authorName}`);
-          // Yeni yazar oluştur (test veritabanında)
-          const newAuthor = {
-            name: authorName,
-            profileImage: data.author.avatar || '/images/avatar.webp',
-            articles: [data.slug],
-            createdAt: now,
-            updatedAt: now
-          };
-          await testDb.collection('authors').insertOne(newAuthor);
-          console.log(`Yeni yazar oluşturuldu ve blog slug'ı "${data.slug}" yazarın articles dizisine eklendi. (test veritabanı)`);
+          console.log(`Yazar bulunamadı (ID: ${data.author_id}). Blog oluşturuldu ama yazarın articles listesi güncellenmedi.`);
+          // Bu durumda yeni yazar oluşturmak yerine hata loglamak daha doğru olabilir,
+          // çünkü yazarın formda seçilmesi beklenir.
+          // Mevcut kodda olmayan yazar için yeni yazar oluşturuluyordu, bu mantık kaldırıldı.
         }
       } catch (authorError) {
         // Yazar güncellemesi başarısız olsa bile, blog oluşturma işlemi başarılı olduğu için

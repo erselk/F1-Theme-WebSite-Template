@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/mongodb';
 import Blog from '@/models/Blog';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
 // Cache kontrollerini ayarla - önbelleğe almayı engelle
 export const dynamic = 'force-dynamic'; // Statik önbelleğe almayı devre dışı bırak
@@ -23,8 +23,8 @@ export async function GET(
 
     await connectToDatabase();
     
-    // Slug'a göre blog getir
-    const blog = await Blog.findOne({ slug });
+    // Blogu slug'a göre bul ve yazar bilgilerini populate et
+    const blog = await Blog.findOne({ slug }).populate('author', 'name profileImage _id');
     
     if (!blog) {
       return NextResponse.json({ 
@@ -79,85 +79,66 @@ export async function PUT(
       }, { status: 404 });
     }
     
-    // Gönderilen güncellemeleri al
     const updates = await request.json();
     
-    // Önceki yazar bilgisini sakla
-    const previousAuthor = existingBlog.author ? existingBlog.author.name : null;
-    const newAuthor = updates.author ? updates.author.name : null;
-    const authorChanged = previousAuthor !== newAuthor && newAuthor;
+    // Önceki yazar ID'sini ve yeni yazar ID'sini al
+    const previousAuthorId = existingBlog.author ? existingBlog.author._id.toString() : null;
+    const newAuthorId = updates.author_id ? updates.author_id.toString() : null;
+    const authorChanged = previousAuthorId !== newAuthorId && newAuthorId;
     
-    // Slug'un değiştirilmesine izin verme - tutarlılık için mevcut slug değerini koru
+    // Slug'un değiştirilmesine izin verme
     updates.slug = slug;
     
     // updatedAt alanını güncelle
     const now = new Date();
     updates.updatedAt = now;
     
-    // Blogu güncelle
+    // Veritabanına gönderilecek güncellemeleri hazırla
+    const updatesToApply: any = { ...updates };
+    if (updates.author_id) {
+      updatesToApply.author = updates.author_id;
+      delete updatesToApply.author_id;
+    } else if (updates.hasOwnProperty('author_id') && updates.author_id === null) {
+      updatesToApply.author = null;
+      delete updatesToApply.author_id;
+    }
+    
     const updatedBlog = await Blog.findOneAndUpdate(
       { slug },
-      { $set: updates },
+      { $set: updatesToApply },
       { new: true, runValidators: true }
-    );
-    
-    // Eğer yazar değiştiyse, eski yazardan slug'ı kaldır ve yeni yazara ekle
+    ).populate('author', 'name profileImage _id');
+
+    // Yazarın articles dizisini güncelle (eğer yazar değiştiyse)
     if (authorChanged) {
-      try {
-        // MongoDB bağlantısı üzerinden test veritabanına eriş
-        const testDb = mongoose.connection.useDb('test');
-        
-        // Eski yazardan blogu kaldır
-        if (previousAuthor) {
-          const oldAuthorRegex = new RegExp(`^${previousAuthor.trim()}$`, 'i');
+      const testDb = mongoose.connection.useDb('test');
+      const updateTimestamp = new Date();
+
+      // 1. Eski yazardan slug'ı kaldır (eğer varsa)
+      if (previousAuthorId) {
+        await testDb.collection('authors').updateOne(
+          { _id: new Types.ObjectId(previousAuthorId) },
+          {
+            $pull: { articles: slug } as any,
+            $set: { updatedAt: updateTimestamp }
+          }
+        );
+        console.log(`Blog slug'ı "${slug}" eski yazarın (ID: ${previousAuthorId}) articles dizisinden kaldırıldı.`);
+      }
+
+      // 2. Yeni yazara slug'ı ekle (eğer varsa ve slug daha önce eklenmemişse)
+      if (newAuthorId) {
+        const newAuthorDoc = await testDb.collection('authors').findOne({ _id: new Types.ObjectId(newAuthorId) });
+        if (newAuthorDoc && !(newAuthorDoc.articles || []).includes(slug)) {
           await testDb.collection('authors').updateOne(
-            { name: oldAuthorRegex },
-            { 
-              $pull: { articles: slug },
-              $set: { updatedAt: now }
+            { _id: new Types.ObjectId(newAuthorId) },
+            {
+              $push: { articles: slug } as any,
+              $set: { updatedAt: updateTimestamp }
             }
           );
-          console.log(`Blog slug'ı "${slug}" eski yazardan (${previousAuthor}) kaldırıldı. (test veritabanı)`);
+          console.log(`Blog slug'ı "${slug}" yeni yazarın (ID: ${newAuthorId}) articles dizisine eklendi.`);
         }
-        
-        // Yeni yazara blogu ekle
-        if (newAuthor) {
-          const newAuthorName = newAuthor.trim();
-          const newAuthorRegex = new RegExp(`^${newAuthorName}$`, 'i');
-          const author = await testDb.collection('authors').findOne({ name: newAuthorRegex });
-          
-          if (author) {
-            // Yazarın articles dizisine slug'ı ekle (eğer yoksa)
-            const articles = author.articles || [];
-            
-            if (!articles.includes(slug)) {
-              await testDb.collection('authors').updateOne(
-                { _id: author._id },
-                { 
-                  $push: { articles: slug },
-                  $set: { updatedAt: now }
-                }
-              );
-              console.log(`Blog slug'ı "${slug}" yeni yazarın (${newAuthorName}) articles dizisine eklendi. (test veritabanı)`);
-            }
-          } else {
-            // Yeni yazar yoksa, oluştur
-            console.log(`Yeni yazar bulunamadı: ${newAuthorName}, oluşturuluyor... (test veritabanı)`);
-            const newAuthorDoc = {
-              name: newAuthorName,
-              profileImage: updates.author.avatar || '/images/avatar.webp',
-              articles: [slug],
-              createdAt: now,
-              updatedAt: now
-            };
-            await testDb.collection('authors').insertOne(newAuthorDoc);
-            console.log(`Yeni yazar oluşturuldu ve blog slug'ı "${slug}" yazarın articles dizisine eklendi. (test veritabanı)`);
-          }
-        }
-      } catch (authorError) {
-        // Yazar güncellemesi başarısız olsa bile, blog güncelleme işlemi başarılı olduğu için
-        // sadece hatayı günlüğe kaydediyoruz
-        console.error('Yazar bilgisi güncellenirken hata oluştu:', authorError);
       }
     }
     
@@ -204,26 +185,22 @@ export async function DELETE(
     
     // Yazarın articles dizisinden blog slug'ını kaldır
     try {
-      if (existingBlog.author && existingBlog.author.name) {
-        const authorName = existingBlog.author.name.trim();
-        const db = mongoose.connection.db;
+      const authorId = existingBlog.author ? existingBlog.author.toString() : null;
+
+      if (authorId) {
+        const testDb = mongoose.connection.useDb('test');
+        const updateTimestamp = new Date();
         
-        // Yazarı adına göre bul 
-        const authorRegex = new RegExp(`^${authorName}$`, 'i');
-        
-        // Yazarın articles dizisinden slug'ı kaldır
-        const now = new Date();
-        await db.collection('authors').updateOne(
-          { name: authorRegex },
-          { 
-            $pull: { articles: slug },
-            $set: { updatedAt: now }
+        await testDb.collection('authors').updateOne(
+          { _id: new Types.ObjectId(authorId) }, 
+          {
+            $pull: { articles: slug } as any,
+            $set: { updatedAt: updateTimestamp }
           }
         );
-        console.log(`Blog slug'ı "${slug}" yazarın (${authorName}) articles dizisinden kaldırıldı.`);
+        console.log(`Blog slug'ı "${slug}" yazarın (ID: ${authorId}) articles dizisinden kaldırıldı.`);
       }
     } catch (authorError) {
-      // Yazar güncellemesi başarısız olsa bile, blog silme işlemi devam edecek
       console.error('Yazar bilgisi güncellenirken hata oluştu:', authorError);
     }
     

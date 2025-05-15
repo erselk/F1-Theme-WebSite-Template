@@ -22,8 +22,8 @@ const BlogContentWithSearch: React.FC = () => {
   const { data, error, isLoading, mutate } = useSWRFetch<{ blogs: BlogPost[], success: boolean }>(
     '/api/blogs',
     { 
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
+      revalidateOnFocus: true,
+      revalidateIfStale: true,
       revalidateOnReconnect: false,
       dedupingInterval: 60000, // 1 dakika
     }

@@ -328,7 +328,8 @@ export function TicketSidebar({ event, locale: initialLocale }: TicketSidebarPro
         locale,
         timestamp: Date.now(),
         returnUrl: window.location.href,
-        eventId: event.id // Add the event ID to make it easier to check on return
+        eventId: event.id, // Add the event ID to make it easier to check on return
+        eventSlug: event.slug // <<<--- EKLENEN SATIR: Gerçek event slug'ını ekle
       };
       
       // Save payment data to localStorage so we can retrieve it when returning from payment page

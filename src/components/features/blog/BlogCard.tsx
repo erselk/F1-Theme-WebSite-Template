@@ -6,7 +6,7 @@ import { DEFAULT_BLUR_DATA_URL } from '@/constants/blog';
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 
 interface BlogCardProps {
-  blog: BlogPost;
+  blog: BlogPost & { author?: { _id?: string, name?: string, profileImage?: string } };
   language: string;
   isDark: boolean;
   formatDate: (dateString: string) => string;
@@ -60,17 +60,21 @@ const BlogCard: React.FC<BlogCardProps> = ({
           <div className="flex items-center pt-1 sm:pt-1.5">
             <div 
               onClick={(e) => {
-                e.preventDefault(); // Link yerine window.location kullanıldığı için, önce varsayılan davranışı engelleyelim
-                e.stopPropagation(); // Prevent triggering the parent link
-                window.location.href = `/blog?author=${encodeURIComponent(blog.author.name)}`;
+                e.preventDefault(); 
+                e.stopPropagation(); 
+                if (blog.author?._id) {
+                  window.location.href = `/blog?authorId=${encodeURIComponent(blog.author._id)}`;
+                } else if (blog.author?.name) {
+                  window.location.href = `/blog?author=${encodeURIComponent(blog.author.name)}`;
+                }
               }}
               className="flex items-center group cursor-pointer"
             >
               <div className="relative w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full overflow-hidden mr-1.5 sm:mr-2">
-                {blog.author.avatar ? (
+                {blog.author?.profileImage ? (
                   <Image 
-                    src={blog.author.avatar} 
-                    alt={blog.author.name} 
+                    src={blog.author.profileImage} 
+                    alt={blog.author.name || 'Author'}
                     fill 
                     className="object-cover"
                     placeholder="blur"
@@ -78,11 +82,13 @@ const BlogCard: React.FC<BlogCardProps> = ({
                   />
                 ) : (
                   <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-graphite text-silver' : 'bg-light-grey text-dark-grey'}`}>
-                    {blog.author.name.charAt(0)}
+                    {blog.author?.name?.charAt(0) || 'A'}
                   </div>
                 )}
               </div>
-              <span className="text-[10px] sm:text-xs font-medium group-hover:underline">{blog.author.name}</span>
+              <span className="text-[10px] sm:text-xs font-medium group-hover:underline">
+                {blog.author?.name || 'Bilinmeyen Yazar'}
+              </span>
             </div>
           </div>
         </div>

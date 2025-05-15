@@ -28,8 +28,8 @@ export async function GET(
   }
 }
 
-// POST /api/authors/[id] - Yazarı güncelle
-export async function POST(
+// PUT /api/authors/[id] - Yazarı güncelle
+export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {

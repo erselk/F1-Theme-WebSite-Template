@@ -31,11 +31,27 @@ export default function BlogsListPage() {
           );
           
           setBlogs(sortedBlogs);
+          setError(null); // Başarılı olursa hatayı temizle
         } else {
-          throw new Error(data.error || 'Bloglar yüklenirken bir hata oluştu');
+          let errorMessage = 'Bloglar yüklenirken bilinmeyen bir sunucu hatası oluştu.'; // Varsayılan mesaj
+          if (data && data.message) { // API'dan gelen .message alanını önceliklendir
+            errorMessage = data.message;
+          } else if (data && data.error) {
+            if (typeof data.error === 'string') {
+              errorMessage = data.error;
+            } else if (typeof data.error === 'object' && data.error.message && typeof data.error.message === 'string') {
+              errorMessage = data.error.message;
+            } else if (typeof data.error === 'object') {
+              // Eğer data.error bir nesne ama .message yoksa, nesneyi stringify et (debug için)
+              // Production'da daha genel bir mesaj göstermek daha iyi olabilir.
+              errorMessage = JSON.stringify(data.error);
+            }
+          }
+          throw new Error(errorMessage);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Bloglar yüklenirken bir hata oluştu');
+        // err.message zaten string olmalı (new Error ile oluşturulduğu için)
+        setError(err instanceof Error ? err.message : 'Bloglar yüklenirken bir ağ hatası oluştu.');
         console.error('Blog yükleme hatası:', err);
       } finally {
         setLoading(false);
@@ -62,7 +78,19 @@ export default function BlogsListPage() {
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Blog silinirken bir hata oluştu');
+        let deleteErrorMessage = 'Blog silinirken bilinmeyen bir sunucu hatası oluştu.';
+        if (data && data.message) {
+          deleteErrorMessage = data.message;
+        } else if (data && data.error) {
+          if (typeof data.error === 'string') {
+            deleteErrorMessage = data.error;
+          } else if (typeof data.error === 'object' && data.error.message && typeof data.error.message === 'string') {
+            deleteErrorMessage = data.error.message;
+          } else if (typeof data.error === 'object') {
+            deleteErrorMessage = JSON.stringify(data.error);
+          }
+        }
+        throw new Error(deleteErrorMessage);
       }
       
       // Başarılı ise listeden kaldır

@@ -324,7 +324,7 @@ export default function EventsListPage() {
                         <EyeIcon className="w-4 h-4 md:w-5 md:h-5" />
                       </Link>
                       <Link
-                        href={`/admin/reservations/events?event=${event.slug.replace(/-/g, ' ')}`}
+                        href={`/admin/reservations/events?event=${event.slug}`}
                         className="text-blue-500 hover:text-blue-700"
                         title="Satışlar"
                       >

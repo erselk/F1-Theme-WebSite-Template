@@ -1,9 +1,33 @@
-export interface Author {
-  _id?: string;
+import mongoose, { Schema, Document } from 'mongoose';
+
+// TypeScript interface'i (isteğe bağlı ama iyi bir pratik)
+export interface IAuthor extends Document {
   name: string;
-  profileImage: string;
-  bio?: string;
-  articles?: string[];
-  createdAt?: Date;
-  updatedAt?: Date;
+  profileImage?: string; 
+  bio?: string;          
+  articles?: string[];   // Yazarın blog slug'ları
 }
+
+// Mongoose Şeması
+const AuthorSchema: Schema = new Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  profileImage: {
+    type: String,
+    default: '/images/avatar.webp' 
+  },
+  bio: {
+    type: String,
+    trim: true
+  },
+  articles: [{
+    type: String
+  }]
+}, {
+  timestamps: true 
+});
+
+export default mongoose.models.Author || mongoose.model<IAuthor>('Author', AuthorSchema);

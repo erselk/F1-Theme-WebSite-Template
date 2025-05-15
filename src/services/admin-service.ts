@@ -218,10 +218,10 @@ export const updateEvent = async (id: string, eventData: any) => {
   }
 };
 
-export const deleteEvent = async (id: string) => {
+export const deleteEvent = async (slug: string) => {
   try {
     await connectToDatabase();
-    const event = await Event.findByIdAndDelete(id);
+    const event = await Event.findOneAndDelete({ slug });
     
     if (!event) {
       return { success: false, error: 'Etkinlik bulunamadı' };
@@ -229,7 +229,7 @@ export const deleteEvent = async (id: string) => {
     
     return { success: true, data: 'Etkinlik başarıyla silindi' };
   } catch (error: any) {
-    console.error(`Error deleting event with ID ${id}:`, error);
+    console.error(`Error deleting event with slug ${slug}:`, error);
     return { success: false, error: error.message };
   }
 };

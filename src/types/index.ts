@@ -7,11 +7,7 @@ export interface BlogPost {
   coverImage: string; 
   thumbnailImage: string;
   publishDate: string; 
-  author: {
-    _id?: string;
-    name: string;
-    avatar?: string;
-  };
+  author_id: string;
   title: {
     tr: string;
     en: string;

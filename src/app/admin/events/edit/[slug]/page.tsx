@@ -1,16 +1,53 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import EventForm from '@/components/admin/EventForm';
-import { Event } from '@/data/events';
+import { Event } from '@/types';
 import { useTheme } from 'next-themes';
-import { use } from 'react';
+import type { Event as PrismaEventPayload } from '@prisma/client';
 
-// Client component'ler için params tipini böyle tanımlamalıyız
-export default function EditEventPage({ params }: { params: { slug: string } }) {
+// Helper function to convert local Event data (from form) to a payload suitable for the API (Prisma-like)
+const convertLocalEventToApiPayload = (eventData: Partial<Event>): Partial<PrismaEventPayload> => {
+  const payload: Partial<PrismaEventPayload> = {
+    // Spread compatible fields
+    // slug, id are typically handled by API or not part of form data directly for update
+    bannerImage: eventData.bannerImage || null,
+    squareImage: eventData.squareImage || null,
+    price: typeof eventData.price === 'number' ? eventData.price : undefined,
+    isFeatured: typeof eventData.isFeatured === 'boolean' ? eventData.isFeatured : undefined,
+    date: eventData.date ? new Date(eventData.date) : undefined, // Convert ISO string to Date object
+    // Localized fields in @/types Event are {tr, en}, Prisma expects JsonValue which can be the same object
+    title: eventData.title as PrismaEventPayload['title'],
+    location: eventData.location as PrismaEventPayload['location'],
+    description: eventData.description as PrismaEventPayload['description'],
+    category: eventData.category as PrismaEventPayload['category'], // Ensure local category type matches Prisma or is convertible
+    // Rules: Local Event has Rule[], Prisma expects JsonValue (e.g., array of rule objects with id and content)
+    // Pass rules directly to preserve IDs, assuming Prisma can handle this structure.
+    rules: eventData.rules as PrismaEventPayload['rules'], 
+    // Schedule: Pass schedule directly
+    schedule: eventData.schedule as PrismaEventPayload['schedule'],
+    // Tickets: Similar to rules, conversion depends on Prisma schema and form data structure.
+    tickets: eventData.tickets as PrismaEventPayload['tickets'],
+    // status from local Event type should be compatible with PrismaEventPayload status if it exists
+    status: eventData.status as PrismaEventPayload['status'],
+    // comments and gallery are also to be handled if they are part of the form and Prisma model
+    gallery: eventData.gallery as PrismaEventPayload['gallery'],
+    // comments: eventData.comments as PrismaEventPayload['comments'], // Assuming Prisma model has comments
+  };
+
+  // Remove fields that are undefined to avoid sending them in payload if not intended
+  Object.keys(payload).forEach(key => {
+    if ((payload as any)[key] === undefined) {
+      delete (payload as any)[key];
+    }
+  });
+
+  return payload;
+};
+
+export default function EditEventPage({ params }: { params: Promise<{ slug: string }> }) {
   const router = useRouter();
-  // Unwrap params using React.use() before accessing properties
   const { slug } = use(params);
   const { setTheme } = useTheme();
   
@@ -19,92 +56,91 @@ export default function EditEventPage({ params }: { params: { slug: string } }) 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Force dark theme on mount - for consistent admin UI
   useEffect(() => {
     setTheme('dark');
   }, [setTheme]);
 
   useEffect(() => {
+    if (!slug) {
+      console.warn("EditEventPage: Slug is not available. Cannot fetch event.");
+      setIsLoading(false);
+      setError("Etkinlik kimliği (slug) bulunamadı.");
+      return;
+    }
+    console.log(`EditEventPage: Attempting to fetch event for slug: ${slug}`);
+
     const fetchEvent = async () => {
       try {
         setIsLoading(true);
         setError(null);
         
         const response = await fetch(`/api/events/${slug}`);
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Etkinlik bilgileri yüklenirken bir hata oluştu');
-        }
-        
-        // Ensure rules property exists and is an array to prevent "rules?.map is not a function" error
-        const eventData = data.event;
+        console.log("EditEventPage: API Response Status:", response.status, "OK?", response.ok);
 
-        // Debug: Log the event data to see what we're getting from the API
-        console.log('API Response - Event Data:', eventData);
-        console.log('Schedule data:', eventData.schedule);
-        console.log('Rules data:', eventData.rules);
-        
-        if (eventData && !Array.isArray(eventData.rules)) {
-          // If rules is not an array but still exists in the right format
-          if (eventData.rules && typeof eventData.rules === 'object' && 
-              (Array.isArray(eventData.rules.tr) || Array.isArray(eventData.rules.en))) {
-            console.log('Rules is in correct format, no conversion needed');
-          } else {
-            // Convert rules to array format if needed
-            console.log('Converting rules to array format');
-            eventData.rules = eventData.rules ? [eventData.rules] : [];
-          }
+        const responseData = await response.json(); // Always try to parse JSON
+
+        if (!response.ok) {
+          // API returned an error (e.g., 404, 500)
+          // responseData might contain { error: "message" }
+          const errorMessage = responseData?.error || `API Error: ${response.status}`;
+          console.error(`EditEventPage: API request failed with status ${response.status}. Data:`, responseData);
+          throw new Error(errorMessage);
         }
         
-        setEvent(eventData);
+        // If response.ok is true, API should be returning the event object directly
+        const eventDataFromApi = responseData as Event;
+        console.log('EditEventPage: Received event data from API:', eventDataFromApi);
+
+        if (!eventDataFromApi || typeof eventDataFromApi.id !== 'string') { // Basic validation
+          setError('Alınan etkinlik verisi geçersiz veya eksik.');
+          console.error('EditEventPage: Invalid or empty event data received from API. Data:', eventDataFromApi);
+          setEvent(null); // Clear any previous event state
+        } else {
+          setEvent(eventDataFromApi);
+        }
+
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Etkinlik bilgileri yüklenirken bir hata oluştu');
-        console.error('Etkinlik yükleme hatası:', err);
+        console.error('EditEventPage: Etkinlik yükleme sırasında bir hata oluştu:', err);
+        // err.message should now be more informative from the check above
+        setError(err instanceof Error ? err.message : 'Etkinlik yüklenirken bilinmeyen bir hata oluştu');
+        setEvent(null); // Clear event state on error
       } finally {
         setIsLoading(false);
       }
     };
     
-    if (slug) {
-      fetchEvent();
-    }
+    fetchEvent();
+    
   }, [slug]);
 
-  const handleSubmit = async (eventData: Partial<Event>) => {
+  const handleSubmit = async (formData: Partial<Event>) => {
+    setIsSubmitting(true);
+    setError(null);
     try {
-      setIsSubmitting(true);
-      setError(null);
-      
-      // Slug değişikliğini engelle - API'de de kontrol ediliyor
-      eventData.slug = slug;
-      
-      // Ensure rules is an array
-      if (eventData.rules && !Array.isArray(eventData.rules)) {
-        eventData.rules = [eventData.rules];
-      }
-      
-      // Veriyi API'ye gönder
+      const payload = convertLocalEventToApiPayload(formData);
+      payload.slug = slug; // Ensure slug is part of the payload for the PUT request
+
+      console.log('EditEventPage: Submitting payload to API:', payload);
+
       const response = await fetch(`/api/events/${slug}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(eventData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
-      
-      const data = await response.json();
-      
+
+      const result = await response.json();
+
       if (!response.ok) {
-        throw new Error(data.error || 'Etkinlik güncellenirken bir hata oluştu');
+        throw new Error(result.error || result.message || 'Etkinlik güncellenirken bir API hatası oluştu');
       }
-      
-      // Başarılı ise etkinlik listesine yönlendir
+
+      console.log('EditEventPage: Event updated successfully', result);
       router.push('/admin/events');
-      router.refresh(); // Listeyi yenilemek için refresh çağır
+      router.refresh();
+
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Etkinlik güncellenirken bir hata oluştu');
-      console.error('Etkinlik güncelleme hatası:', err);
+      console.error('EditEventPage: Etkinlik güncelleme hatası:', err);
+      setError(err instanceof Error ? err.message : 'Etkinlik güncellenirken bilinmeyen bir hata oluştu');
     } finally {
       setIsSubmitting(false);
     }
@@ -160,6 +196,7 @@ export default function EditEventPage({ params }: { params: { slug: string } }) 
   }
 
   if (!event) {
+    // This state can be reached if !isLoading and no error, but event is null (e.g. API returned valid but empty/invalid data that didn't pass validation)
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="p-4 bg-f1-red/10 border border-f1-red text-f1-red rounded-md">
@@ -180,7 +217,7 @@ export default function EditEventPage({ params }: { params: { slug: string } }) 
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12" y2="16"></line>
             </svg>
-            Etkinlik bulunamadı
+            {error ? error : 'Etkinlik bulunamadı veya yüklenen veri geçersiz.'} 
           </div>
           <button
             className="mt-4 px-4 py-2 bg-electric-blue text-white rounded-md hover:bg-electric-blue/80 transition-colors"
@@ -192,37 +229,15 @@ export default function EditEventPage({ params }: { params: { slug: string } }) 
       </div>
     );
   }
+  
+  const displayTitle = event.title?.tr || event.title?.en || 'Etkinlik';
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-4 sm:mb-6">
         <h1 className="text-lg sm:text-xl font-bold text-white mb-1 sm:mb-2">Etkinliği Düzenle</h1>
-        <p className="text-xs sm:text-sm text-medium-grey">&quot;{event.title?.tr || event.title?.en}&quot; etkinliğini düzenliyorsunuz.</p>
+        <p className="text-xs sm:text-sm text-medium-grey">&quot;{displayTitle}&quot; etkinliğini düzenliyorsunuz.</p>
       </div>
-      
-      {error && (
-        <div className="mb-6 p-4 bg-f1-red/10 border border-f1-red text-f1-red rounded-md">
-          <div className="flex items-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mr-2"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12" y2="16"></line>
-            </svg>
-            {error}
-          </div>
-        </div>
-      )}
       
       <EventForm 
         event={event}

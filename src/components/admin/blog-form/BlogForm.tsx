@@ -119,7 +119,7 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
         <ImageSelector 
           isOpen={coverSelectorOpen} 
           onClose={() => setCoverSelectorOpen(false)} 
-          onImageSelect={handleCoverImageSelection}
+          onSelect={handleCoverImageSelection}
           title={formLanguage === 'tr' ? 'Kapak Görseli Seç' : 'Select Cover Image'}
           category="blog"
         />
@@ -129,7 +129,7 @@ export default function BlogForm({ blog, onSubmit, onCancel, isSubmitting }: Blo
         <ImageSelector 
           isOpen={thumbnailSelectorOpen} 
           onClose={() => setThumbnailSelectorOpen(false)} 
-          onImageSelect={handleThumbnailImageSelection}
+          onSelect={handleThumbnailImageSelection}
           title={formLanguage === 'tr' ? 'Küçük Görsel Seç' : 'Select Thumbnail Image'}
           category="blog"
         />
