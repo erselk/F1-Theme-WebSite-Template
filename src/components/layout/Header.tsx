@@ -128,14 +128,6 @@ const Header = () => {
           <div className="flex">
             <Link href="/" className="-m-1.5 p-1.5">
               <span className="sr-only">PadokClub</span>
-              <Image
-                className="h-8 w-auto"
-                src="/logo.svg"
-                alt="PadokClub"
-                width={32}
-                height={32}
-                priority
-              />
             </Link>
           </div>
           {/* Loading state for the rest of the header */}

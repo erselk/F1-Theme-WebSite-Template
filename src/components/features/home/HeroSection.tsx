@@ -34,7 +34,7 @@ export default function HeroSection({ translations }: HeroSectionProps) {
   const [animationSetup, setAnimationSetup] = useState(false);
   
   // Home slides from the home folder (about1.jpg to about19.jpg)
-  const homeSlides = Array.from({ length: 19 }, (_, i) => `/images/about${i + 1}.jpg`);
+  const homeSlides = Array.from({ length: 19 }, (_, i) => `/images/about${i + 1}.webp`);
   
   // Handle slide change when clicking on dots
   const handleSlideChange = useCallback((index: number) => {
