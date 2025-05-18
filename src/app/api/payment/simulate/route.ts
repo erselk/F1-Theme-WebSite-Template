@@ -140,10 +140,8 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Payment simulation error:', error);
-    
     return NextResponse.json(
-      { error: "An error occurred in the payment simulation" },
+      { success: false, error: error instanceof Error ? error.message : 'Ödeme simülasyonu hatası' },
       { status: 500 }
     );
   }

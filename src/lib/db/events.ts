@@ -2,7 +2,6 @@ import { prisma } from './prisma';
 import type { Event } from '@prisma/client';
 import { createFixedDate, generateUniqueId, getEventStatus } from '../../data/events/utils';
 
-// Types for type-safe operations
 type LocalizedText = {
   tr: string;
   en: string;
@@ -15,20 +14,17 @@ type EventTicket = {
   description: LocalizedText;
 };
 
-// Get all events
 export async function getAllEvents() {
   const events = await prisma.event.findMany({
     orderBy: { date: 'asc' }
   });
   
-  // Update status for each event
   return events.map(event => ({
     ...event,
     status: getEventStatus(event.date.toISOString())
   }));
 }
 
-// Get featured events
 export async function getFeaturedEvents() {
   return prisma.event.findMany({
     where: { isFeatured: true },
@@ -36,14 +32,12 @@ export async function getFeaturedEvents() {
   });
 }
 
-// Get event by slug
 export async function getEventBySlug(slug: string) {
   return prisma.event.findUnique({
     where: { slug }
   });
 }
 
-// Create new event
 export async function createEvent(eventData: {
   slug: string;
   bannerImage?: string;
@@ -69,7 +63,6 @@ export async function createEvent(eventData: {
   });
 }
 
-// Update event
 export async function updateEvent(slug: string, eventData: Partial<Event>) {
   return prisma.event.update({
     where: { slug },
@@ -77,19 +70,15 @@ export async function updateEvent(slug: string, eventData: Partial<Event>) {
   });
 }
 
-// Delete event
 export async function deleteEvent(slug: string) {
   return prisma.event.delete({
     where: { slug }
   });
 }
 
-// Import events from file system
 export async function importEventsFromFiles(events: any[]) {
-  // First clear all existing events
   await prisma.event.deleteMany();
   
-  // Then import all events from files
   const importPromises = events.map(eventData => {
     return prisma.event.create({
       data: {

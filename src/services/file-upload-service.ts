@@ -125,8 +125,6 @@ export async function listFilesByCategory(category: string): Promise<any[]> {
     const { db } = await connectToGridFS();
     const bucket = db.collection('uploads.files');
     
-    console.log('Listing files with category:', category);
-    
     let query = {};
     
     // Apply category filtering only if not "all"
@@ -142,8 +140,6 @@ export async function listFilesByCategory(category: string): Promise<any[]> {
     
     // Dosyaları çek ve sırala (en yeni ilk)
     const files = await bucket.find(query).sort({ uploadDate: -1 }).toArray();
-    
-    console.log(`Found ${files.length} files in GridFS`);
     
     // Map the files to a simpler format with URLs
     return files.map(file => {
@@ -164,7 +160,6 @@ export async function listFilesByCategory(category: string): Promise<any[]> {
       };
     });
   } catch (error) {
-    console.error('Error listing files:', error);
     return [];
   }
 } 

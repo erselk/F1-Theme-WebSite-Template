@@ -103,7 +103,6 @@ export default function TicketsSection({
                     data-field="name"
                     value={ticket.name?.[formLanguage] || ''}
                     onChange={(e) => {
-                      console.log("Bilet adı değişiyor:", e.target.value);
                       handleTicketChange(index, 'name', e.target.value);
                     }}
                     className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${
@@ -146,7 +145,6 @@ export default function TicketsSection({
                     rows={2}
                     value={ticket.description?.[formLanguage] || ''}
                     onChange={(e) => {
-                      console.log("Bilet açıklaması değişiyor:", e.target.value);
                       handleTicketChange(index, 'description', e.target.value);
                     }}
                     className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${

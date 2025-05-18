@@ -1,13 +1,8 @@
-/**
- * Client-side data fetching utilities
- * This provides a consistent interface for components to fetch data
- * whether from MongoDB or file-based storage
- */
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-// Event related fetching
 export async function fetchEvents(options?: { featured?: boolean }) {
   const featured = options?.featured ? '?featured=true' : '';
-  const response = await fetch(`/api/events${featured}`);
+  const response = await fetch(`${API_BASE_URL}/api/events${featured}`);
   
   if (!response.ok) {
     throw new Error('Failed to fetch events');
@@ -17,7 +12,7 @@ export async function fetchEvents(options?: { featured?: boolean }) {
 }
 
 export async function fetchEventBySlug(slug: string) {
-  const response = await fetch(`/api/events?slug=${slug}`);
+  const response = await fetch(`${API_BASE_URL}/api/events?slug=${slug}`);
   
   if (!response.ok) {
     throw new Error('Failed to fetch event');
@@ -26,10 +21,9 @@ export async function fetchEventBySlug(slug: string) {
   return response.json();
 }
 
-// Blog related fetching
 export async function fetchBlogs(options?: { featured?: boolean }) {
   const featured = options?.featured ? '?featured=true' : '';
-  const response = await fetch(`/api/blogs${featured}`);
+  const response = await fetch(`${API_BASE_URL}/api/blogs${featured}`);
   
   if (!response.ok) {
     throw new Error('Failed to fetch blogs');
@@ -40,7 +34,7 @@ export async function fetchBlogs(options?: { featured?: boolean }) {
 
 export async function fetchBlogBySlug(slug: string, options?: { incrementViews?: boolean }) {
   const incrementViews = options?.incrementViews ? '&incrementViews=true' : '';
-  const response = await fetch(`/api/blogs?slug=${slug}${incrementViews}`);
+  const response = await fetch(`${API_BASE_URL}/api/blogs?slug=${slug}${incrementViews}`);
   
   if (!response.ok) {
     throw new Error('Failed to fetch blog');
@@ -49,9 +43,8 @@ export async function fetchBlogBySlug(slug: string, options?: { incrementViews?:
   return response.json();
 }
 
-// Booking related fetching
 export async function fetchBookings() {
-  const response = await fetch('/api/bookings');
+  const response = await fetch(`${API_BASE_URL}/api/bookings`);
   
   if (!response.ok) {
     throw new Error('Failed to fetch bookings');
@@ -61,7 +54,7 @@ export async function fetchBookings() {
 }
 
 export async function fetchBookingByRef(refNumber: string) {
-  const response = await fetch(`/api/bookings?refNumber=${refNumber}`);
+  const response = await fetch(`${API_BASE_URL}/api/bookings?refNumber=${refNumber}`);
   
   if (!response.ok) {
     throw new Error('Failed to fetch booking');
@@ -71,7 +64,7 @@ export async function fetchBookingByRef(refNumber: string) {
 }
 
 export async function fetchUserBookings(userId: string) {
-  const response = await fetch(`/api/bookings?userId=${userId}`);
+  const response = await fetch(`${API_BASE_URL}/api/bookings?userId=${userId}`);
   
   if (!response.ok) {
     throw new Error('Failed to fetch user bookings');
@@ -80,9 +73,8 @@ export async function fetchUserBookings(userId: string) {
   return response.json();
 }
 
-// Create new bookings
 export async function createSimulatorBooking(bookingData: any) {
-  const response = await fetch('/api/bookings', {
+  const response = await fetch(`${API_BASE_URL}/api/bookings`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -101,7 +93,7 @@ export async function createSimulatorBooking(bookingData: any) {
 }
 
 export async function createEventBooking(bookingData: any) {
-  const response = await fetch('/api/bookings', {
+  const response = await fetch(`${API_BASE_URL}/api/bookings`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -119,9 +111,8 @@ export async function createEventBooking(bookingData: any) {
   return response.json();
 }
 
-// Update or cancel bookings
 export async function updateBookingStatus(refNumber: string, status: string) {
-  const response = await fetch(`/api/bookings?refNumber=${refNumber}`, {
+  const response = await fetch(`${API_BASE_URL}/api/bookings?refNumber=${refNumber}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -137,7 +128,7 @@ export async function updateBookingStatus(refNumber: string, status: string) {
 }
 
 export async function cancelBooking(refNumber: string) {
-  const response = await fetch(`/api/bookings?refNumber=${refNumber}`, {
+  const response = await fetch(`${API_BASE_URL}/api/bookings?refNumber=${refNumber}`, {
     method: 'DELETE',
   });
   

@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 
-// Mongoose şema modeli - email alanını geri ekledik
 const bookingSchema = new mongoose.Schema({
   refNumber: {
     type: String,
@@ -52,7 +51,6 @@ const bookingSchema = new mongoose.Schema({
   }
 });
 
-// Model oluşturma veya mevcut modeli kullanma
 const Booking = mongoose.models.Booking || mongoose.model('Booking', bookingSchema);
 
 export default Booking;

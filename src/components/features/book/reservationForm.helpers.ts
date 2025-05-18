@@ -28,8 +28,7 @@ export const getFormattedDate = (dateString: string, language: string = 'tr'): s
     const date = parseISO(dateString); // or new Date(dateString)
     return format(date, 'PPPP', { locale: language === 'tr' ? tr : enUS });
   } catch (error) {
-    console.error("Error formatting date:", error);
-    return dateString; // Return original string in case of error
+    throw new Error(error instanceof Error ? error.message : 'Tarih formatı hatası');
   }
 };
 

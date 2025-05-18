@@ -38,9 +38,9 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error) {
-    console.error('Payment callback processing error:', error);
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/payment/error?message=Server_error`
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : 'Ödeme callback işleme hatası' },
+      { status: 500 }
     );
   }
 }

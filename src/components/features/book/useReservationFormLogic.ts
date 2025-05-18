@@ -470,14 +470,8 @@ export const useReservationFormLogic = ({
         window.location.href = `/confirmation/booking/${bookingRef}?free=true`;
       }
     } catch (error) {
-      console.error("Rezervasyon işlenirken hata:", error);
-      const errorMessage = error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu.";
-      setPaymentError(translations[language as 'tr' | 'en'].confirmingReservation + ": " + errorMessage);
-      if (typeof window !== "undefined") {
-        localStorage.setItem('payment_error', errorMessage);
-      }
-    } finally {
-      // setIsSubmitting(false); // Redirects happen, so might not be needed or set earlier if no redirect
+      setError(error instanceof Error ? error.message : 'Rezervasyon işlenirken hata oluştu');
+      return false;
     }
     // onFormSubmitProp(); // Call only if not redirecting or if it handles state post-redirect
   };
@@ -549,9 +543,8 @@ export const useReservationFormLogic = ({
             newFormData.endMinute = "";
           }
         } catch (e) {
-          console.error("Error auto-setting end time:", e);
-          newFormData.endHour = "";
-          newFormData.endMinute = "";
+          setError(e instanceof Error ? e.message : 'Bitiş saati otomatik ayarlanırken hata oluştu');
+          return;
         }
       } else if ((type === 'startHour' || type === 'startMinute') && (!newFormData.startHour || !newFormData.startMinute)) {
         newFormData.endHour = "";

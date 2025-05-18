@@ -11,8 +11,6 @@ export async function GET(request: NextRequest) {
     const imagesCollection = db.collection('images');
     const images = await imagesCollection.find({}).toArray();
     
-    console.log(`Found ${images.length} images in 'images' collection`);
-    
     // Sonuçları sakla
     const results = {
       total: images.length,
@@ -41,7 +39,6 @@ export async function GET(request: NextRequest) {
         // GridFS'e yükle
         const fileId = await uploadFileToGridFS(buffer, filename, image.type || 'image/jpeg');
         
-        console.log(`Migrated image ${image._id} to GridFS with ID ${fileId}`);
         results.migrated++;
       } catch (error) {
         console.error(`Failed to migrate image ${image._id}:`, error);
@@ -58,13 +55,8 @@ export async function GET(request: NextRequest) {
       results
     });
   } catch (error) {
-    console.error('Migration error:', error);
-    
     return NextResponse.json(
-      { 
-        error: 'Failed to migrate images', 
-        details: error instanceof Error ? error.message : 'Unknown error'
-      }, 
+      { success: false, error: error instanceof Error ? error.message : 'Resim migrasyonu hatası' },
       { status: 500 }
     );
   }

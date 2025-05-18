@@ -62,46 +62,37 @@ export default function EditEventPage({ params }: { params: Promise<{ slug: stri
 
   useEffect(() => {
     if (!slug) {
-      console.warn("EditEventPage: Slug is not available. Cannot fetch event.");
-      setIsLoading(false);
       setError("Etkinlik kimliği (slug) bulunamadı.");
       return;
     }
-    console.log(`EditEventPage: Attempting to fetch event for slug: ${slug}`);
-
+    
     const fetchEvent = async () => {
       try {
         setIsLoading(true);
         setError(null);
         
         const response = await fetch(`/api/events/${slug}`);
-        console.log("EditEventPage: API Response Status:", response.status, "OK?", response.ok);
-
+        
         const responseData = await response.json(); // Always try to parse JSON
 
         if (!response.ok) {
           // API returned an error (e.g., 404, 500)
           // responseData might contain { error: "message" }
           const errorMessage = responseData?.error || `API Error: ${response.status}`;
-          console.error(`EditEventPage: API request failed with status ${response.status}. Data:`, responseData);
           throw new Error(errorMessage);
         }
         
         // If response.ok is true, API should be returning the event object directly
         const eventDataFromApi = responseData as Event;
-        console.log('EditEventPage: Received event data from API:', eventDataFromApi);
-
+        
         if (!eventDataFromApi || typeof eventDataFromApi.id !== 'string') { // Basic validation
           setError('Alınan etkinlik verisi geçersiz veya eksik.');
-          console.error('EditEventPage: Invalid or empty event data received from API. Data:', eventDataFromApi);
           setEvent(null); // Clear any previous event state
         } else {
           setEvent(eventDataFromApi);
         }
 
       } catch (err) {
-        console.error('EditEventPage: Etkinlik yükleme sırasında bir hata oluştu:', err);
-        // err.message should now be more informative from the check above
         setError(err instanceof Error ? err.message : 'Etkinlik yüklenirken bilinmeyen bir hata oluştu');
         setEvent(null); // Clear event state on error
       } finally {
@@ -120,8 +111,6 @@ export default function EditEventPage({ params }: { params: Promise<{ slug: stri
       const payload = convertLocalEventToApiPayload(formData);
       payload.slug = slug; // Ensure slug is part of the payload for the PUT request
 
-      console.log('EditEventPage: Submitting payload to API:', payload);
-
       const response = await fetch(`/api/events/${slug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -134,12 +123,10 @@ export default function EditEventPage({ params }: { params: Promise<{ slug: stri
         throw new Error(result.error || result.message || 'Etkinlik güncellenirken bir API hatası oluştu');
       }
 
-      console.log('EditEventPage: Event updated successfully', result);
       router.push('/admin/events');
       router.refresh();
 
     } catch (err) {
-      console.error('EditEventPage: Etkinlik güncelleme hatası:', err);
       setError(err instanceof Error ? err.message : 'Etkinlik güncellenirken bilinmeyen bir hata oluştu');
     } finally {
       setIsSubmitting(false);

@@ -15,7 +15,6 @@ interface ThemeLanguageContextType {
   mounted: boolean;
 }
 
-// Default context values with English as default
 const defaultContext: ThemeLanguageContextType = {
   language: 'en',
   setLanguage: () => {},
@@ -34,12 +33,10 @@ export function ThemeLanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    // Check for language preference in cookie
     const savedLanguage = getCookie('NEXT_LOCALE');
     if (savedLanguage && ['tr', 'en'].includes(savedLanguage as string)) {
       setLanguage(savedLanguage as LanguageType);
     } else if (typeof window !== 'undefined') {
-      // If no cookie exists and we're on client-side, check browser language
       const browserLanguage = navigator.language.split('-')[0];
       const detectedLanguage = ['tr', 'en'].includes(browserLanguage) ? browserLanguage as LanguageType : 'en';
       setLanguage(detectedLanguage);
@@ -47,10 +44,8 @@ export function ThemeLanguageProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Safe getter for theme setting
   const isDark = mounted && (resolvedTheme === 'dark' || theme === 'dark');
 
-  // Memoize toggleLanguage function to prevent unnecessary recreations
   const toggleLanguage = useMemo(() => {
     return () => {
       const newLanguage = language === 'tr' ? 'en' : 'tr';
@@ -59,14 +54,12 @@ export function ThemeLanguageProvider({ children }: { children: ReactNode }) {
     };
   }, [language]);
 
-  // Memoize toggleTheme function
   const toggleTheme = useMemo(() => {
     return () => {
       setTheme(isDark ? 'light' : 'dark');
     };
   }, [isDark, setTheme]);
 
-  // Memoize context value to prevent unnecessary renders
   const contextValue = useMemo(() => ({
     language,
     setLanguage,
@@ -76,7 +69,6 @@ export function ThemeLanguageProvider({ children }: { children: ReactNode }) {
     mounted
   }), [language, isDark, toggleLanguage, toggleTheme, mounted]);
 
-  // Delay content on first render to prevent server/client mismatch
   if (!mounted) {
     return (
       <ThemeLanguageContext.Provider value={defaultContext}>

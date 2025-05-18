@@ -57,7 +57,6 @@ export async function getAllBookings() {
     
     return { success: true, data: normalizedBookings };
   } catch (error) {
-    console.error('Error fetching bookings:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Rezervasyonlar alınırken bir hata oluştu'
@@ -83,7 +82,6 @@ export async function getBookingByRefNumber(refNumber: string) {
     
     return { success: true, data: normalizedBooking };
   } catch (error) {
-    console.error(`Error fetching booking ${refNumber}:`, error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Bir hata oluştu'
@@ -105,7 +103,6 @@ export async function getBookingsByVenue(venue: string) {
     
     return { success: true, data: normalizedBookings };
   } catch (error) {
-    console.error(`Error fetching bookings for venue ${venue}:`, error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Bir hata oluştu'
@@ -125,7 +122,6 @@ export async function deleteBooking(refNumber: string) {
     revalidatePath('/admin/reservations/books');
     return { success: true };
   } catch (error) {
-    console.error(`Error deleting booking ${refNumber}:`, error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Bir hata oluştu'
@@ -168,7 +164,6 @@ export async function getBookingsStats() {
     
     return { success: true, data: stats };
   } catch (error) {
-    console.error('Error fetching booking statistics:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'İstatistikler alınırken bir hata oluştu'

@@ -1,7 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
-import './Author'; // Author modelinin Mongoose'a register edilmesi için import ediyoruz.
+import './Author';
 
-// Blog şeması
 const blogSchema = new Schema({
   id: String,
   slug: { 
@@ -15,7 +14,6 @@ const blogSchema = new Schema({
   author: {
     type: Schema.Types.ObjectId,
     ref: 'Author',
-    // required: true // Eğer yazar zorunlu ise bu satır eklenebilir
   },
   title: {
     tr: String,
@@ -37,7 +35,6 @@ const blogSchema = new Schema({
   timestamps: true
 });
 
-// Eğer model zaten tanımlanmışsa, onu kullan, yoksa yeni bir model oluştur
 const Blog = mongoose.models.Blog || mongoose.model('Blog', blogSchema);
 
 export default Blog;

@@ -57,7 +57,6 @@ export async function getAllEventOrders() {
     
     return { success: true, data: normalizedOrders };
   } catch (error) {
-    console.error('Error fetching event orders:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unknown error occurred'
@@ -79,7 +78,6 @@ export async function getEventOrdersBySlug(eventSlug: string) {
     
     return { success: true, data: normalizedOrders };
   } catch (error) {
-    console.error(`Error fetching orders for event ${eventSlug}:`, error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unknown error occurred'
@@ -105,7 +103,6 @@ export async function getEventOrderById(orderId: string) {
     
     return { success: true, data: normalizedOrder };
   } catch (error) {
-    console.error(`Error fetching order ${orderId}:`, error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unknown error occurred'
@@ -125,7 +122,6 @@ export async function deleteEventOrder(orderId: string) {
     revalidatePath('/admin/reservations/events');
     return { success: true };
   } catch (error) {
-    console.error(`Error deleting order ${orderId}:`, error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unknown error occurred'
@@ -179,7 +175,6 @@ export async function getEventOrdersStats() {
     
     return { success: true, data: stats };
   } catch (error) {
-    console.error('Error fetching event orders statistics:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unknown error occurred'

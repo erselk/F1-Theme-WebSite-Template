@@ -106,13 +106,11 @@ export async function POST(request: Request) {
                 $set: { updatedAt: new Date() } // updatedAt timestamp'ini güncelle
               }
             );
-            console.log(`Blog slug'ı "${data.slug}" yazarın (_id: ${author._id}) articles dizisine eklendi.`);
           }
         } else {
-          console.log(`Yazar bulunamadı (ID: ${data.author_id}). Blog oluşturuldu ama yazarın articles listesi güncellenmedi.`);
+          
           // Bu durumda yeni yazar oluşturmak yerine hata loglamak daha doğru olabilir,
           // çünkü yazarın formda seçilmesi beklenir.
-          // Mevcut kodda olmayan yazar için yeni yazar oluşturuluyordu, bu mantık kaldırıldı.
         }
       } catch (authorError) {
         // Yazar güncellemesi başarısız olsa bile, blog oluşturma işlemi başarılı olduğu için

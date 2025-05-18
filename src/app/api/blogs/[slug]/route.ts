@@ -123,7 +123,6 @@ export async function PUT(
             $set: { updatedAt: updateTimestamp }
           }
         );
-        console.log(`Blog slug'ı "${slug}" eski yazarın (ID: ${previousAuthorId}) articles dizisinden kaldırıldı.`);
       }
 
       // 2. Yeni yazara slug'ı ekle (eğer varsa ve slug daha önce eklenmemişse)
@@ -137,7 +136,6 @@ export async function PUT(
               $set: { updatedAt: updateTimestamp }
             }
           );
-          console.log(`Blog slug'ı "${slug}" yeni yazarın (ID: ${newAuthorId}) articles dizisine eklendi.`);
         }
       }
     }
@@ -198,7 +196,6 @@ export async function DELETE(
             $set: { updatedAt: updateTimestamp }
           }
         );
-        console.log(`Blog slug'ı "${slug}" yazarın (ID: ${authorId}) articles dizisinden kaldırıldı.`);
       }
     } catch (authorError) {
       console.error('Yazar bilgisi güncellenirken hata oluştu:', authorError);

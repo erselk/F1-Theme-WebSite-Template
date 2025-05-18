@@ -60,9 +60,8 @@ export async function POST(request: Request) {
     });
     
   } catch (error) {
-    console.error('Error storing ticket purchase:', error);
     return NextResponse.json(
-      { error: 'An error occurred while storing the purchase data', details: String(error) },
+      { success: false, error: error instanceof Error ? error.message : 'Bilet satın alma kaydı hatası' },
       { status: 500 }
     );
   }

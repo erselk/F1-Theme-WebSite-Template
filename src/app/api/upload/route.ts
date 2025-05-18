@@ -43,7 +43,9 @@ export async function POST(request: NextRequest) {
       id: fileId 
     }, { status: 200 });
   } catch (error) {
-    console.error('Error uploading file:', error);
-    return NextResponse.json({ error: 'Dosya yüklenirken bir hata oluştu' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : 'Dosya yükleme hatası' },
+      { status: 500 }
+    );
   }
 }

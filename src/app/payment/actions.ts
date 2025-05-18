@@ -34,7 +34,6 @@ export async function saveEventOrder(orderData: {
     await connectToDatabase();
     const existingOrder = await EventOrder.findOne({ orderId: orderData.orderId });
     if (existingOrder) {
-      console.log('Order already exists, skipping save operation');
       revalidatePath(`/events/${orderData.eventSlug}`);
       revalidatePath('/admin/reservations');
       revalidatePath(`/admin/reservations/events/${orderData.eventSlug}`);
@@ -128,7 +127,6 @@ export async function createBookingRecord(bookingData: any) {
     const endDateTime = new Date(`${bookingData.date}T${bookingData.endTime}`);
     const existingBooking = await Booking.findOne({ refNumber: bookingData.refNumber });
     if (existingBooking) {
-      console.log('Booking already exists, skipping save operation');
       return { success: true, message: 'Booking already exists' };
     }
     const phoneDigits = typeof bookingData.phone === 'string' ? bookingData.phone.replace(/\D/g, '') : '';
@@ -153,7 +151,6 @@ export async function createBookingRecord(bookingData: any) {
       paymentId: `PAID-${Math.random().toString(36).substring(2, 15)}`
     });
     await booking.save();
-    console.log('Booking saved successfully!');
     revalidatePath('/admin/reservations');
     return { success: true };
   } catch (error: any) {

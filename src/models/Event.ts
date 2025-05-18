@@ -1,12 +1,10 @@
 import mongoose, { Schema } from 'mongoose';
 
-// Çift dil desteği olan metin için şema
 const localizedTextSchema = {
   tr: String,
   en: String
 };
 
-// Bilet tipi için şema
 const ticketSchema = new Schema({
   id: String,
   name: localizedTextSchema,
@@ -14,7 +12,7 @@ const ticketSchema = new Schema({
   description: localizedTextSchema,
   maxPerOrder: Number,
   availableCount: Number,
-  maxSalesCount: Number, // Maximum number of tickets that can be sold
+  maxSalesCount: Number,
   variant: {
     type: String,
     enum: ['standard', 'premium', 'vip']
@@ -23,13 +21,11 @@ const ticketSchema = new Schema({
   isComingSoon: Boolean
 }, { _id: false });
 
-// Kural tipi için şema
 const ruleSchema = new Schema({
   id: String,
   content: localizedTextSchema
 }, { _id: false });
 
-// Event şeması
 const eventSchema = new Schema({
   id: String,
   slug: { 
@@ -40,7 +36,7 @@ const eventSchema = new Schema({
   bannerImage: String,
   squareImage: String,
   isFeatured: Boolean,
-  date: String, // ISO date string
+  date: String,
   location: localizedTextSchema,
   title: localizedTextSchema,
   description: localizedTextSchema,
@@ -48,9 +44,7 @@ const eventSchema = new Schema({
     type: String,
     enum: ['workshop', 'meetup', 'conference', 'race', 'party', 'other']
   },
-  // Galeri
   gallery: [String],
-  // Etkinlik programı
   schedule: {
     type: [{
       time: String,
@@ -59,12 +53,10 @@ const eventSchema = new Schema({
     }],
     default: []
   },
-  // Kurallar
   rules: {
     type: [ruleSchema],
     default: []
   },
-  // Biletler
   tickets: {
     type: [ticketSchema],
     default: []
@@ -73,7 +65,6 @@ const eventSchema = new Schema({
   timestamps: true
 });
 
-// Eğer model zaten tanımlanmışsa, onu kullan, yoksa yeni bir model oluştur
 const Event = mongoose.models.Event || mongoose.model('Event', eventSchema);
 
 export default Event;

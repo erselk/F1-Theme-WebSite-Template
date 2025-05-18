@@ -46,7 +46,7 @@ export async function translateText({ text, from, to }: TranslationRequest): Pro
   }
 
   try {
-    console.log(`Translation request: ${from} to ${to} - "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`);
+    // console.log(`Translation request: ${from} to ${to} - \"${text.substring(0, 30)}${text.length > 30 ? '...' : ''}\"`);
 
     // Azure Translator API'ye istek gönder
     const response = await axios({
@@ -70,13 +70,13 @@ export async function translateText({ text, from, to }: TranslationRequest): Pro
       responseType: 'json'
     });
 
-    console.log('Translation API response received:', response.status);
+    // console.log('Translation API response received:', response.status);
 
     // API yanıtını kontrol et
     if (response.data && Array.isArray(response.data) && response.data.length > 0) {
       const translations = response.data[0].translations;
       if (translations && translations.length > 0) {
-        console.log('Çeviri başarılı:', translations[0].text);
+        // console.log('Çeviri başarılı:', translations[0].text);
         return {
           translatedText: translations[0].text,
           success: true
@@ -86,12 +86,12 @@ export async function translateText({ text, from, to }: TranslationRequest): Pro
     
     throw new Error('API yanıtı beklenen formatta değil');
   } catch (error: any) {
-    console.error('Azure Translator API hatası:', error);
+    // console.error('Azure Translator API hatası:', error);
     
     // Daha detaylı hata bilgisi
     if (error.response) {
-      console.error('Hata durumu:', error.response.status);
-      console.error('Hata detayı:', error.response.data);
+      // console.error('Hata durumu:', error.response.status);
+      // console.error('Hata detayı:', error.response.data);
     }
     
     return {
@@ -116,7 +116,7 @@ export async function translateMultiLangObject<T extends Record<string, any>>(
   }
   
   // Debug için başlangıç mesajı
-  console.log(`Çeviri başlatılıyor: ${from} dilinden ${to} diline`);
+  // console.log(`Çeviri başlatılıyor: ${from} dilinden ${to} diline`);
   
   // Objeyi kopyala (referans değişiminden kaçınmak için)
   const result = { ...obj };
@@ -138,7 +138,7 @@ export async function translateMultiLangObject<T extends Record<string, any>>(
           const sourceText = value[from];
           
           // Debug mesajı
-          console.log(`Çevriliyor: Alan "${key}.${from}" - Değer: "${sourceText.substring(0, 20)}${sourceText.length > 20 ? '...' : ''}"`);
+          // console.log(`Çevriliyor: Alan \"${key}.${from}\" - Değer: \"${sourceText.substring(0, 20)}${sourceText.length > 20 ? '...' : ''}\"`);
           
           if (sourceText.trim() !== '') {
             try {
@@ -152,34 +152,34 @@ export async function translateMultiLangObject<T extends Record<string, any>>(
               // Çeviri başarılıysa hedef dil değerini güncelle
               if (translation.success) {
                 value[to] = translation.translatedText;
-                console.log(`Çeviri tamamlandı: "${sourceText.substring(0, 20)}${sourceText.length > 20 ? '...' : ''}" => "${translation.translatedText.substring(0, 20)}${translation.translatedText.length > 20 ? '...' : ''}"`);
+                // console.log(`Çeviri tamamlandı: \"${sourceText.substring(0, 20)}${sourceText.length > 20 ? '...' : ''}\" => \"${translation.translatedText.substring(0, 20)}${translation.translatedText.length > 20 ? '...' : ''}\"`);
               } else {
-                console.warn(`Çeviri başarısız: ${key}.${from} => ${key}.${to}. Hata: ${translation.error}`);
+                // console.warn(`Çeviri başarısız: ${key}.${from} => ${key}.${to}. Hata: ${translation.error}`);
               }
             } catch (error) {
-              console.error(`Çeviri hatası (${key}.${from} => ${key}.${to}):`, error);
+              // console.error(`Çeviri hatası (${key}.${from} => ${key}.${to}):`, error);
             }
           }
         } else if (Array.isArray(value)) {
           // Array ise elemanlarını kontrol et
-          console.log(`Array kontrolü: ${key} (${value.length} eleman)`);
+          // console.log(`Array kontrolü: ${key} (${value.length} eleman)`);
           for (let i = 0; i < value.length; i++) {
             if (typeof value[i] === 'object' && value[i] !== null) {
               // Alt nesneler için recursive çağrı
-              console.log(`Array elemanı çevriliyor: ${key}[${i}]`);
+              // console.log(`Array elemanı çevriliyor: ${key}[${i}]`);
               value[i] = await translateMultiLangObject(value[i], from, to);
             }
           }
         } else {
           // İç içe nesneler için recursive çağrı
-          console.log(`İç içe nesne çevriliyor: ${key}`);
+          // console.log(`İç içe nesne çevriliyor: ${key}`);
           result[key] = await translateMultiLangObject(value, from, to);
         }
       }
     }
   }
   
-  console.log('Çeviri işlemi tamamlandı.');
+  // console.log('Çeviri işlemi tamamlandı.');
   return result;
 }
 
@@ -227,7 +227,7 @@ export async function translateChangedFields<T extends Record<string, any>>(
                             !originalValue[to];
           
           if (hasChanged && sourceText.trim() !== '') {
-            console.log(`Değişen alan tespit edildi: "${key}.${from}" - Çeviriliyor...`);
+            // console.log(`Değişen alan tespit edildi: \"${key}.${from}\" - Çeviriliyor...`);
             
             try {
               // API ile çevir
@@ -240,15 +240,15 @@ export async function translateChangedFields<T extends Record<string, any>>(
               // Çeviri başarılıysa hedef dil değerini güncelle
               if (translation.success) {
                 newValue[to] = translation.translatedText;
-                console.log(`Çeviri tamamlandı: ${key}.${from} => ${key}.${to}`);
+                // console.log(`Çeviri tamamlandı: ${key}.${from} => ${key}.${to}`);
               } else {
-                console.warn(`Çeviri başarısız: ${key}.${from} => ${key}.${to}. Hata: ${translation.error}`);
+                // console.warn(`Çeviri başarısız: ${key}.${from} => ${key}.${to}. Hata: ${translation.error}`);
               }
             } catch (error) {
-              console.error(`Çeviri hatası (${key}.${from} => ${key}.${to}):`, error);
+              // console.error(`Çeviri hatası (${key}.${from} => ${key}.${to}):`, error);
             }
           } else {
-            console.log(`Alan "${key}.${from}" değişmemiş, çeviri atlanıyor.`);
+            // console.log(`Alan \"${key}.${from}\" değişmemiş, çeviri atlanıyor.`);
           }
         } else {
           // İç içe nesneler için recursive çağrı
@@ -299,9 +299,10 @@ export async function translateForm<T extends Record<string, any>>(
   activeLanguage: SupportedLanguage
 ): Promise<T> {
   // Aktif olmayan dili hesapla
-  const targetLanguage: SupportedLanguage = activeLanguage === 'tr' ? 'en' : 'tr';
+  const targetLanguage = activeLanguage === 'tr' ? 'en' : 'tr';
   
-  console.log(`Form çevirisi başlatılıyor: ${activeLanguage} => ${targetLanguage}`);
+  // Debug mesajı
+  // console.log(`Form çevirisi başlatılıyor: ${activeLanguage} => ${targetLanguage}`);
   
   // Tüm form verilerini recursive olarak çevir
   const translatedData = await translateMultiLangObject(formData, activeLanguage, targetLanguage);

@@ -1,20 +1,17 @@
 import { prisma } from './prisma';
 import type { Blog } from '@prisma/client';
 
-// Types for type-safe operations
 type LocalizedText = {
   tr: string;
   en: string;
 };
 
-// Get all blogs
 export async function getAllBlogs() {
   return prisma.blog.findMany({
     orderBy: { publishDate: 'desc' }
   });
 }
 
-// Get featured blogs
 export async function getFeaturedBlogs() {
   return prisma.blog.findMany({
     where: { isFeatured: true },
@@ -22,14 +19,12 @@ export async function getFeaturedBlogs() {
   });
 }
 
-// Get blog by slug
 export async function getBlogBySlug(slug: string) {
   return prisma.blog.findUnique({
     where: { slug }
   });
 }
 
-// Increment blog view count
 export async function incrementBlogViews(slug: string) {
   return prisma.blog.update({
     where: { slug },
@@ -41,7 +36,6 @@ export async function incrementBlogViews(slug: string) {
   });
 }
 
-// Create new blog
 export async function createBlog(blogData: {
   slug: string;
   coverImage?: string;
@@ -66,7 +60,6 @@ export async function createBlog(blogData: {
   });
 }
 
-// Update blog
 export async function updateBlog(slug: string, blogData: Partial<Blog>) {
   return prisma.blog.update({
     where: { slug },
@@ -74,14 +67,12 @@ export async function updateBlog(slug: string, blogData: Partial<Blog>) {
   });
 }
 
-// Delete blog
 export async function deleteBlog(slug: string) {
   return prisma.blog.delete({
     where: { slug }
   });
 }
 
-// Add comment to blog
 export async function addCommentToBlog(
   slug: string, 
   comment: { id: string; userId: string; text: string; createdAt: Date }
@@ -101,12 +92,9 @@ export async function addCommentToBlog(
   });
 }
 
-// Import blogs from file system
 export async function importBlogsFromFiles(blogs: any[]) {
-  // First clear all existing blogs
   await prisma.blog.deleteMany();
   
-  // Then import all blogs from files
   const importPromises = blogs.map(blogData => {
     return prisma.blog.create({
       data: {

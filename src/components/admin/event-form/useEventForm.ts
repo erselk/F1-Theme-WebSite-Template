@@ -199,7 +199,6 @@ export default function useEventForm({ event, onSubmit, onCancel }: UseEventForm
           const localFormattedDateForInput = format(utcDate, "yyyy-MM-dd'T'HH:mm");
           setDateInputValue(localFormattedDateForInput);
         } catch (e) {
-          console.error("Error parsing or formatting event date for input:", e);
           const today = new Date();
           const fallbackDate = format(today, "yyyy-MM-dd'T'HH:mm");
           setDateInputValue(fallbackDate);
@@ -470,62 +469,42 @@ export default function useEventForm({ event, onSubmit, onCancel }: UseEventForm
   
   // Program/Schedule handlers
   const handleProgramChange = (index: number, field: string, value: string) => {
-    console.log(`Program değişiyor - index: ${index}, alan: ${field}, değer:`, value);
+    // Form verilerini güncelle
     
-    if (!formData.schedule) {
-      console.error("formData.schedule bulunamadı");
-      return;
-    }
     
-    const updatedSchedule = [...formData.schedule] as Schedule[];
-    
-    // `title` ve `description` gibi dil anahtarları içeren nesneler için özel işlem
-    if (field === 'title' || field === 'description') {
-      console.log(`${field} alanı için dil güncelleniyor: ${formLanguage}`);
+    setFormData((prev: Partial<Event>) => {
+      // Mevcut program dizisini al veya boş bir dizi oluştur
+      const updatedSchedule = [...(prev.schedule || [])];
       
-      // Mevcut nesneyi kopyala veya boş bir nesne oluştur
-      const currentValue = updatedSchedule[index][field] || { tr: '', en: '' };
-      
-      // Sadece geçerli dil değerini güncelle
-      updatedSchedule[index] = {
-        ...updatedSchedule[index],
-        [field]: {
-          ...currentValue,
-          [formLanguage]: value
-        }
-      };
-    }
-    // Nokta içeren alan adları için (kullanılmıyorsa kaldırılabilir)
-    else if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      console.log(`Noktalı alan: ${parent}.${child}`);
-      
-      // Ebeveyn nesneyi kopyala veya boş bir nesne oluştur
-      const parentObj = updatedSchedule[index][parent as keyof Schedule] || {};
-      
-      // Update the nested property
-      updatedSchedule[index] = {
-        ...updatedSchedule[index],
-        [parent]: {
-          ...parentObj,
+      // Program öğesinin dilini güncelle
+      if (field === 'title' || field === 'description') {
+        
+        updatedSchedule[index] = {
+          ...updatedSchedule[index],
+          [field]: {
+            ...(updatedSchedule[index] as any)[field],
+            [formLanguage]: value
+          }
+        };
+      } else if (field.includes('.')) {
+        const [parent, child] = field.split('.');
+        
+        (updatedSchedule[index] as any)[parent] = {
+          ...((updatedSchedule[index] as any)[parent] || {}),
           [child]: value
-        }
+        };
+      } else {
+        // time gibi normal alanlar için
+        
+        (updatedSchedule[index] as any)[field] = value;
+      }
+      
+      
+      return {
+        ...prev,
+        schedule: updatedSchedule
       };
-    } else {
-      // Normal alanlar için direkt güncelleme
-      console.log(`Normal alan güncelleniyor: ${field}`);
-      updatedSchedule[index] = {
-        ...updatedSchedule[index],
-        [field]: value
-      };
-    }
-    
-    console.log("Güncellenmiş program:", updatedSchedule);
-    
-    setFormData(prev => ({
-      ...prev,
-      schedule: updatedSchedule
-    }));
+    });
   };
   
   const addProgramItem = () => {
@@ -693,8 +672,6 @@ export default function useEventForm({ event, onSubmit, onCancel }: UseEventForm
           
           return true;
         } catch (error) {
-          console.error('Translation error:', error);
-          
           // Show error message to user
           alert(fromLang === 'tr' 
             ? `Çeviri işlemi sırasında bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
@@ -715,8 +692,6 @@ export default function useEventForm({ event, onSubmit, onCancel }: UseEventForm
           
           return true;
         } catch (error) {
-          console.error('Translation error:', error);
-          
           // Show error message to user
           alert(fromLang === 'tr' 
             ? `Çeviri işlemi sırasında bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
@@ -726,8 +701,6 @@ export default function useEventForm({ event, onSubmit, onCancel }: UseEventForm
         }
       }
     } catch (error) {
-      console.error('Translation service error:', error);
-      
       // Show service error to user
       alert(formLanguage === 'tr'
         ? 'Çeviri servisi yüklenemedi. Lütfen daha sonra tekrar deneyin.'
@@ -784,13 +757,11 @@ export default function useEventForm({ event, onSubmit, onCancel }: UseEventForm
             [name]: result.publicPath
           }));
         } else {
-          console.error('Image upload error:', result.error);
           alert(formLanguage === 'tr' 
             ? 'Görsel yüklenirken bir hata oluştu.'
             : 'An error occurred while uploading the image.');
         }
       } catch (error) {
-        console.error('Image upload error:', error);
         alert(formLanguage === 'tr' 
           ? 'Görsel yüklenirken bir hata oluştu.'
           : 'An error occurred while uploading the image.');
@@ -845,7 +816,6 @@ export default function useEventForm({ event, onSubmit, onCancel }: UseEventForm
             gallery: [...(prev.gallery || []), result.publicPath]
           }));
         } else {
-          console.error('Gallery image upload error:', result.error);
           alert(formLanguage === 'tr' 
             ? 'Galeri görseli yüklenirken bir hata oluştu.'
             : 'An error occurred while uploading the gallery image.');
@@ -854,7 +824,6 @@ export default function useEventForm({ event, onSubmit, onCancel }: UseEventForm
           setGalleryPreviews(prev => prev.slice(0, -1));
         }
       } catch (error) {
-        console.error('Gallery image upload error:', error);
         alert(formLanguage === 'tr' 
           ? 'Galeri görseli yüklenirken bir hata oluştu.'
           : 'An error occurred while uploading the gallery image.');

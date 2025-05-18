@@ -23,7 +23,7 @@ const loadParticlesSlim = async (engine: Engine) => {
     const { loadSlim } = await import("tsparticles-slim");
     return await loadSlim(engine);
   } catch (error) {
-    console.error("Error loading particles:", error);
+    
   }
 };
 
@@ -53,13 +53,11 @@ export default function HeroSection({ translations }: HeroSectionProps) {
   
   // Particles initialization
   const particlesInit = useCallback(async (engine: Engine) => {
-    console.log(engine);
-    // Initialize the tsParticles instance (engine) using our dynamic import
     await loadParticlesSlim(engine);
   }, []);
 
   const particlesLoaded = useCallback(async (container: Container | undefined) => {
-    await console.log(container);
+    
   }, []);
   
   // Home slides from the home folder (about1.jpg to about19.jpg)

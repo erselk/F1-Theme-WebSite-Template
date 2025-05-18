@@ -20,12 +20,9 @@ export async function GET(req: NextRequest) {
       data: result
     });
   } catch (error) {
-    console.error('Migration error:', error);
-    
-    return NextResponse.json({
-      success: false,
-      message: 'Data migration failed',
-      error: error instanceof Error ? error.message : String(error)
-    }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : 'Migrasyon hatası' },
+      { status: 500 }
+    );
   }
 }

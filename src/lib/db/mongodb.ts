@@ -1,24 +1,16 @@
-'use server';  // This marks the file as server-only code
+'use server';
 
 import mongoose from 'mongoose';
 import { MongoClient as MongoClientOriginal } from 'mongodb';
 
-// Use a default MongoDB URI for builds if the environment variable is not set
 const MONGODB_URI: string = process.env.MONGODB_URI || 'mongodb://localhost/padokclub';
 
-/**
- * Global değişkenler - varsa mevcut bağlantıyı saklar
- */
 let cached = global.mongoose;
 
 if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
 
-/**
- * MongoDB veritabanına bağlantı kurar
- * @returns MongoDB bağlantısı
- */
 export async function connectToDatabase() {
   if (cached.conn) {
     return cached.conn;
@@ -34,8 +26,6 @@ export async function connectToDatabase() {
         return mongoose;
       });
     } catch (error) {
-      console.error('MongoDB connection error:', error);
-      // Return null instead of throwing during build
       if (process.env.NODE_ENV === 'production' && !process.env.MONGODB_URI) {
         return null;
       }
@@ -47,8 +37,6 @@ export async function connectToDatabase() {
     cached.conn = await cached.promise;
   } catch (e) {
     cached.promise = null;
-    console.error('MongoDB connection failed:', e);
-    // Return null instead of throwing during build
     if (process.env.NODE_ENV === 'production' && !process.env.MONGODB_URI) {
       return null;
     }
@@ -58,7 +46,6 @@ export async function connectToDatabase() {
   return cached.conn;
 }
 
-// Raw MongoDB client for GridFS and other operations
 let cachedClient = global.mongoClient;
 let cachedDb = global.mongoDb;
 
@@ -81,7 +68,6 @@ export async function connectMongo() {
   if (!cachedClient.promise) {
     try {
       const client = new MongoClientOriginal(MONGODB_URI, {
-        // Disable MongoDB features that use Node.js-specific modules
         monitorCommands: false,
         serverApi: {
           version: '1',
@@ -97,8 +83,6 @@ export async function connectMongo() {
           return client;
         });
     } catch (error) {
-      console.error('MongoDB client connection error:', error);
-      // Return empty objects instead of throwing during build
       if (process.env.NODE_ENV === 'production' && !process.env.MONGODB_URI) {
         return { client: null, db: null };
       }
@@ -110,8 +94,6 @@ export async function connectMongo() {
     cachedClient.conn = await cachedClient.promise;
   } catch (e) {
     cachedClient.promise = null;
-    console.error('MongoDB client connection failed:', e);
-    // Return empty objects instead of throwing during build
     if (process.env.NODE_ENV === 'production' && !process.env.MONGODB_URI) {
       return { client: null, db: null };
     }
@@ -124,7 +106,6 @@ export async function connectMongo() {
   };
 }
 
-// Helper to get MongoDB database instance
 export async function getMongoDb() {
   const { db } = await connectMongo();
   return db;

@@ -1,23 +1,14 @@
 import { jsPDF } from 'jspdf';
 
-// Add custom fonts to jsPDF for proper Turkish character support
 export const addCustomFonts = (doc: jsPDF) => {
-  // Register normal font
   doc.addFont('https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxP.ttf', 'Roboto', 'normal');
-  
-  // Register bold font
   doc.addFont('https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfBBc9.ttf', 'Roboto', 'bold');
-  
-  // Set default font
   doc.setFont('Roboto');
-  
   return doc;
 };
 
-// Helper function to safely handle Turkish characters
 export const safeText = (text: string): string => {
   if (!text) return '';
-  // Convert Turkish characters to their English equivalents
   return text
     .replace(/ı/g, 'i')
     .replace(/İ/g, 'I')

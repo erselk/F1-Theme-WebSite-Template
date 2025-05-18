@@ -35,7 +35,7 @@ export default function useSWRFetch<T = any>(url: string, options?: any) {
         localStorage.removeItem(cacheKey); // Süresi dolmuş veriyi temizle
       }
     } catch (e) {
-      console.error('Cache error:', e);
+      return null;
     }
     return undefined;
   };

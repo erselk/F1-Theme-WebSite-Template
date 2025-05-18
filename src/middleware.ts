@@ -3,16 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Redirect root to /home
-  if (pathname === '/' || pathname === '') {
-    const newUrl = new URL('/home', request.url);
-    return NextResponse.redirect(newUrl, 307); // 307 temporary redirect to preserve HTTP method
-  }
-
-  // Handle /en path to redirect to /home with English language
+  // Handle /en path to redirect to / with English language
   if (pathname === '/en' || pathname === '/en/') {
-    // Redirect to /home
-    const newUrl = new URL('/home', request.url);
+    // Redirect to /
+    const newUrl = new URL('/', request.url);
     
     // Create the response with redirect
     const response = NextResponse.redirect(newUrl, 301); // Use 301 permanent redirect
@@ -31,7 +25,7 @@ export function middleware(request: NextRequest) {
   // Handle /tr path to redirect to /home with Turkish language
   if (pathname === '/tr' || pathname === '/tr/') {
     // Redirect to /home
-    const newUrl = new URL('/home', request.url);
+    const newUrl = new URL('/', request.url);
     
     // Create the response with redirect
     const response = NextResponse.redirect(newUrl, 301); // Use 301 permanent redirect
@@ -50,7 +44,7 @@ export function middleware(request: NextRequest) {
   // Handle other language paths - redirect to /home/{path} with appropriate language cookie
   if (pathname.startsWith('/en/') || pathname.startsWith('/tr/')) {
     const language = pathname.startsWith('/en/') ? 'en' : 'tr';
-    const newPath = '/home' + pathname.replace(/^\/(en|tr)/, '');
+    const newPath = '/' + pathname.replace(/^\/(en|tr)/, '');
     
     // Create a new URL with the updated path
     const newUrl = new URL(newPath, request.url);
@@ -72,7 +66,7 @@ export function middleware(request: NextRequest) {
   // Handle 404 pages - catch all non-existent paths and redirect to /home
   // This will match any path that's not in the allowed list
   const allowedPaths = [
-    '/home', 
+    '/',
     '/about', 
     '/events', 
     '/services', 
@@ -96,7 +90,7 @@ export function middleware(request: NextRequest) {
       !pathname.includes('favicon.ico') && 
       !pathname.startsWith('/images') && 
       !pathname.startsWith('/locales')) {
-    const newUrl = new URL('/home', request.url);
+    const newUrl = new URL('/', request.url);
     return NextResponse.redirect(newUrl, 302); // 302 Found redirect
   }
 

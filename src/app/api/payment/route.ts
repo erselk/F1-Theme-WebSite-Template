@@ -115,11 +115,15 @@ export async function POST(request: Request) {
         }
       });
     });
-  } catch (error) {
-    console.error('API route error:', error);
+  } catch (err) {
     return NextResponse.json(
-      { error: 'An error occurred while processing payment' },
+      { success: false, error: err instanceof Error ? err.message : 'Iyzipay hatası' },
       { status: 500 }
     );
   }
+} catch (error) {
+  return NextResponse.json(
+    { success: false, error: error instanceof Error ? error.message : 'API route hatası' },
+    { status: 500 }
+  );
 }

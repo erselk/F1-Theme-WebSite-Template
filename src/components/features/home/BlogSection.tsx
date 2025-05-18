@@ -5,10 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
 import { BlogPost } from "@/types";
-import { getAllBlogs } from "@/services/mongo-service";
 import { motion, useScroll, useTransform, AnimatePresence, useMotionValueEvent, useSpring, useAnimationControls } from "framer-motion";
 import { gsap } from "gsap";
 import dynamic from "next/dynamic";
+import useSWRFetch from '@/hooks/useSWRFetch';
 // İçe aktaracağımız konfeti animasyonu için JSON dosyası
 import confettiAnimation from "@/data/confetti.json";
 
@@ -49,6 +49,7 @@ export default function BlogSection({ translations }: BlogSectionProps) {
   const [selectedBlogIndex, setSelectedBlogIndex] = useState<number | null>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // GSAP animasyon için ref'ler
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -66,6 +67,33 @@ export default function BlogSection({ translations }: BlogSectionProps) {
   const scaleProgress = useTransform(scrollYProgress, [0, 1], [0.8, 1.2]);
   const opacityProgress = useTransform(scrollYProgress, [0, 0.3, 0.6, 1], [0.3, 1, 1, 0.5]);
   const springScroll = useSpring(scrollYProgress, { stiffness: 500, damping: 150 });
+
+  // SWR ile blog verilerini çek
+  const { data: blogsData, error: blogsError, isLoading: blogsLoading } = 
+    useSWRFetch<{ blogs: BlogPost[], success: boolean }>('/api/blogs');
+
+  // Blog verilerini işle ve sırala
+  useEffect(() => {
+    if (blogsData?.blogs) {
+      // En son 10 blogu al ve tarihe göre sırala
+      const sortedBlogs = [...blogsData.blogs]
+        .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime())
+        .slice(0, 10);
+      
+      // Carousel durumunu belirle
+      setHasCarousel(sortedBlogs.length > 3);
+      setBlogs(sortedBlogs);
+      setNoBlogs(sortedBlogs.length === 0);
+    }
+  }, [blogsData]);
+
+  // Hata durumunu yönet
+  useEffect(() => {
+    if (blogsError) {
+      console.error('Blog verilerini getirme hatası:', blogsError);
+      setNoBlogs(true);
+    }
+  }, [blogsError]);
 
   // GSAP animasyonları için useEffect
   useEffect(() => {
@@ -125,30 +153,6 @@ export default function BlogSection({ translations }: BlogSectionProps) {
       );
     }
   }, [blogs]);
-
-  useEffect(() => {
-    // Get latest 10 blogs
-    const fetchBlogs = async () => {
-      try {
-        const blogsData = await getAllBlogs();
-        // Sort blogs by date (newest first) and take first 10
-        const sortedBlogs = blogsData.sort((a, b) => {
-          return new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime();
-        }).slice(0, 10);
-        
-        // Set carousel status based on blog count
-        setHasCarousel(sortedBlogs.length > 3);
-        setBlogs(sortedBlogs);
-        setNoBlogs(sortedBlogs.length === 0);
-      } catch (error) {
-        console.error('Error fetching blogs:', error);
-        setBlogs([]);
-        setNoBlogs(true);
-      }
-    };
-    
-    fetchBlogs();
-  }, []);
 
   // Yatay kaydırmayı işle ve scroll durumunu güncelle
   useEffect(() => {

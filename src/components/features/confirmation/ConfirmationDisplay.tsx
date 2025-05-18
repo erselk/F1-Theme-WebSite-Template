@@ -21,6 +21,7 @@ export default function ConfirmationDisplay({ paymentResultData, error }: Confir
   const { language: locale, isDark } = useThemeLanguage();
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [calendarAdded, setCalendarAdded] = useState(false);
+  const [errorMessage, setError] = useState<string | null>(null);
 
   const t = {
     tr: {
@@ -173,7 +174,10 @@ export default function ConfirmationDisplay({ paymentResultData, error }: Confir
       const startTimeStr = details.reservationTimeRaw?.startTime ? new Date(details.reservationTimeRaw.startTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) : '00:00';
       const endTimeStr = details.reservationTimeRaw?.endTime ? new Date(details.reservationTimeRaw.endTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) : '00:00';
       
-      if (!eventDate || !startTimeStr) { console.error("Booking date/time missing for calendar."); return; }
+      if (!eventDate || !startTimeStr) {
+        setError('Rezervasyon tarihi/saati eksik');
+        return;
+      }
       let startDateTime = new Date(`${eventDate}T${startTimeStr}:00`);
       let endDateTime = endTimeStr ? new Date(`${eventDate}T${endTimeStr}:00`) : new Date(startDateTime.getTime() + 60 * 60 * 1000);
       
@@ -188,7 +192,10 @@ export default function ConfirmationDisplay({ paymentResultData, error }: Confir
     } else if (paymentResultData.type === 'event') {
       const data = paymentResultData;
       const eventDateStr = data.eventDate;
-      if (!eventDateStr) { console.error("Event date missing for calendar."); return; }
+      if (!eventDateStr) {
+        setError('Etkinlik tarihi eksik');
+        return;
+      }
       let startDateTime = new Date(eventDateStr);
       let endDateTime = new Date(startDateTime.getTime() + 2 * 60 * 60 * 1000);
       if (data.eventSchedule && data.eventSchedule[locale] && data.eventSchedule[locale][0]) {
@@ -207,10 +214,16 @@ export default function ConfirmationDisplay({ paymentResultData, error }: Confir
         start: [startDateTime.getFullYear(), startDateTime.getMonth() + 1, startDateTime.getDate(), startDateTime.getHours(), startDateTime.getMinutes()],
         end: [endDateTime.getFullYear(), endDateTime.getMonth() + 1, endDateTime.getDate(), endDateTime.getHours(), endDateTime.getMinutes()],
       };
-    } else { console.error("Unknown data type for calendar event:", paymentResultData); return; }
+    } else {
+      setError('Bilinmeyen veri tipi');
+      return;
+    }
 
     createIcsEvents([icsEvent], (err, val) => {
-      if (err) { console.error('Error creating ICS event:', err); return; }
+      if (err) {
+        setError('ICS etkinliği oluşturulurken hata oluştu');
+        return;
+      }
       if (val) {
         const blob = new Blob([val], { type: 'text/calendar;charset=utf-8' });
         const fileName = `padokclub-${paymentResultData.type}-${paymentResultData.orderId}.ics`;
@@ -255,7 +268,9 @@ export default function ConfirmationDisplay({ paymentResultData, error }: Confir
           const qrCodeDataURL = await QRCode.toDataURL(qrUrl, { errorCorrectionLevel: 'H', width: 200 });
           const qrCodeSize = 40; const qrXPosition = (pageWidth - qrCodeSize) / 2; yPos += 5;
           doc.addImage(qrCodeDataURL, 'PNG', qrXPosition, yPos, qrCodeSize, qrCodeSize); yPos += qrCodeSize + 5;
-        } catch (qrError) { console.error("Error QR booking:", qrError); }
+        } catch (qrError) {
+          setError('QR kod oluşturulurken hata oluştu');
+        }
       }
     } else if (paymentResultData.type === 'event') {
       const data = paymentResultData;
@@ -268,7 +283,9 @@ export default function ConfirmationDisplay({ paymentResultData, error }: Confir
             doc.addImage(qrCodeDataURL, 'PNG', qrCodeX, qrCodeY, qrSize, qrSize);
             doc.setFontSize(8); doc.setTextColor(128,128,128);
             doc.text(safeText(locale === 'tr' ? 'QR Kod' : 'QR Code'), qrCodeX + qrSize/2, qrCodeY + qrSize + 3, {align: 'center'});
-        } catch (qrError) { console.error("Error QR event:", qrError); }
+        } catch (qrError) {
+          setError('QR kod oluşturulurken hata oluştu');
+        }
       }
       yPos = margin + 30;
       doc.setFontSize(12); doc.setTextColor(0,0,0);

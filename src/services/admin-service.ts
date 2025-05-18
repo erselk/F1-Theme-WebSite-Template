@@ -55,7 +55,6 @@ export const getDashboardStats = async () => {
     
     return { success: true, data: stats };
   } catch (error: any) {
-    console.error('Error fetching dashboard stats:', error);
     return { success: false, error: error.message };
   }
 };
@@ -101,7 +100,6 @@ export const getTodayEvents = async () => {
     
     return { success: true, data: eventsWithStats };
   } catch (error) {
-    console.error('Error fetching today events:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Bugünkü etkinlikler alınırken bir hata oluştu'
@@ -129,7 +127,6 @@ export const getTodayBookings = async () => {
     
     return { success: true, data: serializeMongoData(bookings) };
   } catch (error) {
-    console.error('Error fetching today bookings:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Bugünkü rezervasyonlar alınırken bir hata oluştu'
@@ -150,7 +147,6 @@ export const getAllGalleryImages = async () => {
     
     return { success: true, data: images };
   } catch (error) {
-    console.error('Error fetching gallery images:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Galeri resimleri alınırken bir hata oluştu'
@@ -165,7 +161,6 @@ export const getAllEvents = async () => {
     const events = await Event.find().sort({ eventDate: -1 });
     return { success: true, data: serializeMongoData(events) };
   } catch (error: any) {
-    console.error('Error fetching events:', error);
     return { success: false, error: error.message };
   }
 };
@@ -181,7 +176,6 @@ export const getEventById = async (id: string) => {
     
     return { success: true, data: serializeMongoData(event) };
   } catch (error: any) {
-    console.error(`Error fetching event with ID ${id}:`, error);
     return { success: false, error: error.message };
   }
 };
@@ -193,7 +187,6 @@ export const createEvent = async (eventData: any) => {
     await event.save();
     return { success: true, data: serializeMongoData(event) };
   } catch (error: any) {
-    console.error('Error creating event:', error);
     return { success: false, error: error.message };
   }
 };
@@ -213,7 +206,6 @@ export const updateEvent = async (id: string, eventData: any) => {
     
     return { success: true, data: serializeMongoData(event) };
   } catch (error: any) {
-    console.error(`Error updating event with ID ${id}:`, error);
     return { success: false, error: error.message };
   }
 };
@@ -229,7 +221,6 @@ export const deleteEvent = async (slug: string) => {
     
     return { success: true, data: 'Etkinlik başarıyla silindi' };
   } catch (error: any) {
-    console.error(`Error deleting event with slug ${slug}:`, error);
     return { success: false, error: error.message };
   }
 };
@@ -241,7 +232,6 @@ export const getAllBlogs = async () => {
     const blogs = await Blog.find().sort({ createdAt: -1 });
     return { success: true, data: serializeMongoData(blogs) };
   } catch (error: any) {
-    console.error('Error fetching blogs:', error);
     return { success: false, error: error.message };
   }
 };
@@ -257,7 +247,6 @@ export const getBlogById = async (id: string) => {
     
     return { success: true, data: serializeMongoData(blog) };
   } catch (error: any) {
-    console.error(`Error fetching blog with ID ${id}:`, error);
     return { success: false, error: error.message };
   }
 };
@@ -269,7 +258,6 @@ export const createBlog = async (blogData: any) => {
     await blog.save();
     return { success: true, data: serializeMongoData(blog) };
   } catch (error: any) {
-    console.error('Error creating blog:', error);
     return { success: false, error: error.message };
   }
 };
@@ -289,7 +277,6 @@ export const updateBlog = async (id: string, blogData: any) => {
     
     return { success: true, data: serializeMongoData(blog) };
   } catch (error: any) {
-    console.error(`Error updating blog with ID ${id}:`, error);
     return { success: false, error: error.message };
   }
 };
@@ -305,7 +292,6 @@ export const deleteBlog = async (id: string) => {
     
     return { success: true, data: 'Blog başarıyla silindi' };
   } catch (error: any) {
-    console.error(`Error deleting blog with ID ${id}:`, error);
     return { success: false, error: error.message };
   }
 };
@@ -318,7 +304,6 @@ export const getAllAuthors = async () => {
     const authors = await connectToDatabase().collection('authors').find().toArray();
     return { success: true, data: serializeMongoData(authors) };
   } catch (error: any) {
-    console.error('Error fetching authors:', error);
     return { success: false, error: error.message };
   }
 };
@@ -334,7 +319,6 @@ export const getAuthorById = async (id: string) => {
     
     return { success: true, data: serializeMongoData(author) };
   } catch (error: any) {
-    console.error(`Error fetching author with ID ${id}:`, error);
     return { success: false, error: error.message };
   }
 };
@@ -347,7 +331,6 @@ export const createAuthor = async (authorData: any) => {
     
     return { success: true, data: serializeMongoData(author) };
   } catch (error: any) {
-    console.error('Error creating author:', error);
     return { success: false, error: error.message };
   }
 };
@@ -368,7 +351,6 @@ export const updateAuthor = async (id: string, authorData: any) => {
     
     return { success: true, data: serializeMongoData(author) };
   } catch (error: any) {
-    console.error(`Error updating author with ID ${id}:`, error);
     return { success: false, error: error.message };
   }
 };
@@ -384,7 +366,6 @@ export const deleteAuthor = async (id: string) => {
     
     return { success: true, data: 'Yazar başarıyla silindi' };
   } catch (error: any) {
-    console.error(`Error deleting author with ID ${id}:`, error);
     return { success: false, error: error.message };
   }
 };

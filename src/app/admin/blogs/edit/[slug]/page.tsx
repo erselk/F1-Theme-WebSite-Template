@@ -40,9 +40,6 @@ export default function EditBlogPage({ params }: { params: { slug: string } }) {
         // Blog verisini ayarla
         const blogData = data.blog;
         
-        // Debug: Log the blog data to see what we're getting from the API
-        console.log('API Response - Blog Data:', blogData);
-        
         setBlog(blogData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Blog bilgileri yüklenirken bir hata oluştu');

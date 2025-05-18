@@ -1,7 +1,6 @@
 import { prisma } from './prisma';
 import type { Booking, BookingStatus } from '@prisma/client';
 
-// Generate a unique reference number for bookings
 function generateRefNumber() {
   const prefix = 'PDK';
   const timestamp = Date.now().toString().slice(-6);
@@ -9,7 +8,6 @@ function generateRefNumber() {
   return `${prefix}-${timestamp}-${random}`;
 }
 
-// Get all bookings
 export async function getAllBookings() {
   return prisma.booking.findMany({
     orderBy: { startTime: 'desc' },
@@ -21,7 +19,6 @@ export async function getAllBookings() {
   });
 }
 
-// Get booking by reference number
 export async function getBookingByRef(refNumber: string) {
   return prisma.booking.findUnique({
     where: { refNumber },
@@ -34,7 +31,6 @@ export async function getBookingByRef(refNumber: string) {
   });
 }
 
-// Get bookings by user
 export async function getBookingsByUser(userId: string) {
   return prisma.booking.findMany({
     where: { userId },
@@ -46,7 +42,6 @@ export async function getBookingsByUser(userId: string) {
   });
 }
 
-// Create simulator booking
 export async function createSimulatorBooking(bookingData: {
   userId: string;
   simulatorId: string;
@@ -76,7 +71,6 @@ export async function createSimulatorBooking(bookingData: {
   });
 }
 
-// Create event booking
 export async function createEventBooking(bookingData: {
   userId: string;
   eventId: string;
@@ -106,7 +100,6 @@ export async function createEventBooking(bookingData: {
   });
 }
 
-// Update booking status
 export async function updateBookingStatus(refNumber: string, status: BookingStatus) {
   return prisma.booking.update({
     where: { refNumber },
@@ -114,7 +107,6 @@ export async function updateBookingStatus(refNumber: string, status: BookingStat
   });
 }
 
-// Cancel booking
 export async function cancelBooking(refNumber: string) {
   return prisma.booking.update({
     where: { refNumber },
@@ -122,7 +114,6 @@ export async function cancelBooking(refNumber: string) {
   });
 }
 
-// Delete booking (admin only)
 export async function deleteBooking(refNumber: string) {
   return prisma.booking.delete({
     where: { refNumber }

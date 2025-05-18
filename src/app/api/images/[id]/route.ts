@@ -36,7 +36,9 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Error fetching image:', error);
-    return NextResponse.json({ error: 'Resim getirilirken bir hata oluştu' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : 'Resim getirme hatası' },
+      { status: 500 }
+    );
   }
 }

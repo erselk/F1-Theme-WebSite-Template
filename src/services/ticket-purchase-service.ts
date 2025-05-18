@@ -116,7 +116,7 @@ export async function saveTicketPurchase(purchaseData: PurchaseData): Promise<bo
 
     return true;
   } catch (error) {
-    console.error('Error saving ticket purchase:', error);
+    // console.error('Error saving ticket purchase:', error);
     return false;
   }
 }

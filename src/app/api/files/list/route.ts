@@ -11,21 +11,12 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1', 10);
     const pageSize = parseInt(searchParams.get('pageSize') || '20', 10);
     
-    console.log('Files listing requested with category:', category, 'page:', page, 'pageSize:', pageSize);
-    
     // Dosyaları listele, sayfalama parametrelerini ilet
     const files = await listFilesByCategory(category, page, pageSize);
     
-    console.log(`Returning ${files.length} files to client for page ${page}`);
-    
     // Dönen dosya listesinin içeriğini örnekle (development için)
     if (files.length > 0) {
-      console.log('First file example:', {
-        id: files[0].id,
-        filename: files[0].filename,
-        url: files[0].url,
-        createdAt: files[0].createdAt
-      });
+      
     }
     
     return NextResponse.json({

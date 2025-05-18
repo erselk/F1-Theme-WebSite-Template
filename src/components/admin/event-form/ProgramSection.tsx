@@ -144,7 +144,6 @@ export default function ProgramSection({
                       required
                       value={item.title?.[formLanguage] || ''}
                       onChange={(e) => {
-                        console.log("Program başlığı değişiyor:", e.target.value);
                         handleProgramChange(index, 'title', e.target.value);
                       }}
                       className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${
@@ -178,7 +177,6 @@ export default function ProgramSection({
                     rows={2}
                     value={item.description?.[formLanguage] || ''}
                     onChange={(e) => {
-                      console.log("Program açıklaması değişiyor:", e.target.value);
                       handleProgramChange(index, 'description', e.target.value);
                     }}
                     className={`w-full px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded-md ${

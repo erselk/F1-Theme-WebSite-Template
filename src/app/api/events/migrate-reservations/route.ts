@@ -10,7 +10,6 @@ export async function GET() {
     
     // Tüm etkinlikleri getir
     const events = await Event.find({});
-    console.log(`Found ${events.length} events to migrate to reservation tracking`);
     
     let successCount = 0;
     let errorCount = 0;

@@ -28,11 +28,11 @@ export function EventSchedule({ schedule, locale }: EventScheduleProps) {
   const descriptionColorClass = isDark ? 'text-silver' : 'text-slate-700';
   
   // Debug: Log the schedule prop to see what's being passed
-  console.log('EventSchedule Component - Schedule prop:', schedule);
+  
   
   // Check if schedule is undefined or not an array
   if (!Array.isArray(schedule) || schedule.length === 0) {
-    console.log('Schedule is empty or not an array');
+    
     return (
       <div className="text-center p-8 bg-dark-grey/40 rounded-lg border border-dashed border-carbon-grey">
         <p className="text-silver">
@@ -47,7 +47,7 @@ export function EventSchedule({ schedule, locale }: EventScheduleProps) {
       <div className="space-y-4">
         {schedule.map((item, index) => {
           // Debug: Check each item in schedule
-          console.log(`Schedule Item ${index}:`, item);
+          
           
           return (
             <div 

@@ -5,9 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
 import { Event } from "@/types";
-import { getSortedEvents } from "@/services/mongo-service";
 import { createTimezoneDate, formatDate } from "@/lib/date-utils";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import useSWRFetch from '@/hooks/useSWRFetch';
 // Browser-only imports that use DOM API
 import gsap from 'gsap';
 import Lottie from 'lottie-react';
@@ -27,6 +27,12 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
   const { isDark, language } = useThemeLanguage();
   const [events, setEvents] = useState<Event[]>([]);
   const [hasCarousel, setHasCarousel] = useState(false);
+  
+  // Sabit kart genişliği - mobilde daha küçük kartlar (ekrana 2+ kart sığması için)
+  const cardWidth = "w-[140px] sm:w-[200px] md:w-[280px]";
+  const cardHeight = "h-[220px] sm:h-[300px] md:h-[380px]";
+  const imageHeight = "h-[120px] sm:h-[180px] md:h-[280px]";
+  
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -45,6 +51,7 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
   const [selectedEventIndex, setSelectedEventIndex] = useState<number | null>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // GSAP animation refs
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -58,11 +65,10 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
   const opacityProgress = useTransform(scrollYProgress, [0, 0.3, 0.6, 1], [0.3, 1, 1, 0.5]);
   const springScroll = useSpring(scrollYProgress, { stiffness: 500, damping: 150 });
 
-  // Sabit kart genişliği - mobilde daha küçük kartlar (ekrana 2+ kart sığması için)
-  const cardWidth = "w-[140px] sm:w-[200px] md:w-[280px]";
-  const cardHeight = "h-[220px] sm:h-[300px] md:h-[380px]";
-  const imageHeight = "h-[120px] sm:h-[180px] md:h-[280px]";
-  
+  // SWR ile etkinlik verilerini çek
+  const { data: eventsData, error: eventsError, isLoading: eventsLoading } = 
+    useSWRFetch<{ events: Event[], success: boolean }>('/api/events');
+
   // GSAP animations
   useEffect(() => {
     if (titleRef.current && subtitleRef.current) {
@@ -122,45 +128,43 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
     }
   }, [events]);
   
+  // Etkinlikleri işle ve sırala
   useEffect(() => {
-    // Yeni etkinlik listeleme mantığına göre etkinlikleri getirme
-    const fetchEvents = async () => {
-      try {
-        const eventsData = await getSortedEvents();
-        const today = createTimezoneDate();
-        
-        // Hiç etkinlik yoksa
-        if (eventsData.length === 0) {
-          setNoEvents(true);
-          setEvents([]);
-          return;
-        }
-        
-        // Yeni etkinlik listeleme mantığına göre
-        const upcomingEvents = eventsData
-          .filter(event => new Date(event.date) >= today)
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        
-        const pastEvents = eventsData
-          .filter(event => new Date(event.date) < today)
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        
-        // Gelecek etkinlikler varsa onları göster, yoksa geçmiş etkinlikleri göster
-        const eventsToShow = upcomingEvents.length > 0 ? upcomingEvents : pastEvents;
-        
-        // Carousel durumunu belirle
-        setHasCarousel(eventsToShow.length > 3);
-        setEvents(eventsToShow);
-        setNoEvents(eventsToShow.length === 0);
-      } catch (error) {
-        console.error('Error fetching events:', error);
-        setEvents([]);
+    if (eventsData?.events) {
+      const today = createTimezoneDate();
+      
+      // Hiç etkinlik yoksa
+      if (eventsData.events.length === 0) {
         setNoEvents(true);
+        return;
       }
-    };
-    
-    fetchEvents();
-  }, []);
+      
+      // Yeni etkinlik listeleme mantığına göre
+      const upcomingEvents = eventsData.events
+        .filter(event => new Date(event.date) >= today)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      const pastEvents = eventsData.events
+        .filter(event => new Date(event.date) < today)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
+      // Gelecek etkinlikler varsa onları göster, yoksa geçmiş etkinlikleri göster
+      const eventsToShow = upcomingEvents.length > 0 ? upcomingEvents : pastEvents;
+      
+      // Carousel durumunu belirle
+      setHasCarousel(eventsToShow.length > 3);
+      setEvents(eventsToShow);
+      setNoEvents(eventsToShow.length === 0);
+    }
+  }, [eventsData]);
+
+  // Hata durumunu yönet
+  useEffect(() => {
+    if (eventsError) {
+      console.error('Etkinlik verilerini getirme hatası:', eventsError);
+      setNoEvents(true);
+    }
+  }, [eventsError]);
 
   // Yatay kaydırmayı işle ve scroll durumunu güncelle
   useEffect(() => {
@@ -379,8 +383,7 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
         }
       );
     } catch (error) {
-      console.error('Date formatting error:', error);
-      return 'Date not available';
+      return '';
     }
   };
   

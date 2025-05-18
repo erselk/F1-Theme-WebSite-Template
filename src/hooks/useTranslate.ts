@@ -40,10 +40,7 @@ export default function useTranslate() {
       
       return result.translatedText;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Çeviri sırasında beklenmeyen bir hata oluştu';
-      setError(errorMessage);
-      console.error('Çeviri hatası:', err);
-      return null;
+      return { success: false, error: err instanceof Error ? err.message : 'Çeviri hatası oluştu' };
     } finally {
       setIsTranslating(false);
     }
@@ -71,10 +68,7 @@ export default function useTranslate() {
       const result = await translateFields(obj, fields, from, to);
       return result;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Nesne çevirisi sırasında bir hata oluştu';
-      setError(errorMessage);
-      console.error('Nesne çeviri hatası:', err);
-      return obj; // Hata durumunda orijinal nesneyi döndür
+      return { success: false, error: err instanceof Error ? err.message : 'Nesne çevirisi sırasında hata oluştu' };
     } finally {
       setIsTranslating(false);
     }
@@ -102,10 +96,7 @@ export default function useTranslate() {
       const result = await translateToMultipleLanguages(obj, fields, from, targetLanguages);
       return result;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Çoklu dil çevirisi sırasında bir hata oluştu';
-      setError(errorMessage);
-      console.error('Çoklu dil çeviri hatası:', err);
-      return obj; // Hata durumunda orijinal nesneyi döndür
+      return { success: false, error: err instanceof Error ? err.message : 'Çoklu dil çevirisi sırasında hata oluştu' };
     } finally {
       setIsTranslating(false);
     }

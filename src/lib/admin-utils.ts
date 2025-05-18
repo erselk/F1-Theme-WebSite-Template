@@ -1,8 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 
-/**
- * Admin theme class utilities
- */
 export const getAdminThemeClasses = (isDark: boolean) => {
   return {
     bgClass: isDark ? 'bg-graphite' : 'bg-white',
@@ -20,12 +17,7 @@ export const getAdminThemeClasses = (isDark: boolean) => {
   };
 };
 
-/**
- * Format price with proper Turkish/English formatting
- */
 export const formatPrice = (amount: number, language: string) => {
-  // Kuruş kısmı olmayan fiyatlar için minimumFractionDigits: 0 kullanıyoruz
-  // Tam sayı değerlerde kuruş göstermeyen, ondalıklı değerlerde gösterecek şekilde ayarlıyoruz
   const hasDecimal = amount % 1 !== 0;
   
   return new Intl.NumberFormat(language === 'tr' ? 'tr-TR' : 'en-US', {
@@ -36,9 +28,6 @@ export const formatPrice = (amount: number, language: string) => {
   }).format(amount);
 };
 
-/**
- * Format date based on language
- */
 export const formatDate = (dateString: string, language: string, dateOnly: boolean = false) => {
   const options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
@@ -50,9 +39,6 @@ export const formatDate = (dateString: string, language: string, dateOnly: boole
   return new Date(dateString).toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', options);
 };
 
-/**
- * Format time range for reservations
- */
 export const formatTimeRange = (startTime: string, endTime: string, language: string) => {
   const start = new Date(startTime);
   const end = new Date(endTime);
@@ -66,9 +52,6 @@ export const formatTimeRange = (startTime: string, endTime: string, language: st
   return `${start.toLocaleTimeString(locale, options)} - ${end.toLocaleTimeString(locale, options)}`;
 };
 
-/**
- * Custom hook for filtering and pagination
- */
 export function useFilteredData<T>({
   data,
   searchTerm,
@@ -86,11 +69,9 @@ export function useFilteredData<T>({
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Filter and sort data - memoize to prevent unnecessary recalculation
   const filteredData = useMemo(() => {
     if (!data || !data.length) return [];
     
-    // Apply search filter if searchTerm exists
     let result = data;
     
     if (searchTerm) {
@@ -102,7 +83,6 @@ export function useFilteredData<T>({
             const fieldPath = String(field).split('.');
             let value = item;
             
-            // Handle nested fields like 'customerInfo.fullName'
             for (const key of fieldPath) {
               if (value === null || value === undefined) return false;
               value = value[key];
@@ -110,7 +90,6 @@ export function useFilteredData<T>({
             
             if (value === null || value === undefined) return false;
             
-            // Handle object values like {tr: 'value', en: 'value'}
             if (typeof value === 'object') {
               return Object.values(value).some(v => 
                 v !== null && 
@@ -122,30 +101,25 @@ export function useFilteredData<T>({
             return String(value).toLowerCase().includes(searchLower);
           });
         } catch (err) {
-          console.error("Error filtering data:", err);
           return false;
         }
       });
     }
     
-    // Sort the results if sortField is provided
     if (sortField) {
       result.sort((a: any, b: any) => {
         let fieldA = getNestedValue(a, sortField);
         let fieldB = getNestedValue(b, sortField);
         
-        // Handle date fields
         if (fieldA instanceof Date || (typeof fieldA === 'string' && !isNaN(Date.parse(fieldA)))) {
           fieldA = new Date(fieldA).getTime();
           fieldB = new Date(fieldB).getTime();
         }
         
-        // Handle undefined values
         if (fieldA === undefined && fieldB === undefined) return 0;
         if (fieldA === undefined) return 1;
         if (fieldB === undefined) return -1;
         
-        // Sorting direction
         const comparison = fieldA > fieldB ? 1 : -1;
         return sortDirection === 'asc' ? comparison : -comparison;
       });
@@ -154,7 +128,6 @@ export function useFilteredData<T>({
     return result;
   }, [data, searchTerm, searchFields, sortField, sortDirection]);
   
-  // Get nested value from object
   function getNestedValue(obj: any, path: string) {
     const keys = path.split('.');
     let value = obj;
@@ -167,23 +140,19 @@ export function useFilteredData<T>({
     return value;
   }
   
-  // Calculate pagination
   const totalItems = filteredData.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   
-  // Get current items
   const currentItems = useMemo(() => {
     try {
       return filteredData.slice(indexOfFirstItem, indexOfLastItem);
     } catch (err) {
-      console.error("Error getting current items:", err);
       return [];
     }
   }, [filteredData, indexOfFirstItem, indexOfLastItem]);
   
-  // Change page
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
   
   return {
@@ -196,4 +165,4 @@ export function useFilteredData<T>({
     indexOfLastItem,
     paginate,
   };
-} 
+}

@@ -176,7 +176,7 @@ export default function BookingsPage() {
       accessor: 'venue',
       cell: (booking: any) => (
         <div className="font-medium text-xs md:text-sm truncate max-w-[120px] md:max-w-none">
-          {booking.venue}
+          {booking.venue && typeof booking.venue === 'object' ? booking.venue.tr : booking.venue}
         </div>
       )
     },
@@ -212,11 +212,11 @@ export default function BookingsPage() {
     },
     {
       header: { tr: 'Kişi', en: 'Persons' },
-      accessor: 'personCount',
+      accessor: 'people',
       className: 'text-center',
       cell: (booking: any) => (
         <span className="text-xs md:text-sm">
-          {booking.personCount || '1'}
+          {booking.people || '1'}
         </span>
       )
     },
@@ -240,7 +240,7 @@ export default function BookingsPage() {
       cell: (booking: any) => (
         <div>
           <div className="font-medium text-xs md:text-sm truncate max-w-[120px] md:max-w-none">
-            {booking.venue}
+            {booking.venue && typeof booking.venue === 'object' ? booking.venue.tr : booking.venue}
           </div>
           <div className="text-xs text-gray-400 truncate max-w-[120px] md:max-w-none">
             {formatDate(booking.startTime, language, true)}
@@ -272,7 +272,7 @@ export default function BookingsPage() {
           <span className="font-medium text-xs md:text-sm text-neon-green">
             {formatPrice(booking.totalPrice, language)}
           </span>
-          <div className="text-xs text-gray-400">{language === 'tr' ? 'Kişi:' : 'Persons:'} {booking.personCount || '1'}</div>
+          <div className="text-xs text-gray-400">{language === 'tr' ? 'Kişi:' : 'Persons:'} {booking.people || '1'}</div>
         </div>
       )
     }

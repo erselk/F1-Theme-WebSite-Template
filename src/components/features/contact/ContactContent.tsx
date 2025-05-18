@@ -98,26 +98,39 @@ export default function ContactContent() {
     };
     
     try {
-      console.log("Form gönderiliyor:", formData);
-      
       // API endpoint'e form verilerini gönder
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json', // Sunucudan JSON yanıtı talep et
         },
         body: JSON.stringify(formData),
       });
-      
-      console.log("API yanıtı:", response.status);
-      
-      const result = await response.json();
-      console.log("API yanıt içeriği:", result);
-      
+
       if (!response.ok) {
-        throw new Error(result.error || 'Bir hata oluştu');
+        // Yanıt başarılı değilse, muhtemelen bir HTML hata sayfasıdır.
+        // Ne döndüğünü görmek için metin olarak okuyalım.
+        const errorText = await response.text();
+        console.error("Sunucu hatası alındı:", response.status, response.statusText, errorText);
+        
+        // Metni JSON olarak ayrıştırmayı dene, eğer değilse genel bir hata mesajı veya metnin kendisini kullan.
+        let errorJson;
+        let errorMessageToThrow;
+        try {
+          errorJson = JSON.parse(errorText);
+          errorMessageToThrow = errorJson.error || errorJson.details || `Sunucu Hatası: ${response.status} - ${response.statusText}`;
+        } catch (parseError) {
+          // JSON olarak ayrıştırma başarısız oldu, muhtemelen HTML veya düz metin.
+          // errorText çok uzun olabileceğinden, ilk birkaç yüz karakterini alabiliriz veya daha genel bir mesaj kullanabiliriz.
+          errorMessageToThrow = `Sunucudan geçersiz yanıt alındı (JSON bekleniyordu). Durum: ${response.status}. Yanıtın başı: ${errorText.substring(0, 200)}`;
+        }
+        throw new Error(errorMessageToThrow);
       }
-      
+
+      // Yanıt başarılıysa, JSON bekliyoruz.
+      const result = await response.json(); // Hata burada oluşuyordu. Artık response.ok kontrolünden sonra.
+
       // Form gönderimi başarılı olduğunda
       setFormSubmitted(true);
       
@@ -128,9 +141,13 @@ export default function ContactContent() {
           formRef.current.reset();
         }
       }, 3000);
-    } catch (error) {
-      console.error('Form gönderim hatası:', error);
-      alert(t.contactForm.error || 'Mesajınız gönderilirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+    } catch (error: any) {
+      // error.message will contain result.error (the specific message from the API)
+      // or the message from a network error (e.g., "Failed to fetch")
+      // t.contactForm.error is the generic "Mesaj gönderilemedi"
+      // The last part is a final fallback.
+      const errorMessage = error?.message || t.contactForm.error || 'Mesajınız gönderilirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.';
+      alert(errorMessage);
     }
   };
 

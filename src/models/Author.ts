@@ -1,14 +1,12 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-// TypeScript interface'i (isteğe bağlı ama iyi bir pratik)
 export interface IAuthor extends Document {
   name: string;
   profileImage?: string; 
   bio?: string;          
-  articles?: string[];   // Yazarın blog slug'ları
+  articles?: string[];
 }
 
-// Mongoose Şeması
 const AuthorSchema: Schema = new Schema({
   name: {
     type: String,

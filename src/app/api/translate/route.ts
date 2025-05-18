@@ -93,20 +93,14 @@ export async function POST(req: NextRequest) {
         success: true
       });
     } catch (apiError) {
-      console.error("Azure Translator API error:", apiError);
-      throw new Error(`Azure Translator API error: ${apiError instanceof Error ? apiError.message : String(apiError)}`);
+      return NextResponse.json(
+        { success: false, error: apiError instanceof Error ? apiError.message : 'Azure Translator API hatası' },
+        { status: 500 }
+      );
     }
   } catch (error) {
-    console.error('Translation API error:', error);
-    
-    // Olası hata durumunda detaylı hata bilgisini döndür
-    const errorMessage = error instanceof Error ? error.message : 'Unknown translation error';
-    
     return NextResponse.json(
-      {
-        error: errorMessage,
-        success: false
-      },
+      { success: false, error: error instanceof Error ? error.message : 'Çeviri API hatası' },
       { status: 500 }
     );
   }

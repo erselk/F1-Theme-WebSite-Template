@@ -45,8 +45,6 @@ export async function POST(req: NextRequest) {
     // Veriyi MongoDB'ye kaydet
     await booking.save();
     
-    console.log('Free booking saved successfully via API!');
-    
     return NextResponse.json({ success: true });
     
   } catch (error: any) {

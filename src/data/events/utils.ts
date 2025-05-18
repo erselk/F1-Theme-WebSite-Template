@@ -80,8 +80,7 @@ export async function simpleTranslate(
     const response = await fetch(`${apiUrl}?${params}`);
     
     if (!response.ok) {
-      console.error('Translation API error:', response.statusText);
-      return text; // Return original text on error
+      throw new Error(`Translation API error: ${response.statusText}`);
     }
     
     const data = await response.json();
@@ -99,7 +98,6 @@ export async function simpleTranslate(
     
     return translatedText || text;
   } catch (error) {
-    console.error('Error during translation:', error);
-    return text; // Return original text on error
+    throw new Error(error instanceof Error ? error.message : 'Translation error occurred');
   }
 }

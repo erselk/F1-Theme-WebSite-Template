@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { BlogPost } from '@/types';
 import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export default function BlogsListPage() {
   const router = useRouter();
   const { isDark, language } = useThemeLanguage();
@@ -21,7 +23,7 @@ export default function BlogsListPage() {
     const fetchBlogs = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/blogs');
+        const response = await fetch(`${API_BASE_URL}/api/blogs`);
         const data = await response.json();
         
         if (response.ok && data.blogs) {
@@ -71,7 +73,7 @@ export default function BlogsListPage() {
       setIsDeleting(slug);
       setDeleteError(null);
       
-      const response = await fetch(`/api/blogs/${slug}`, {
+      const response = await fetch(`${API_BASE_URL}/api/blogs/${slug}`, {
         method: 'DELETE',
       });
       
