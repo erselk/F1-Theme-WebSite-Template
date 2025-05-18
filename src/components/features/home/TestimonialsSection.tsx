@@ -3,12 +3,6 @@
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
 import { motion, useAnimation, useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import dynamic from 'next/dynamic';
-
-// Dynamically import Lottie to avoid SSR issues
-const Lottie = dynamic(() => import('lottie-react'), {
-  ssr: false,
-});
 
 type TestimonialsSectionProps = {
   translations: {
@@ -28,15 +22,9 @@ export default function TestimonialsSection({ translations }: TestimonialsSectio
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: false, margin: "-100px 0px" });
   const controls = useAnimation();
-  const [confettiAnimation, setConfettiAnimation] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    // Load confetti animation
-    import("@/data/confetti.json").then(animation => {
-      setConfettiAnimation(animation.default);
-    });
-
     if (isInView) {
       controls.start("visible");
     }
@@ -162,18 +150,6 @@ export default function TestimonialsSection({ translations }: TestimonialsSectio
             >
               {translations.testimonialsSubtitle || "PadokClub deneyimini yaşayanların görüşleri"}
             </motion.p>
-            
-            {/* Confetti animation when section comes into view */}
-            {isInView && confettiAnimation && (
-              <div className="absolute top-0 left-0 w-full h-24 pointer-events-none">
-                <Lottie
-                  animationData={confettiAnimation}
-                  loop={false}
-                  autoplay={true}
-                  style={{ width: '100px', height: '100px' }}
-                />
-              </div>
-            )}
           </motion.div>
           
           {/* Testimonials row - fixed side by side */}

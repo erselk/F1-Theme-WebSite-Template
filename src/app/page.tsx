@@ -7,16 +7,35 @@ import FeaturesSection from "@/components/features/home/FeaturesSection";
 import SimulatorsSection from "@/components/features/home/SimulatorsSection";
 // Dinamik import ekliyoruz
 import dynamic from 'next/dynamic';
+
+// Yüklenme göstergesi bileşeni
+const SectionPlaceholder = ({ minHeight = '400px' }) => (
+  <div style={{
+    minHeight,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '1px dashed #ccc', // Görsel geri bildirim için
+    margin: '20px 0',
+    width: '100%'
+  }}>
+    <p>İçerik yükleniyor...</p>
+  </div>
+);
+
 // EventsSection'ı doğrudan import etmek yerine dinamik olarak import ediyoruz
 const EventsSection = dynamic(() => import('@/components/features/home/EventsSection'), {
   ssr: false, // Sunucu tarafında render edilmesini önlüyoruz
+  loading: () => <SectionPlaceholder />, // Yüklenme göstergesi eklendi
 });
 // BlogSection ve TestimonialsSection'ı dinamik olarak import ediyoruz (ssr: false ile)
 const BlogSection = dynamic(() => import('@/components/features/home/BlogSection'), {
   ssr: false,
+  loading: () => <SectionPlaceholder />, // Yüklenme göstergesi eklendi
 });
 const TestimonialsSection = dynamic(() => import('@/components/features/home/TestimonialsSection'), {
   ssr: false,
+  loading: () => <SectionPlaceholder minHeight="300px" />, // Yüklenme göstergesi eklendi (farklı yükseklik örneği)
 });
 import CTASection from "@/components/features/home/CTASection";
 
@@ -167,19 +186,10 @@ const translations = {
 // Ana sayfa bileşeni
 export default function Home() {
   const { language } = useThemeLanguage();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Choose the current language translations
-  const t = translations[language];
+  const t = translations[language] || translations.tr; // Dil yüklenemezse Türkçe'ye geri dön
   
-  if (!mounted) {
-    return null; // Return null on server-side to prevent hydration mismatch
-  }
-
   return (
     <>
       {/* Hero Section */}

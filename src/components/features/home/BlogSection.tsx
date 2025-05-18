@@ -7,16 +7,7 @@ import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
 import { BlogPost } from "@/types";
 import { motion, useScroll, useTransform, AnimatePresence, useMotionValueEvent, useSpring, useAnimationControls } from "framer-motion";
 import { gsap } from "gsap";
-import dynamic from "next/dynamic";
 import useSWRFetch from '@/hooks/useSWRFetch';
-// İçe aktaracağımız konfeti animasyonu için JSON dosyası
-import confettiAnimation from "@/data/confetti.json";
-
-// Client-side only Lottie bileşeni
-const Lottie = dynamic(() => import("lottie-react"), {
-  ssr: false, // Server-side rendering'i devre dışı bırakıyoruz
-  loading: () => <div className="hidden"></div>
-});
 
 type BlogSectionProps = {
   translations: {
@@ -48,7 +39,6 @@ export default function BlogSection({ translations }: BlogSectionProps) {
   const controls = useAnimationControls();
   const [selectedBlogIndex, setSelectedBlogIndex] = useState<number | null>(null);
   const [isHovering, setIsHovering] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // GSAP animasyon için ref'ler
@@ -141,14 +131,7 @@ export default function BlogSection({ translations }: BlogSectionProps) {
           scale: 1,
           stagger: 0.1,
           duration: 0.8,
-          ease: "elastic.out(1, 0.8)",
-          onComplete: () => {
-            // İlk blog için konfeti efekti
-            if (blogs.length > 0) {
-              setShowConfetti(true);
-              setTimeout(() => setShowConfetti(false), 3000);
-            }
-          }
+          ease: "elastic.out(1, 0.8)"
         }
       );
     }
@@ -425,17 +408,6 @@ export default function BlogSection({ translations }: BlogSectionProps) {
         </svg>
       </div>
 
-      {/* Konfeti Animasyonu */}
-      {showConfetti && (
-        <div className="fixed inset-0 pointer-events-none z-50">
-          <Lottie 
-            animationData={confettiAnimation} 
-            loop={false}
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-          />
-        </div>
-      )}
-
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         <motion.div 
           className="text-center mb-2 sm:mb-6 max-w-3xl mx-auto"
@@ -536,6 +508,7 @@ export default function BlogSection({ translations }: BlogSectionProps) {
                           alt={blog.title && blog.title[language] || 'Blog post image'}
                           fill
                           className="object-cover transition-all duration-700"
+                          sizes="(max-width: 640px) 140px, (max-width: 768px) 200px, 280px"
                           style={{
                             transform: `scale(${isHovering && selectedBlogIndex === index ? 1.1 : 1})`,
                           }}

@@ -226,6 +226,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                       alt={translations.simulator1Title}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 768px) 50vw, 33vw"
                     />
                     
                     {/* Racing speed lines overlay */}
@@ -286,7 +287,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                         }}
                       >
                         <svg width="100%" height="100%" viewBox="0 0 24 24" fill="currentColor" className="text-gray-400">
-                          <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" />
+                          <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7Z" />
                         </svg>
                       </motion.div>
                     </div>
@@ -378,6 +379,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                       alt={translations.simulator2Title}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 768px) 50vw, 33vw"
                     />
                     
                     {/* Racing speed lines overlay */}
@@ -530,6 +532,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                       alt={translations.simulator3Title}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 768px) 50vw, 33vw"
                     />
                     
                     {/* Racing speed lines overlay */}

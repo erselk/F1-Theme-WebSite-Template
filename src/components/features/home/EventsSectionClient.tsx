@@ -10,9 +10,9 @@ import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import useSWRFetch from '@/hooks/useSWRFetch';
 // Browser-only imports that use DOM API
 import gsap from 'gsap';
-import Lottie from 'lottie-react';
-// Import confetti animation
-import confettiAnimation from "@/data/confetti.json";
+// import Lottie from 'lottie-react'; // Lottie kaldırıldı
+// Import confetti animation -- KALDIRILDI
+// import confettiAnimation from "@/data/confetti.json"; // KALDIRILDI
 
 type EventsSectionProps = {
   translations: {
@@ -50,7 +50,7 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
   const sectionRef = useRef<HTMLElement>(null);
   const [selectedEventIndex, setSelectedEventIndex] = useState<number | null>(null);
   const [isHovering, setIsHovering] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
+  // const [showConfetti, setShowConfetti] = useState(false); // Lottie kaldırıldı
   const [error, setError] = useState<string | null>(null);
   
   // GSAP animation refs
@@ -116,13 +116,13 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
           stagger: 0.1,
           duration: 0.8,
           ease: "elastic.out(1, 0.8)",
-          onComplete: () => {
-            // First event confetti effect
-            if (events.length > 0) {
-              setShowConfetti(true);
-              setTimeout(() => setShowConfetti(false), 3000);
-            }
-          }
+          // onComplete: () => { // Lottie kaldırıldı
+          //   // First event confetti effect
+          //   if (events.length > 0) {
+          //     setShowConfetti(true);
+          //     setTimeout(() => setShowConfetti(false), 3000);
+          //   }
+          // }
         }
       );
     }
@@ -465,7 +465,7 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
       </div>
       
       {/* Confetti Animation */}
-      {showConfetti && (
+      {/* {showConfetti && ( // Lottie kaldırıldı
         <div className="fixed inset-0 pointer-events-none z-50">
           <Lottie 
             animationData={confettiAnimation} 
@@ -473,7 +473,7 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
           />
         </div>
-      )}
+      )} */}
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         <motion.div 
@@ -581,6 +581,7 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
                               alt={event.title && event.title[language as keyof typeof event.title] || 'Event image'}
                               fill
                               className={`object-cover ${isPast ? 'grayscale' : ''} transition-all duration-700`}
+                              sizes="(max-width: 640px) 140px, (max-width: 768px) 200px, 280px"
                               style={{
                                 transform: `scale(${isHovering && selectedEventIndex === index ? 1.1 : 1})`,
                               }}

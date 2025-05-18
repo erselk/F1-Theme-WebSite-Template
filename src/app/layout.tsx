@@ -48,6 +48,13 @@ export default function RootLayout({
 }>) {
   return (
     <html suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://www.google.com" />
+        <link rel="dns-prefetch" href="https://www.google.com" />
+        <link rel="preconnect" href="https://maps.googleapis.com" />
+        <link rel="dns-prefetch" href="https://maps.googleapis.com" />
+        {/* Diğer potansiyel preconnect/prefetch'ler buraya eklenebilir */}
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${titilliumWeb.variable} ${barlowCondensed.variable} antialiased flex flex-col min-h-screen`}
         suppressHydrationWarning

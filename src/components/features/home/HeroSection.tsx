@@ -5,27 +5,9 @@ import Link from "next/link";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
 import { motion, useAnimation, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { useSpring, animated } from "@react-spring/web";
 import dynamic from "next/dynamic";
-import type { Container, Engine } from "tsparticles-engine";
 import gsap from "gsap";
 import { throttle } from "lodash";
-
-// Particles bileşenini dinamik olarak yükle
-const Particles = dynamic(() => import('react-particles'), {
-  ssr: false,
-  loading: () => <div className="absolute inset-0 z-[1] bg-black/20"></div>
-});
-
-// Dinamik olarak loadSlim fonksiyonunu import et
-const loadParticlesSlim = async (engine: Engine) => {
-  try {
-    const { loadSlim } = await import("tsparticles-slim");
-    return await loadSlim(engine);
-  } catch (error) {
-    
-  }
-};
 
 type HeroSectionProps = {
   translations: {
@@ -51,15 +33,6 @@ export default function HeroSection({ translations }: HeroSectionProps) {
   // Animation has been setup flag
   const [animationSetup, setAnimationSetup] = useState(false);
   
-  // Particles initialization
-  const particlesInit = useCallback(async (engine: Engine) => {
-    await loadParticlesSlim(engine);
-  }, []);
-
-  const particlesLoaded = useCallback(async (container: Container | undefined) => {
-    
-  }, []);
-  
   // Home slides from the home folder (about1.jpg to about19.jpg)
   const homeSlides = Array.from({ length: 19 }, (_, i) => `/images/about${i + 1}.jpg`);
   
@@ -67,30 +40,6 @@ export default function HeroSection({ translations }: HeroSectionProps) {
   const handleSlideChange = useCallback((index: number) => {
     setCurrentSlide(index);
   }, []);
-
-  // Spring animation for the hero title
-  const titleSpring = useSpring({
-    from: { opacity: 0, transform: 'scale(0.8) translateY(-50px)' },
-    to: { opacity: 1, transform: 'scale(1) translateY(0px)' },
-    delay: 500,
-    config: { mass: 2, tension: 120, friction: 14 }
-  });
-
-  // Spring animation for the subtitle
-  const subtitleSpring = useSpring({
-    from: { opacity: 0, transform: 'translateY(30px)' },
-    to: { opacity: 1, transform: 'translateY(0px)' },
-    delay: 1000,
-    config: { mass: 1, tension: 170, friction: 18 }
-  });
-
-  // Spring animation for the CTA button
-  const ctaSpring = useSpring({
-    from: { opacity: 0, transform: 'translateY(50px)' },
-    to: { opacity: 1, transform: 'translateY(0px)' },
-    delay: 1500,
-    config: { mass: 1, tension: 120, friction: 12 }
-  });
 
   // Scroll animation values
   const { scrollY } = useScroll();
@@ -242,96 +191,6 @@ export default function HeroSection({ translations }: HeroSectionProps) {
     return () => clearInterval(interval);
   }, [homeSlides.length, mounted, animationSetup]);
   
-  // Memoize particles configuration for better performance
-  const particlesOptions = useMemo(() => ({
-    particles: {
-      number: {
-        value: 70,
-        density: {
-          enable: true,
-          value_area: 800
-        }
-      },
-      color: {
-        value: isDark ? "#ff0000" : "#e10600"
-      },
-      shape: {
-        type: "circle",
-        stroke: {
-          width: 0,
-          color: "#000000"
-        }
-      },
-      opacity: {
-        value: 0.5,
-        random: true,
-        anim: {
-          enable: true,
-          speed: 1,
-          opacity_min: 0.1,
-          sync: false
-        }
-      },
-      size: {
-        value: 3,
-        random: true,
-        anim: {
-          enable: true,
-          speed: 2,
-          size_min: 0.1,
-          sync: false
-        }
-      },
-      line_linked: {
-        enable: true,
-        distance: 150,
-        color: isDark ? "#ff3333" : "#e10600",
-        opacity: 0.4,
-        width: 1
-      },
-      move: {
-        enable: true,
-        speed: 2,
-        direction: "none" as const, // Use const assertion to fix type error
-        random: true,
-        straight: false,
-        out_mode: "out" as const,
-        bounce: false,
-        attract: {
-          enable: true,
-          rotateX: 600,
-          rotateY: 1200
-        }
-      }
-    },
-    interactivity: {
-      detect_on: "canvas" as const, // Use const assertion to fix type error
-      events: {
-        onhover: {
-          enable: true,
-          mode: "grab" as const // Fix type error
-        },
-        onclick: {
-          enable: true,
-          mode: "push" as const // Fix type error
-        },
-        resize: true
-      },
-      modes: {
-        grab: {
-          distance: 140,
-          line_linked: {
-            opacity: 1
-          }
-        },
-        push: {
-          particles_nb: 4
-        },
-      }
-    },
-    retina_detect: true
-  }), [isDark]); // Only recreate when theme changes
-  
   if (!mounted) {
     return null; // Return null on server-side to prevent hydration mismatch
   }
@@ -342,72 +201,6 @@ export default function HeroSection({ translations }: HeroSectionProps) {
       className="relative text-white w-full aspect-[16/9] overflow-hidden perspective-1000" 
       style={{ perspective: "1000px" }}
     >
-      {/* Particles background - persist with key */}
-      <div className="absolute inset-0 z-[1]">
-        <div className="relative w-full h-full overflow-hidden">
-          <Particles
-            key={animationKey}
-            id="react-particles"
-            init={particlesInit}
-            loaded={particlesLoaded}
-            options={{
-              ...particlesOptions,
-              particles: {
-                ...particlesOptions.particles,
-                number: {
-                  ...particlesOptions.particles.number,
-                  // Ekran boyutu küçüldükçe (containerScale azaldıkça) parçacık sayısını azalt
-                  value: Math.max(30, Math.round(70 * containerScale)),
-                  density: {
-                    enable: true,
-                    // Ekran küçüldükçe yoğunluk alanını artır (daha fazla dağılım)
-                    value_area: 800 + (1 - containerScale) * 1200
-                  }
-                },
-                size: {
-                  ...particlesOptions.particles.size,
-                  value: 3 * containerScale,
-                },
-                move: {
-                  ...particlesOptions.particles.move,
-                  // Mobil için hızı biraz artır, böylece daha dinamik görünür
-                  speed: 2 + (1 - containerScale) * 2,
-                  // Ekran küçüldükçe rastgeleliği artır
-                  random: true,
-                  // Mobil görünümde daha geniş hareket alanı
-                  out_mode: containerScale < 0.7 ? "bounce" : "out",
-                  attract: {
-                    ...particlesOptions.particles.move.attract,
-                    // Mobilde çekim gücünü azalt (daha dağınık hareket etsinler)
-                    enable: containerScale > 0.7,
-                    rotateX: 600 * containerScale,
-                    rotateY: 1200 * containerScale
-                  }
-                },
-                line_linked: {
-                  ...particlesOptions.particles.line_linked,
-                  // Mobil görünümde çizgilerin mesafesini azalt, böylece daha dağınık görünür
-                  distance: 150 - (1 - containerScale) * 50,
-                  // Çizgi sayısını azalt
-                  opacity: Math.min(0.4, 0.4 * containerScale * 1.5)
-                }
-              },
-              interactivity: {
-                ...particlesOptions.interactivity,
-                modes: {
-                  ...particlesOptions.interactivity.modes,
-                  grab: {
-                    ...particlesOptions.interactivity.modes.grab,
-                    distance: 140 * containerScale // Mobilde dokunma etkileşimini azalt
-                  }
-                }
-              }
-            }}
-            className="absolute inset-0"
-          />
-        </div>
-      </div>
-      
       <motion.div style={{ y: parallaxY }} className="absolute inset-0 z-[1]">
         <AnimatePresence mode="wait">
           <motion.div
@@ -424,6 +217,7 @@ export default function HeroSection({ translations }: HeroSectionProps) {
               fill
               className="object-cover brightness-75"
               priority={currentSlide === 0}
+              sizes="100vw"
             />
           </motion.div>
         </AnimatePresence>
