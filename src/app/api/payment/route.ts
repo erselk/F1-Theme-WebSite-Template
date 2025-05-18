@@ -121,9 +121,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} catch (error) {
-  return NextResponse.json(
-    { success: false, error: error instanceof Error ? error.message : 'API route hatası' },
-    { status: 500 }
-  );
 }
