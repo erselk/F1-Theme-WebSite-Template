@@ -9,6 +9,9 @@ import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+// API_BASE_URL kontrolü için debug log
+console.log('API_BASE_URL:', API_BASE_URL);
+
 export default function BlogsListPage() {
   const router = useRouter();
   const { isDark, language } = useThemeLanguage();
@@ -23,38 +26,59 @@ export default function BlogsListPage() {
     const fetchBlogs = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/api/blogs`);
+        
+        // API_BASE_URL kontrolü
+        if (!API_BASE_URL) {
+          console.error('API_BASE_URL tanımlı değil');
+          throw new Error('API_BASE_URL tanımlı değil. Lütfen .env dosyasını kontrol edin.');
+        }
+
+        // API URL'ini kontrol et
+        const apiUrl = `${API_BASE_URL}/api/blogs`;
+        console.log('API isteği yapılıyor:', apiUrl);
+
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          // CORS ve cache ayarları
+          mode: 'cors',
+          cache: 'no-store',
+          credentials: 'omit', // CORS için credentials'ı kaldır
+          next: { revalidate: 0 }, // Next.js cache'i devre dışı bırak
+        });
+
+        console.log('API yanıt durumu:', response.status);
+        console.log('API yanıt başlıkları:', Object.fromEntries(response.headers.entries()));
+
+        // Response type kontrolü
+        const contentType = response.headers.get('content-type');
+        console.log('Content-Type:', contentType);
+
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          console.error('Beklenmeyen yanıt:', text);
+          throw new Error(`Beklenmeyen yanıt türü: ${contentType}. Yanıt: ${text.substring(0, 200)}...`);
+        }
+
         const data = await response.json();
+        console.log('API yanıtı:', data);
         
         if (response.ok && data.blogs) {
-          // Blogları tarih sırasına göre sıralıyoruz (en yenisi önce)
           const sortedBlogs = data.blogs.sort((a: BlogPost, b: BlogPost) => 
             new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
           );
           
           setBlogs(sortedBlogs);
-          setError(null); // Başarılı olursa hatayı temizle
+          setError(null);
         } else {
-          let errorMessage = 'Bloglar yüklenirken bilinmeyen bir sunucu hatası oluştu.'; // Varsayılan mesaj
-          if (data && data.message) { // API'dan gelen .message alanını önceliklendir
-            errorMessage = data.message;
-          } else if (data && data.error) {
-            if (typeof data.error === 'string') {
-              errorMessage = data.error;
-            } else if (typeof data.error === 'object' && data.error.message && typeof data.error.message === 'string') {
-              errorMessage = data.error.message;
-            } else if (typeof data.error === 'object') {
-              // Eğer data.error bir nesne ama .message yoksa, nesneyi stringify et (debug için)
-              // Production'da daha genel bir mesaj göstermek daha iyi olabilir.
-              errorMessage = JSON.stringify(data.error);
-            }
-          }
-          throw new Error(errorMessage);
+          throw new Error(data.message || data.error || 'Bloglar yüklenirken bir hata oluştu');
         }
       } catch (err) {
-        // err.message zaten string olmalı (new Error ile oluşturulduğu için)
-        setError(err instanceof Error ? err.message : 'Bloglar yüklenirken bir ağ hatası oluştu.');
         console.error('Blog yükleme hatası:', err);
+        setError(err instanceof Error ? err.message : 'Bloglar yüklenirken bir ağ hatası oluştu');
       } finally {
         setLoading(false);
       }

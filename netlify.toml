@@ -4,6 +4,7 @@
 
 [build.environment]
   NEXT_PUBLIC_SITE_URL = "https://padokclub.netlify.app"
+  NEXT_PUBLIC_API_BASE_URL = "https://padokclub.netlify.app"
   NODE_VERSION = "20"
   NPM_FLAGS = "--prefer-offline --no-audit"
   NETLIFY_USE_YARN = "false"
@@ -12,3 +13,26 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = true
+  conditions = {Path = ["/api/*"]}
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    Access-Control-Allow-Credentials = "true"
+    Cache-Control = "no-store, no-cache, must-revalidate, proxy-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["mongodb", "mongoose"]
+  included_files = ["src/lib/db/**/*"]

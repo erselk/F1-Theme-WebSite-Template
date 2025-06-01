@@ -4,37 +4,75 @@ import Blog from '@/models/Blog';
 import { Types } from 'mongoose';
 import mongoose from 'mongoose';
 
-// Cache kontrollerini ayarla - önbelleğe almayı engelle
-export const dynamic = 'force-dynamic'; // Statik önbelleğe almayı devre dışı bırak
-export const revalidate = 0; // Her istekte yeniden doğrulama yap
+// Netlify Functions için özel yapılandırma
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+// CORS ön işleme
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+}
 
 export async function GET() {
   try {
+    console.log('Blog API: GET isteği alındı');
+    
+    if (!process.env.MONGODB_URI) {
+      console.error('Blog API: MONGODB_URI tanımlı değil');
+      return NextResponse.json({ 
+        message: 'Veritabanı bağlantı bilgileri eksik', 
+        success: false 
+      }, { 
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        }
+      });
+    }
+
     await connectToDatabase();
+    console.log('Blog API: Veritabanı bağlantısı başarılı');
     
-    // Tüm blogları getir, tarihe göre tersinden sırala ve yazar bilgilerini populate et
     const blogs = await Blog.find({}).sort({ publishDate: -1 }).populate('author', 'name profileImage _id');
+    console.log(`Blog API: ${blogs.length} blog bulundu`);
     
-    // Cache-Control başlıklarını ayarla
     return NextResponse.json({ 
       blogs,
       success: true 
     }, {
       headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0',
       }
     });
   } catch (error) {
-    console.error('Blog verilerini getirme hatası:', error);
-    // Hata mesajını güvenli bir şekilde string yap
-    const errorMessage = error instanceof Error ? error.message : 'Bloglar yüklenirken bilinmeyen bir sunucu hatası oluştu.';
+    console.error('Blog API: Veri getirme hatası:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen bir sunucu hatası';
+    
     return NextResponse.json({ 
-      message: 'Bloglar getirilirken bir hata oluştu: ' + errorMessage, 
-      error: errorMessage, // Sadece string mesajı gönderelim
+      message: 'Bloglar getirilirken bir hata oluştu', 
+      error: errorMessage,
       success: false 
-    }, { status: 500 });
+    }, { 
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',
+      }
+    });
   }
 }
 
