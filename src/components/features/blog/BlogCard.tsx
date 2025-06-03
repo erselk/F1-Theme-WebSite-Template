@@ -8,7 +8,6 @@ import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 interface BlogCardProps {
   blog: BlogPost & { author?: { _id?: string, name?: string, profileImage?: string } };
   language: string;
-  isDark: boolean;
   formatDate: (dateString: string) => string;
   categoryName: string;
 }
@@ -16,7 +15,6 @@ interface BlogCardProps {
 const BlogCard: React.FC<BlogCardProps> = ({
   blog,
   language,
-  isDark,
   formatDate,
   categoryName
 }) => {
@@ -27,33 +25,31 @@ const BlogCard: React.FC<BlogCardProps> = ({
 
   return (
     <div className="group" ref={setRef as React.RefCallback<HTMLDivElement>}>
-      <Link href={`/blog/${blog.slug}`} className="block">
-        <div className={`relative aspect-video overflow-hidden rounded-lg mb-2 sm:mb-3 ${isDark ? 'bg-[#1E1E1E]' : 'bg-[#f9f9f9]'} shadow-md ${isDark ? 'shadow-black/20' : 'shadow-gray-400/15'}`}>
+      <Link href={`/blog/${blog.slug}`} className="group block">
+        <div className="relative aspect-[16/9] overflow-hidden rounded-lg">
           {isVisible && (
-            <Image 
-              src={blog.thumbnailImage} 
-              alt={blog.title[language]} 
-              fill 
-              sizes="(max-width: 640px) 50vw, (min-width: 641px) and (max-width: 1023px) 50vw, (min-width: 1024px) and (max-width: 1279px) 33vw, 25vw"
-              className="object-cover transition-transform duration-300 group-hover:scale-105 will-change-transform"
-              placeholder="blur"
-              blurDataURL={DEFAULT_BLUR_DATA_URL}
+            <Image
+              src={blog.coverImage}
+              alt={blog.title[language]}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           )}
         </div>
         
-        <div className={`space-y-1 sm:space-y-1.5 p-3 sm:p-4 rounded-lg ${isDark ? 'bg-[#1E1E1E]' : 'bg-[#f9f9f9]'} shadow-md ${isDark ? 'shadow-black/20' : 'shadow-gray-400/15'}`}>
-          <div className="flex items-center text-[10px] sm:text-xs text-medium-grey dark:text-silver">
+        <div className="space-y-1 sm:space-y-1.5 p-3 sm:p-4 rounded-lg bg-[#f9f9f9] shadow-md shadow-gray-400/15">
+          <div className="flex items-center text-[10px] sm:text-xs text-medium-grey">
             <span>{formatDate(blog.publishDate)}</span>
             <span className="mx-1 sm:mx-1.5">•</span>
             <span className="capitalize">{categoryName}</span>
           </div>
           
-          <h3 className={`text-sm sm:text-base md:text-lg font-semibold font-titillium-web line-clamp-2 transition-colors ${isDark ? 'group-hover:text-neon-red' : 'group-hover:text-f1-red'}`}>
+          <h3 className="text-sm sm:text-base md:text-lg font-semibold font-titillium-web line-clamp-2 transition-colors group-hover:text-f1-red">
             {blog.title[language]}
           </h3>
           
-          <p className="text-[10px] sm:text-xs text-medium-grey dark:text-silver line-clamp-2">
+          <p className="text-[10px] sm:text-xs text-medium-grey line-clamp-2">
             {blog.excerpt[language]}
           </p>
           
@@ -81,7 +77,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
                     blurDataURL={DEFAULT_BLUR_DATA_URL}
                   />
                 ) : (
-                  <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-graphite text-silver' : 'bg-light-grey text-dark-grey'}`}>
+                  <div className={`w-full h-full flex items-center justify-center`}>
                     {blog.author?.name?.charAt(0) || 'A'}
                   </div>
                 )}

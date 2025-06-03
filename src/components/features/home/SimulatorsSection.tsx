@@ -174,14 +174,14 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
   return (
     <section 
       ref={sectionRef}
-      className={`py-6 sm:py-10 ${isDark ? 'bg-[#262626]/30' : 'bg-gray-50/30'}`}
+      className="py-6 sm:py-10 border-4 border-white border-t-0"
     >
       <div className="max-w-5xl mx-auto px-0 sm:px-4 lg:px-8 w-[98%] sm:w-auto overflow-hidden">
         <div className="text-center mb-2 sm:mb-6 max-w-3xl mx-auto">
-          <h2 className={`text-sm sm:text-2xl lg:text-3xl font-bold tracking-tight font-['Titillium_Web'] ${isDark ? 'text-[#E0E0E0]' : 'text-gray-900'}`}>
+          <h2 className="text-sm sm:text-2xl lg:text-3xl font-bold tracking-tight font-['Titillium_Web'] text-white">
             {translations.simulatorsTitle}
           </h2>
-          <p className={`mt-1 sm:mt-2 text-[8px] sm:text-sm lg:text-base ${isDark ? 'text-[#B0B0B0]' : 'text-gray-600'} font-['Inter']`}>
+          <p className="mt-1 sm:mt-2 text-[8px] sm:text-sm lg:text-base text-white font-['Inter']">
             {translations.simulatorsSubtitle}
           </p>
         </div>
@@ -192,7 +192,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
           <div className="basis-1/3 p-2 sm:p-4 overflow-visible flex">
             <div className="w-full h-full flex justify-center items-center">
               <motion.div 
-                className={`overflow-hidden shadow-sm rounded-lg ${isDark ? 'bg-gradient-to-br from-[#262626]/30 to-[#1A1A1A]/30' : 'bg-gradient-to-br from-white/30 to-gray-50/30'} flex flex-col h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative`}
+                className="overflow-hidden shadow-sm rounded-lg bg-transparent flex flex-col h-full w-full border-4 border-white relative"
                 style={{ transformOrigin: "center center" }}
                 initial={{ opacity: 0, x: -100, scale: 0.8 }}
                 animate={isMobile ? simulator1Controls : {}}
@@ -248,27 +248,17 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                 
                 <div className="p-1 sm:p-2 md:p-4 lg:p-6 flex flex-col flex-grow z-10">
                   <motion.h3 
-                    className={`text-[9px] sm:text-sm md:text-base lg:text-xl font-medium mb-0.5 sm:mb-1 md:mb-2 font-['Titillium_Web'] ${isDark ? 'text-[#E0E0E0]' : 'text-gray-900'}`}
-                    animate={{
-                      color: isDark 
-                        ? ["#E0E0E0", "#FF3333", "#E0E0E0"] 
-                        : ["#333333", "#E10600", "#333333"]
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      repeatType: "reverse",
-                    }}
+                    className="text-[9px] sm:text-sm md:text-base lg:text-xl font-medium mb-0.5 sm:mb-1 md:mb-2 font-['Titillium_Web'] text-white"
                   >
                     {translations.simulator1Title}
                   </motion.h3>
                   
-                  <p className={`text-[7px] sm:text-xs md:text-sm lg:text-base font-['Inter'] ${isDark ? 'text-[#B0B0B0]' : 'text-gray-600'} flex-grow hidden sm:block`}>
+                  <p className="text-[7px] sm:text-xs md:text-sm lg:text-base font-['Inter'] text-white flex-grow hidden sm:block">
                     {translations.simulator1Desc}
                   </p>
                   
                   {/* Mobile short description */}
-                  <p className={`text-[7px] sm:hidden font-['Inter'] ${isDark ? 'text-[#B0B0B0]' : 'text-gray-600'} mb-1`}>
+                  <p className="text-[7px] sm:hidden font-['Inter'] text-white mb-1">
                     {language === "en" ? mobileDescriptions.en.simulator1 : mobileDescriptions.tr.simulator1}
                   </p>
                   
@@ -294,7 +284,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                     
                     <div className="flex justify-between items-center">
                       <motion.div 
-                        className={`text-[6px] sm:text-xs md:text-sm lg:text-base font-bold font-['Barlow Condensed'] ${isDark ? 'text-[#FF0000]' : 'text-[#E10600]'}`}
+                        className="text-[6px] sm:text-xs md:text-sm lg:text-base font-bold font-['Barlow Condensed'] text-white"
                         animate={{
                           filter: ["brightness(1)", "brightness(1.3)", "brightness(1)"]
                         }}
@@ -304,7 +294,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                           repeatType: "reverse",
                         }}
                       >
-                        ₺{f1Price} <span className="text-[6px] sm:text-xs md:text-sm">{translations.hourPrice}</span>
+                        ₺{f1Price} <span className="text-[6px] sm:text-xs md:text-sm text-white">{translations.hourPrice}</span>
                       </motion.div>
                       
                       <motion.div
@@ -345,7 +335,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
           <div className="basis-1/3 p-2 sm:p-4 overflow-visible flex">
             <div className="w-full h-full flex justify-center items-center">
               <motion.div 
-                className={`overflow-hidden shadow-sm rounded-lg ${isDark ? 'bg-gradient-to-br from-[#262626]/30 to-[#1A1A1A]/30' : 'bg-gradient-to-br from-white/30 to-gray-50/30'} flex flex-col h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative`}
+                className="overflow-hidden shadow-sm rounded-lg bg-transparent flex flex-col h-full w-full border-4 border-white relative"
                 style={{ transformOrigin: "center center" }}
                 initial={{ opacity: 0, x: -100, scale: 0.8 }}
                 animate={isMobile ? simulator2Controls : {}}
@@ -401,27 +391,17 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                 
                 <div className="p-1 sm:p-2 md:p-4 lg:p-6 flex flex-col flex-grow z-10">
                   <motion.h3 
-                    className={`text-[9px] sm:text-sm md:text-base lg:text-xl font-medium mb-0.5 sm:mb-1 md:mb-2 font-['Titillium_Web'] ${isDark ? 'text-[#E0E0E0]' : 'text-gray-900'}`}
-                    animate={{
-                      color: isDark 
-                        ? ["#E0E0E0", "#FF3333", "#E0E0E0"] 
-                        : ["#333333", "#E10600", "#333333"]
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      repeatType: "reverse",
-                    }}
+                    className="text-[9px] sm:text-sm md:text-base lg:text-xl font-medium mb-0.5 sm:mb-1 md:mb-2 font-['Titillium_Web'] text-white"
                   >
                     {translations.simulator2Title}
                   </motion.h3>
                   
-                  <p className={`text-[7px] sm:text-xs md:text-sm lg:text-base font-['Inter'] ${isDark ? 'text-[#B0B0B0]' : 'text-gray-600'} flex-grow hidden sm:block`}>
+                  <p className="text-[7px] sm:text-xs md:text-sm lg:text-base font-['Inter'] text-white flex-grow hidden sm:block">
                     {translations.simulator2Desc}
                   </p>
                   
                   {/* Mobile short description */}
-                  <p className={`text-[7px] sm:hidden font-['Inter'] ${isDark ? 'text-[#B0B0B0]' : 'text-gray-600'} mb-1`}>
+                  <p className="text-[7px] sm:hidden font-['Inter'] text-white mb-1">
                     {language === "en" ? mobileDescriptions.en.simulator2 : mobileDescriptions.tr.simulator2}
                   </p>
                   
@@ -447,7 +427,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                     
                     <div className="flex justify-between items-center">
                       <motion.div 
-                        className={`text-[6px] sm:text-xs md:text-sm lg:text-base font-bold font-['Barlow Condensed'] ${isDark ? 'text-[#FF0000]' : 'text-[#E10600]'}`}
+                        className="text-[6px] sm:text-xs md:text-sm lg:text-base font-bold font-['Barlow Condensed'] text-white"
                         animate={{
                           filter: ["brightness(1)", "brightness(1.3)", "brightness(1)"]
                         }}
@@ -457,7 +437,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                           repeatType: "reverse",
                         }}
                       >
-                        ₺{vrPrice} <span className="text-[6px] sm:text-xs md:text-sm">{translations.hourPrice}</span>
+                        ₺{vrPrice} <span className="text-[6px] sm:text-xs md:text-sm text-white">{translations.hourPrice}</span>
                       </motion.div>
                       
                       <motion.div
@@ -498,7 +478,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
           <div className="basis-1/3 p-2 sm:p-4 overflow-visible flex">
             <div className="w-full h-full flex justify-center items-center">
               <motion.div 
-                className={`overflow-hidden shadow-sm rounded-lg ${isDark ? 'bg-gradient-to-br from-[#262626]/30 to-[#1A1A1A]/30' : 'bg-gradient-to-br from-white/30 to-gray-50/30'} flex flex-col h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative`}
+                className="overflow-hidden shadow-sm rounded-lg bg-transparent flex flex-col h-full w-full border-4 border-white relative"
                 style={{ transformOrigin: "center center" }}
                 initial={{ opacity: 0, x: -100, scale: 0.8 }}
                 animate={isMobile ? simulator3Controls : {}}
@@ -554,27 +534,17 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                 
                 <div className="p-1 sm:p-2 md:p-4 lg:p-6 flex flex-col flex-grow z-10">
                   <motion.h3 
-                    className={`text-[9px] sm:text-sm md:text-base lg:text-xl font-medium mb-0.5 sm:mb-1 md:mb-2 font-['Titillium_Web'] ${isDark ? 'text-[#E0E0E0]' : 'text-gray-900'}`}
-                    animate={{
-                      color: isDark 
-                        ? ["#E0E0E0", "#FF3333", "#E0E0E0"] 
-                        : ["#333333", "#E10600", "#333333"]
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      repeatType: "reverse",
-                    }}
+                    className="text-[9px] sm:text-sm md:text-base lg:text-xl font-medium mb-0.5 sm:mb-1 md:mb-2 font-['Titillium_Web'] text-white"
                   >
                     {translations.simulator3Title}
                   </motion.h3>
                   
-                  <p className={`text-[7px] sm:text-xs md:text-sm lg:text-base font-['Inter'] ${isDark ? 'text-[#B0B0B0]' : 'text-gray-600'} flex-grow hidden sm:block`}>
+                  <p className="text-[7px] sm:text-xs md:text-sm lg:text-base font-['Inter'] text-white flex-grow hidden sm:block">
                     {translations.simulator3Desc}
                   </p>
                   
                   {/* Mobile short description */}
-                  <p className={`text-[7px] sm:hidden font-['Inter'] ${isDark ? 'text-[#B0B0B0]' : 'text-gray-600'} mb-1`}>
+                  <p className="text-[7px] sm:hidden font-['Inter'] text-white mb-1">
                     {language === "en" ? mobileDescriptions.en.simulator3 : mobileDescriptions.tr.simulator3}
                   </p>
                   
@@ -600,7 +570,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                     
                     <div className="flex justify-between items-center">
                       <motion.div 
-                        className={`text-[6px] sm:text-xs md:text-sm lg:text-base font-bold font-['Barlow Condensed'] ${isDark ? 'text-[#FF0000]' : 'text-[#E10600]'}`}
+                        className="text-[6px] sm:text-xs md:text-sm lg:text-base font-bold font-['Barlow Condensed'] text-white"
                         animate={{
                           filter: ["brightness(1)", "brightness(1.3)", "brightness(1)"]
                         }}
@@ -610,7 +580,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
                           repeatType: "reverse",
                         }}
                       >
-                        ₺{gamingPcPrice} <span className="text-[6px] sm:text-xs md:text-sm">{translations.hourPrice}</span>
+                        ₺{gamingPcPrice} <span className="text-[6px] sm:text-xs md:text-sm text-white">{translations.hourPrice}</span>
                       </motion.div>
                       
                       <motion.div

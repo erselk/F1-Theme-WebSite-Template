@@ -4,24 +4,24 @@ import { useEffect, useState, useRef } from 'react';
 import Image from "next/image";
 import Link from "next/link";
 import { useThemeLanguage } from "@/lib/ThemeLanguageContext";
-import { Event } from "@/types";
-import { createTimezoneDate, formatDate } from "@/lib/date-utils";
+import { BlogPost } from "@/types";
+import { formatDate } from "@/lib/date-utils";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import useSWRFetch from '@/hooks/useSWRFetch';
 import gsap from 'gsap';
 
-type EventsSectionProps = {
+type BlogSectionProps = {
   translations: {
-    eventsTitle: string;
-    eventsSubtitle: string;
-    eventsCta: string;
-    eventDetails: string;
+    blogTitle: string;
+    blogSubtitle: string;
+    blogCta: string;
+    blogDetails: string;
   };
 };
 
-export default function EventsSectionClient({ translations }: EventsSectionProps) {
+export default function BlogSectionClient({ translations }: BlogSectionProps) {
   const { language } = useThemeLanguage();
-  const [events, setEvents] = useState<Event[]>([]);
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [hasCarousel, setHasCarousel] = useState(false);
   
   // Sabit kart genişliği - mobilde daha küçük kartlar (ekrana 2+ kart sığması için)
@@ -35,7 +35,7 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
   const [maxScroll, setMaxScroll] = useState(0);
   const [isScrolledToStart, setIsScrolledToStart] = useState(true);
   const [isScrolledToEnd, setIsScrolledToEnd] = useState(false);
-  const [noEvents, setNoEvents] = useState(false);
+  const [noBlogs, setNoBlogs] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -44,7 +44,7 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
   const accumulatedDeltaY = useRef(0);
   const lastWheelTimestamp = useRef(Date.now());
   const sectionRef = useRef<HTMLElement>(null);
-  const [selectedEventIndex, setSelectedEventIndex] = useState<number | null>(null);
+  const [selectedBlogIndex, setSelectedBlogIndex] = useState<number | null>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -60,9 +60,9 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
   const opacityProgress = useTransform(scrollYProgress, [0, 0.3, 0.6, 1], [0.3, 1, 1, 0.5]);
   const springScroll = useSpring(scrollYProgress, { stiffness: 500, damping: 150 });
 
-  // SWR ile etkinlik verilerini çek
-  const { data: eventsData, error: eventsError, isLoading: eventsLoading } = 
-    useSWRFetch<{ events: Event[], success: boolean }>('/api/events');
+  // SWR ile blog verilerini çek
+  const { data: blogsData, error: blogsError, isLoading: blogsLoading } = 
+    useSWRFetch<{ blogs: BlogPost[], success: boolean }>('/api/blogs');
 
   // GSAP animations
   useEffect(() => {
@@ -88,12 +88,12 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
         );
       }
     }
-  }, [events]);
+  }, [blogs]);
   
-  // Event card stagger animations
+  // Blog card stagger animations
   useEffect(() => {
-    if (events.length > 0 && carouselRef.current) {
-      const cards = carouselRef.current.querySelectorAll('.event-card');
+    if (blogs.length > 0 && carouselRef.current) {
+      const cards = carouselRef.current.querySelectorAll('.blog-card');
       
       gsap.fromTo(
         cards,
@@ -114,45 +114,30 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
         }
       );
     }
-  }, [events]);
+  }, [blogs]);
   
-  // Etkinlikleri işle ve sırala
+  // Blog verilerini işle ve sırala
   useEffect(() => {
-    if (eventsData?.events) {
-      const today = createTimezoneDate();
-      
-      // Hiç etkinlik yoksa
-      if (eventsData.events.length === 0) {
-        setNoEvents(true);
-        return;
-      }
-      
-      // Yeni etkinlik listeleme mantığına göre
-      const upcomingEvents = eventsData.events
-        .filter(event => new Date(event.date) >= today)
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      
-      const pastEvents = eventsData.events
-        .filter(event => new Date(event.date) < today)
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      
-      // Gelecek etkinlikler varsa onları göster, yoksa geçmiş etkinlikleri göster
-      const eventsToShow = upcomingEvents.length > 0 ? upcomingEvents : pastEvents;
+    if (blogsData?.blogs) {
+      // En son 10 blogu al ve tarihe göre sırala
+      const sortedBlogs = [...blogsData.blogs]
+        .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime())
+        .slice(0, 10);
       
       // Carousel durumunu belirle
-      setHasCarousel(eventsToShow.length > 3);
-      setEvents(eventsToShow);
-      setNoEvents(eventsToShow.length === 0);
+      setHasCarousel(sortedBlogs.length > 3);
+      setBlogs(sortedBlogs);
+      setNoBlogs(sortedBlogs.length === 0);
     }
-  }, [eventsData]);
+  }, [blogsData]);
 
   // Hata durumunu yönet
   useEffect(() => {
-    if (eventsError) {
-      console.error('Etkinlik verilerini getirme hatası:', eventsError);
-      setNoEvents(true);
+    if (blogsError) {
+      console.error('Blog verilerini getirme hatası:', blogsError);
+      setNoBlogs(true);
     }
-  }, [eventsError]);
+  }, [blogsError]);
 
   // Yatay kaydırmayı işle ve scroll durumunu güncelle
   useEffect(() => {
@@ -200,7 +185,7 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
         }
       };
     }
-  }, [events]);
+  }, [blogs]);
 
   // Wheel event'i için touch alanında mı kontrol
   const isTouchScreen = useRef(false);
@@ -253,7 +238,7 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
       const scrollAmount = accumulatedDeltaY.current / 8; 
       
       // Kart genişliğine göre "snap" effect, yavaş animasyon
-      const cardWidth = container.querySelector('.event-card')?.clientWidth || 0;
+      const cardWidth = container.querySelector('.blog-card')?.clientWidth || 0;
       const direction = scrollAmount > 0 ? 1 : -1;
       
       // Kaydırma mesafesini bir kart genişliğinin %30'u olarak sınırla
@@ -316,16 +301,16 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
   // 3D Tilt Card effect with mouse position calculation
   const handleMouseEnter = (index: number) => {
     setIsHovering(true);
-    setSelectedEventIndex(index);
+    setSelectedBlogIndex(index);
   };
 
   const handleMouseLeave = () => {
     setIsHovering(false);
-    setSelectedEventIndex(null);
+    setSelectedBlogIndex(null);
   };
 
   const handleMouseMove3D = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
-    if (selectedEventIndex !== index) return;
+    if (selectedBlogIndex !== index) return;
     
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
@@ -358,8 +343,8 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
     card.style.setProperty('--glare-opacity', '0.15');
   };
 
-  // Tarihi formatlama (yıl ve saat olmadan)
-  const formatEventDate = (dateString: string) => {
+  // Tarihi formatlama
+  const formatBlogDate = (dateString: string) => {
     try {
       return formatDate(
         dateString,
@@ -367,7 +352,8 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
         'Europe/Istanbul',
         {
           day: 'numeric',
-          month: 'long'
+          month: 'long',
+          year: 'numeric'
         }
       );
     } catch (error) {
@@ -375,22 +361,15 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
     }
   };
   
-  // Etkinliğin geçmiş mi olduğunu kontrol et
-  const isPastEvent = (event: Event) => {
-    const eventDate = new Date(event.date);
-    const today = createTimezoneDate();
-    return eventDate < today;
-  };
-  
   // Auto scroll function
   useEffect(() => {
-    if (!hasCarousel || events.length <= 3) return;
+    if (!hasCarousel || blogs.length <= 3) return;
 
     const autoScroll = () => {
       if (!scrollContainerRef.current || isScrolledToEnd) return;
       
       // Auto scroll amount (one card width)
-      const cardWidth = scrollContainerRef.current.querySelector('.event-card')?.clientWidth || 0;
+      const cardWidth = scrollContainerRef.current.querySelector('.blog-card')?.clientWidth || 0;
       
       // Scroll one third of card width
       scrollContainerRef.current.scrollBy({
@@ -403,7 +382,7 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
     const intervalId = setInterval(autoScroll, 5000);
     
     return () => clearInterval(intervalId);
-  }, [events, hasCarousel, isScrolledToEnd]);
+  }, [blogs, hasCarousel, isScrolledToEnd]);
 
   return (
     <section 
@@ -421,18 +400,18 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
             ref={titleRef}
             className="text-sm sm:text-2xl lg:text-3xl font-bold tracking-tight font-['Titillium_Web'] text-white"
           >
-            {translations.eventsTitle || 'Etkinliklerimiz'}
+            {translations.blogTitle || 'Son Blog Yazıları'}
           </h2>
           <p 
             ref={subtitleRef}
             className="mt-1 sm:mt-2 text-[8px] sm:text-sm lg:text-base text-white font-['Inter']"
           >
-            {translations.eventsSubtitle || 'F1 tutkunlarını bir araya getiren özel etkinliklerimize katılın'}
+            {translations.blogSubtitle || 'F1 ve Motorsporları dünyasından güncel içerikler'}
           </p>
         </motion.div>
         
         <div className="relative">
-          {noEvents ? (
+          {noBlogs ? (
             <motion.div 
               className="text-center py-12 text-white"
               initial={{ opacity: 0, scale: 0.8 }}
@@ -440,7 +419,7 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
               transition={{ duration: 0.6, ease: "backOut" }}
             >
               <p className="text-lg">
-                {language === 'tr' ? 'Henüz bir etkinlik yayınlanmadı.' : 'No events have been published yet.'}
+                {language === 'tr' ? 'Henüz bir blog yazısı yayınlanmadı.' : 'No blog posts have been published yet.'}
               </p>
             </motion.div>
           ) : (
@@ -472,119 +451,102 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
                     transition: 'transform 0.5s ease-out'
                   }}  
                 >
-                  {events.map((event, index) => {
-                    const isPast = isPastEvent(event);
-                    
-                    return (
-                      <div
-                        key={event.id}
-                        className="flex-shrink-0"
+                  {blogs.map((blog, index) => (
+                    <div
+                      key={blog.id}
+                      className="flex-shrink-0"
+                    >
+                      <Link 
+                        href={`/blog/${blog.slug}`}
+                        className={`blog-card flex-shrink-0 ${cardWidth} overflow-hidden rounded-xl border border-white relative bg-transparent flex flex-col ${cardHeight} group transform-gpu`}
+                        style={{
+                          willChange: 'transform',
+                          transformStyle: 'preserve-3d',
+                          transformOrigin: 'center center',
+                          perspective: '1000px',
+                          ['--glare-x' as string]: '50%',
+                          ['--glare-y' as string]: '50%',
+                          ['--glare-opacity' as string]: '0',
+                          boxShadow: '0 10px 30px -10px rgba(255,255,255,0.2), 0 5px 15px -5px rgba(255,255,255,0.1)'
+                        }}
+                        onMouseEnter={() => handleMouseEnter(index)}
+                        onMouseLeave={handleMouseLeave}
+                        onMouseMove={(e: any) => handleMouseMove3D(e, index)}
                       >
-                        <Link 
-                          href={`/events/${event.slug}`}
-                          className={`event-card flex-shrink-0 ${cardWidth} overflow-hidden rounded-xl border border-white relative bg-transparent flex flex-col ${cardHeight} group transform-gpu`}
-                          style={{
-                            willChange: 'transform',
-                            transformStyle: 'preserve-3d',
-                            transformOrigin: 'center center',
-                            perspective: '1000px',
-                            ['--glare-x' as string]: '50%',
-                            ['--glare-y' as string]: '50%',
-                            ['--glare-opacity' as string]: '0',
-                            boxShadow: '0 10px 30px -10px rgba(255,255,255,0.2), 0 5px 15px -5px rgba(255,255,255,0.1)'
-                          }}
-                          onMouseEnter={() => handleMouseEnter(index)}
-                          onMouseLeave={handleMouseLeave}
-                          onMouseMove={(e: any) => handleMouseMove3D(e, index)}
-                        >
-                          <div className={`relative ${imageHeight} overflow-hidden`}>
-                            <Image
-                              src={event.squareImage}
-                              alt={event.title && event.title[language as keyof typeof event.title] || 'Event image'}
-                              fill
-                              className={`object-cover ${isPast ? 'grayscale' : ''} transition-all duration-700`}
-                              sizes="(max-width: 640px) 140px, (max-width: 768px) 200px, 280px"
-                              style={{
-                                transform: `scale(${isHovering && selectedEventIndex === index ? 1.1 : 1})`,
-                              }}
-                            />
-                            
-                            {/* Shine effect */}
-                            <div 
-                              className="absolute inset-0 pointer-events-none"
-                              style={{
-                                backgroundImage: 'radial-gradient(circle at var(--glare-x) var(--glare-y), rgba(255,255,255,var(--glare-opacity)), transparent 80%)',
-                                mixBlendMode: 'overlay'
-                              }}
-                            ></div>
-
-                            {/* Gradient overlay for image */}
-                            <div 
-                              className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-70"
-                            ></div>
-                            
-                            {/* Date flag */}
-                            <div className="absolute top-2 right-2 rounded-full px-3 py-1 text-xs font-medium backdrop-blur-md bg-black/40 text-white shadow-lg transform group-hover:scale-110 transition-transform duration-300 z-10">
-                              {formatEventDate(event.date)}
-                            </div>
-                            
-                            {isPast && (
-                              <div className="absolute inset-0 bg-black/20 flex items-center justify-center backdrop-filter backdrop-blur-[1px]">
-                                <motion.span 
-                                  className="px-2 py-1 bg-black/60 text-white text-xs rounded"
-                                  initial={{ opacity: 0, scale: 0.9 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                                >
-                                  {language === 'tr' ? 'Geçmiş Etkinlik' : 'Past Event'}
-                                </motion.span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="p-4 flex flex-col flex-grow relative z-10 transform-gpu">
-                            <h3 
-                              className="text-lg font-medium mb-1 line-clamp-2 text-white group-hover:text-[#E10600]"
-                              style={{transform: 'translateZ(20px)'}}
-                            >
-                              {event.title && event.title[language as keyof typeof event.title] || 'Event title'}
-                            </h3>
-                            <p 
-                              className="text-sm mb-2 text-white"
-                              style={{transform: 'translateZ(15px)'}}
-                            >
-                              {formatEventDate(event.date)}
-                            </p>
-                            <p 
-                              className={`text-sm line-clamp-2 ${isPast ? 'italic ' : ''} text-white`}
-                              style={{transform: 'translateZ(10px)'}}
-                            >
-                              {event.description && event.description[language as keyof typeof event.description] || 'Event description'}
-                            </p>
-                            
-                            {/* View details button - visible on hover */}
-                            <div 
-                              className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"
-                              style={{transform: 'translateZ(30px)'}}
-                            >
-                              <span className="text-white text-sm font-medium">
-                                {translations.eventDetails || 'Detaylar'}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          {/* 3D effect bottom layer */}
-                          <div 
-                            className="absolute inset-0 rounded-xl z-[-1] bg-transparent border border-white" 
+                        <div className={`relative ${imageHeight} overflow-hidden`}>
+                          <Image
+                            src={blog.thumbnailImage}
+                            alt={blog.title && blog.title[language as keyof typeof blog.title] || 'Blog post image'}
+                            fill
+                            className="object-cover transition-all duration-700"
+                            sizes="(max-width: 640px) 140px, (max-width: 768px) 200px, 280px"
                             style={{
-                              transform: 'translateZ(-20px)',
-                              boxShadow: '0 0 30px 5px rgba(255,255,255,0.1)'
+                              transform: `scale(${isHovering && selectedBlogIndex === index ? 1.1 : 1})`,
+                            }}
+                          />
+                          
+                          {/* Shine effect */}
+                          <div 
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                              backgroundImage: 'radial-gradient(circle at var(--glare-x) var(--glare-y), rgba(255,255,255,var(--glare-opacity)), transparent 80%)',
+                              mixBlendMode: 'overlay'
                             }}
                           ></div>
-                        </Link>
-                      </div>
-                    );
-                  })}
+
+                          {/* Gradient overlay for image */}
+                          <div 
+                            className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-70"
+                          ></div>
+                          
+                          {/* Date flag */}
+                          <div className="absolute top-2 right-2 rounded-full px-3 py-1 text-xs font-medium backdrop-blur-md bg-black/40 text-white shadow-lg transform group-hover:scale-110 transition-transform duration-300 z-10">
+                            {formatBlogDate(blog.publishDate)}
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 flex flex-col flex-grow relative z-10 transform-gpu">
+                          <h3 
+                            className="text-lg font-medium mb-1 line-clamp-2 text-white group-hover:text-[#E10600]"
+                            style={{transform: 'translateZ(20px)'}}
+                          >
+                            {blog.title && blog.title[language as keyof typeof blog.title] || 'Blog title'}
+                          </h3>
+                          <p 
+                            className="text-sm mb-2 text-white"
+                            style={{transform: 'translateZ(15px)'}}
+                          >
+                            {formatBlogDate(blog.publishDate)}
+                          </p>
+                          <p 
+                            className="text-sm line-clamp-2 text-white"
+                            style={{transform: 'translateZ(10px)'}}
+                          >
+                            {blog.excerpt && blog.excerpt[language as keyof typeof blog.excerpt] || 'Blog excerpt'}
+                          </p>
+                          
+                          {/* View details button - visible on hover */}
+                          <div 
+                            className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+                            style={{transform: 'translateZ(30px)'}}
+                          >
+                            <span className="text-white text-sm font-medium">
+                              {translations.blogDetails || 'Detaylar'}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* 3D effect bottom layer */}
+                        <div 
+                          className="absolute inset-0 rounded-xl z-[-1] bg-transparent border border-white" 
+                          style={{
+                            transform: 'translateZ(-20px)',
+                            boxShadow: '0 0 30px 5px rgba(255,255,255,0.1)'
+                          }}
+                        ></div>
+                      </Link>
+                    </div>
+                  ))}
                 </div>
               </div>
               
@@ -625,10 +587,10 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
           whileTap={{ scale: 0.95 }}
         >
           <Link
-            href="/events"
+            href="/blog"
             className="rounded-md px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 text-xs sm:text-sm md:text-base font-semibold shadow-lg transition-all duration-300 bg-white text-black hover:shadow-[0_0_15px_rgba(255,255,255,0.5)]"
           >
-            {translations.eventsCta}
+            {translations.blogCta}
           </Link>
         </motion.div>
         
@@ -646,4 +608,4 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
       </div>
     </section>
   );
-}
+} 

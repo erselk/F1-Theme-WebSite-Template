@@ -131,14 +131,14 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
   return (
     <section 
       ref={sectionRef}
-      className={`py-6 sm:py-10 ${isDark ? 'bg-[#1E1E1E]/30 text-[#E0E0E0]' : 'bg-white/30 text-gray-900'}`}
+      className="py-6 sm:py-10 text-white relative overflow-hidden border-4 border-white"
     >
       <div className="max-w-5xl mx-auto px-0 sm:px-4 lg:px-8 w-[98%] sm:w-auto overflow-hidden">
         <div className="text-center mb-2 sm:mb-6 max-w-3xl mx-auto">
-          <h2 className="text-sm sm:text-2xl lg:text-3xl font-bold tracking-tight font-['Titillium_Web']">
+          <h2 className="text-sm sm:text-2xl lg:text-3xl font-bold tracking-tight font-['Titillium_Web'] text-white">
             {translations.featuresTitle}
           </h2>
-          <p className={`mt-1 sm:mt-2 text-[8px] sm:text-sm lg:text-base ${isDark ? 'text-[#B0B0B0]' : 'text-gray-600'} font-['Inter']`}>
+          <p className="mt-1 sm:mt-2 text-[8px] sm:text-sm lg:text-base text-white font-['Inter']">
             {translations.featuresSubtitle}
           </p>
         </div>
@@ -149,7 +149,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
           <div className="basis-1/3 p-2 sm:p-4 overflow-visible flex">
             <div className="w-full h-full flex justify-center items-center">
               <motion.div 
-                className={`p-1 sm:p-3 md:p-4 rounded-lg sm:rounded-xl shadow-lg ${isDark ? 'bg-gradient-to-br from-[#262626]/30 to-[#1A1A1A]/30' : 'bg-gradient-to-br from-white/30 to-gray-50/30'} h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative overflow-hidden`}
+                className="p-1 sm:p-3 md:p-4 rounded-lg sm:rounded-xl shadow-lg bg-transparent h-full w-full border-4 border-white relative overflow-hidden"
                 style={{ transformOrigin: "center bottom" }}
                 initial={{ opacity: 0, y: 100, rotateX: -25 }}
                 animate={isMobile ? feature1Controls : {}}
@@ -192,7 +192,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
                 <div className="relative z-10">
                   <div className="flex items-start gap-1 sm:gap-2 mb-1 sm:mb-2">
                     <motion.div 
-                      className={`h-4 w-4 min-w-[1rem] sm:h-8 sm:w-8 sm:min-w-[2rem] md:h-10 md:w-10 md:min-w-[2.5rem] lg:h-12 lg:w-12 lg:min-w-[3rem] rounded-lg ${isDark ? 'bg-[#FF0000]' : 'bg-[#E10600]'} flex items-center justify-center shrink-0 shadow-lg`}
+                      className="h-4 w-4 min-w-[1rem] sm:h-8 sm:w-8 sm:min-w-[2rem] md:h-10 md:w-10 md:min-w-[2.5rem] lg:h-12 lg:w-12 lg:min-w-[3rem] rounded-lg bg-[#E10600] flex items-center justify-center shrink-0 shadow-lg"
                       initial={{ rotateY: 0 }}
                       animate={{ rotateY: 360 }}
                       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", repeatDelay: 5 }}
@@ -217,7 +217,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
                     </motion.div>
                     
                     <motion.h3 
-                      className="text-[9px] sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold font-['Titillium_Web'] flex-grow pt-0.5 sm:pt-0"
+                      className="text-[9px] sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold font-['Titillium_Web'] flex-grow pt-0.5 sm:pt-0 text-white"
                       animate={{
                         textShadow: isDark 
                           ? ["0 0 0px rgba(255,0,0,0)", "0 0 10px rgba(255,0,0,0.5)", "0 0 0px rgba(255,0,0,0)"] 
@@ -234,7 +234,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
                   </div>
                   
                   <div className="pl-[calc(1rem+4px)] sm:pl-[calc(2rem+8px)] md:pl-[calc(2.5rem+8px)] lg:pl-[calc(3rem+8px)]">
-                    <p className={`${isDark ? 'text-[#B0B0B0]' : 'text-gray-600'} font-['Inter'] text-[8px] sm:text-xs md:text-sm lg:text-base leading-tight sm:leading-snug md:leading-normal`}>
+                    <p className="text-white font-['Inter'] text-[8px] sm:text-xs md:text-sm lg:text-base leading-tight sm:leading-snug md:leading-normal">
                       {translations.feature1Desc}
                     </p>
                   </div>
@@ -247,7 +247,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
           <div className="basis-1/3 p-2 sm:p-4 overflow-visible flex">
             <div className="w-full h-full flex justify-center items-center">
               <motion.div 
-                className={`p-1 sm:p-3 md:p-4 rounded-lg sm:rounded-xl shadow-lg ${isDark ? 'bg-gradient-to-br from-[#262626]/30 to-[#1A1A1A]/30' : 'bg-gradient-to-br from-white/30 to-gray-50/30'} h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative overflow-hidden`}
+                className="p-1 sm:p-3 md:p-4 rounded-lg sm:rounded-xl shadow-lg bg-transparent h-full w-full border-4 border-white relative overflow-hidden"
                 style={{ transformOrigin: "center bottom" }}
                 initial={{ opacity: 0, y: 100, rotateX: -25 }}
                 animate={isMobile ? feature2Controls : {}}
@@ -282,7 +282,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
                 <div className="relative z-10">
                   <div className="flex items-start gap-1 sm:gap-2 mb-1 sm:mb-2">
                     <motion.div 
-                      className={`h-4 w-4 min-w-[1rem] sm:h-8 sm:w-8 sm:min-w-[2rem] md:h-10 md:w-10 md:min-w-[2.5rem] lg:h-12 lg:w-12 lg:min-w-[3rem] rounded-lg ${isDark ? 'bg-[#FF0000]' : 'bg-[#E10600]'} flex items-center justify-center shrink-0 shadow-lg`}
+                      className="h-4 w-4 min-w-[1rem] sm:h-8 sm:w-8 sm:min-w-[2rem] md:h-10 md:w-10 md:min-w-[2.5rem] lg:h-12 lg:w-12 lg:min-w-[3rem] rounded-lg bg-[#E10600] flex items-center justify-center shrink-0 shadow-lg"
                       initial={{ rotateZ: 0 }}
                       animate={{ rotateZ: [0, -10, 10, -10, 0] }}
                       transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", repeatDelay: 3 }}
@@ -307,7 +307,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
                     </motion.div>
                     
                     <motion.h3 
-                      className="text-[9px] sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold font-['Titillium_Web'] flex-grow pt-0.5 sm:pt-0"
+                      className="text-[9px] sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold font-['Titillium_Web'] flex-grow pt-0.5 sm:pt-0 text-white"
                       animate={{
                         textShadow: isDark 
                           ? ["0 0 0px rgba(255,0,0,0)", "0 0 10px rgba(255,0,0,0.5)", "0 0 0px rgba(255,0,0,0)"] 
@@ -325,7 +325,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
                   </div>
                   
                   <div className="pl-[calc(1rem+4px)] sm:pl-[calc(2rem+8px)] md:pl-[calc(2.5rem+8px)] lg:pl-[calc(3rem+8px)]">
-                    <p className={`${isDark ? 'text-[#B0B0B0]' : 'text-gray-600'} font-['Inter'] text-[8px] sm:text-xs md:text-sm lg:text-base leading-tight sm:leading-snug md:leading-normal`}>
+                    <p className="text-white font-['Inter'] text-[8px] sm:text-xs md:text-sm lg:text-base leading-tight sm:leading-snug md:leading-normal">
                       {translations.feature2Desc}
                     </p>
                   </div>
@@ -338,7 +338,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
           <div className="basis-1/3 p-2 sm:p-4 overflow-visible flex">
             <div className="w-full h-full flex justify-center items-center">
               <motion.div 
-                className={`p-1 sm:p-3 md:p-4 rounded-lg sm:rounded-xl shadow-lg ${isDark ? 'bg-gradient-to-br from-[#262626]/30 to-[#1A1A1A]/30' : 'bg-gradient-to-br from-white/30 to-gray-50/30'} h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative overflow-hidden`}
+                className="p-1 sm:p-3 md:p-4 rounded-lg sm:rounded-xl shadow-lg bg-transparent h-full w-full border-4 border-white relative overflow-hidden"
                 style={{ transformOrigin: "center bottom" }}
                 initial={{ opacity: 0, y: 100, rotateX: -25 }}
                 animate={isMobile ? feature3Controls : {}}
@@ -380,7 +380,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
                 <div className="relative z-10">
                   <div className="flex items-start gap-1 sm:gap-2 mb-1 sm:mb-2">
                     <motion.div 
-                      className={`h-4 w-4 min-w-[1rem] sm:h-8 sm:w-8 sm:min-w-[2rem] md:h-10 md:w-10 md:min-w-[2.5rem] lg:h-12 lg:w-12 lg:min-w-[3rem] rounded-lg ${isDark ? 'bg-[#FF0000]' : 'bg-[#E10600]'} flex items-center justify-center shrink-0 shadow-lg`}
+                      className="h-4 w-4 min-w-[1rem] sm:h-8 sm:w-8 sm:min-w-[2rem] md:h-10 md:w-10 md:min-w-[2.5rem] lg:h-12 lg:w-12 lg:min-w-[3rem] rounded-lg bg-[#E10600] flex items-center justify-center shrink-0 shadow-lg"
                       initial={{ rotateY: 0 }}
                       animate={{ rotateY: 360 }}
                       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", repeatDelay: 5 }}
@@ -405,7 +405,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
                     </motion.div>
                     
                     <motion.h3 
-                      className="text-[9px] sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold font-['Titillium_Web'] flex-grow pt-0.5 sm:pt-0"
+                      className="text-[9px] sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold font-['Titillium_Web'] flex-grow pt-0.5 sm:pt-0 text-white"
                       animate={{
                         textShadow: isDark 
                           ? ["0 0 0px rgba(255,0,0,0)", "0 0 10px rgba(255,0,0,0.5)", "0 0 0px rgba(255,0,0,0)"] 
@@ -423,7 +423,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
                   </div>
                   
                   <div className="pl-[calc(1rem+4px)] sm:pl-[calc(2rem+8px)] md:pl-[calc(2.5rem+8px)] lg:pl-[calc(3rem+8px)]">
-                    <p className={`${isDark ? 'text-[#B0B0B0]' : 'text-gray-600'} font-['Inter'] text-[8px] sm:text-xs md:text-sm lg:text-base leading-tight sm:leading-snug md:leading-normal`}>
+                    <p className="text-white font-['Inter'] text-[8px] sm:text-xs md:text-sm lg:text-base leading-tight sm:leading-snug md:leading-normal">
                       {translations.feature3Desc}
                     </p>
                   </div>

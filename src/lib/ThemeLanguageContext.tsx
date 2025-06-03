@@ -10,8 +10,6 @@ interface ThemeLanguageContextType {
   language: LanguageType;
   setLanguage: (language: LanguageType) => void;
   toggleLanguage: () => void;
-  isDark: boolean;
-  toggleTheme: () => void;
   mounted: boolean;
 }
 
@@ -19,15 +17,12 @@ const defaultContext: ThemeLanguageContextType = {
   language: 'en',
   setLanguage: () => {},
   toggleLanguage: () => {},
-  isDark: false,
-  toggleTheme: () => {},
   mounted: false,
 };
 
 const ThemeLanguageContext = createContext<ThemeLanguageContextType>(defaultContext);
 
 export function ThemeLanguageProvider({ children }: { children: ReactNode }) {
-  const { setTheme, theme, systemTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [language, setLanguage] = useState<LanguageType>('en');
 
@@ -44,8 +39,6 @@ export function ThemeLanguageProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const isDark = mounted && (resolvedTheme === 'dark' || theme === 'dark');
-
   const toggleLanguage = useMemo(() => {
     return () => {
       const newLanguage = language === 'tr' ? 'en' : 'tr';
@@ -54,20 +47,12 @@ export function ThemeLanguageProvider({ children }: { children: ReactNode }) {
     };
   }, [language]);
 
-  const toggleTheme = useMemo(() => {
-    return () => {
-      setTheme(isDark ? 'light' : 'dark');
-    };
-  }, [isDark, setTheme]);
-
   const contextValue = useMemo(() => ({
     language,
     setLanguage,
     toggleLanguage,
-    isDark,
-    toggleTheme,
     mounted
-  }), [language, isDark, toggleLanguage, toggleTheme, mounted]);
+  }), [language, toggleLanguage, mounted]);
 
   if (!mounted) {
     return (

@@ -206,22 +206,21 @@ export default function HeroSection({ translations }: HeroSectionProps) {
           <motion.div
             key={currentSlide}
             initial={{ opacity: 0, scale: 1.1 }}
-            animate={{ opacity: 0.7, scale: 1 }}
+            animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 1.2, ease: [0.45, 0, 0.55, 1] }}
-            className="absolute inset-0"
+            className="absolute inset-0 border-4 border-white"
           >
             <Image
               src={homeSlides[currentSlide]}
               alt={`Padok Club Slide ${currentSlide + 1}`}
               fill
-              className="object-cover brightness-75"
+              className="object-cover"
               priority={currentSlide === 0}
               sizes="100vw"
             />
           </motion.div>
         </AnimatePresence>
-        <div className={`absolute inset-0 bg-gradient-to-b ${isDark ? 'from-[#121212]/40 via-[#280000]/50 to-[#121212]/90' : 'from-black/30 via-[#500000]/40 to-black/80'}`}></div>
       </motion.div>
       
       {/* Content container - preserve content across language/theme changes */}
@@ -233,35 +232,6 @@ export default function HeroSection({ translations }: HeroSectionProps) {
           transformOrigin: 'center center'
         }}
       >
-        {/* Abstract decorative elements */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="w-full h-full grid grid-cols-12 grid-rows-12">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <motion.div 
-                key={`circle-${i}-${animationKey}`}
-                className={`absolute rounded-full mix-blend-screen ${isDark ? 'bg-red-500/20' : 'bg-red-500/10'}`}
-                style={{ 
-                  width: 100 + Math.random() * 200,
-                  height: 100 + Math.random() * 200,
-                  left: `${Math.random() * 90}%`, 
-                  top: `${Math.random() * 90}%` 
-                }}
-                animate={{
-                  x: [0, 30, -20, 10, 0],
-                  y: [0, -30, 20, 15, 0],
-                  scale: [1, 1.1, 0.9, 1.05, 1],
-                }}
-                transition={{
-                  duration: 20,
-                  ease: "linear",
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                }}
-              />
-            ))}
-          </div>
-        </div>
-        
         <motion.div 
           style={{ y: heroY, opacity: heroOpacity }}
           className="relative z-[3] max-w-7xl mx-auto py-24 px-6 lg:px-8 flex flex-col items-center text-center"
