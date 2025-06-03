@@ -2,18 +2,18 @@ import { useState, useEffect, useMemo } from 'react';
 
 export const getAdminThemeClasses = (isDark: boolean) => {
   return {
-    bgClass: isDark ? 'bg-graphite' : 'bg-white',
+    bgClass: isDark ? 'bg-[#cc41ab]' : 'bg-[#ff51d6]',
     textClass: isDark ? 'text-white' : 'text-gray-800',
     textSecondaryClass: isDark ? 'text-gray-300' : 'text-gray-500',
-    borderClass: isDark ? 'border-carbon-grey' : 'border-gray-200',
-    cardClass: isDark ? 'bg-dark-grey' : 'bg-white',
-    tableHeaderClass: isDark ? 'bg-carbon-grey text-silver' : 'bg-gray-50 text-gray-600',
-    tableRowHoverClass: isDark ? 'hover:bg-graphite' : 'hover:bg-gray-50',
-    buttonPrimaryClass: 'bg-electric-blue hover:bg-blue-600 text-white',
+    borderClass: isDark ? 'border-[#c80800]' : 'border-[#fe0a00]',
+    cardClass: isDark ? 'bg-[#cc8a00]' : 'bg-[#ffad00]',
+    tableHeaderClass: isDark ? 'bg-[#c80800] text-white' : 'bg-[#fe0a00] text-white',
+    tableRowHoverClass: isDark ? 'hover:bg-[#cc41ab]' : 'hover:bg-[#ff51d6]',
+    buttonPrimaryClass: 'bg-[#fe0a00] hover:bg-[#e00900] text-white',
     buttonSecondaryClass: isDark
-      ? 'bg-carbon-grey hover:bg-graphite text-white'
-      : 'bg-gray-100 hover:bg-gray-200 text-gray-700',
-    buttonDangerClass: 'bg-red-600 hover:bg-red-700 text-white',
+      ? 'bg-[#c80800] hover:bg-[#b30700] text-white'
+      : 'bg-[#ff51d6] hover:bg-[#ff3dc9] text-white',
+    buttonDangerClass: 'bg-[#fe0a00] hover:bg-[#e00900] text-white',
   };
 };
 

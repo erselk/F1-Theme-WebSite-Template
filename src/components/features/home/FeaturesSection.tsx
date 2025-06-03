@@ -131,7 +131,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
   return (
     <section 
       ref={sectionRef}
-      className={`py-6 sm:py-10 ${isDark ? 'bg-[#1E1E1E] text-[#E0E0E0]' : 'bg-white text-gray-900'}`}
+      className={`py-6 sm:py-10 ${isDark ? 'bg-[#1E1E1E]/30 text-[#E0E0E0]' : 'bg-white/30 text-gray-900'}`}
     >
       <div className="max-w-5xl mx-auto px-0 sm:px-4 lg:px-8 w-[98%] sm:w-auto overflow-hidden">
         <div className="text-center mb-2 sm:mb-6 max-w-3xl mx-auto">
@@ -149,7 +149,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
           <div className="basis-1/3 p-2 sm:p-4 overflow-visible flex">
             <div className="w-full h-full flex justify-center items-center">
               <motion.div 
-                className={`p-1 sm:p-3 md:p-4 rounded-lg sm:rounded-xl shadow-lg ${isDark ? 'bg-gradient-to-br from-[#262626] to-[#1A1A1A]' : 'bg-gradient-to-br from-white to-gray-50'} h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative overflow-hidden`}
+                className={`p-1 sm:p-3 md:p-4 rounded-lg sm:rounded-xl shadow-lg ${isDark ? 'bg-gradient-to-br from-[#262626]/30 to-[#1A1A1A]/30' : 'bg-gradient-to-br from-white/30 to-gray-50/30'} h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative overflow-hidden`}
                 style={{ transformOrigin: "center bottom" }}
                 initial={{ opacity: 0, y: 100, rotateX: -25 }}
                 animate={isMobile ? feature1Controls : {}}
@@ -247,7 +247,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
           <div className="basis-1/3 p-2 sm:p-4 overflow-visible flex">
             <div className="w-full h-full flex justify-center items-center">
               <motion.div 
-                className={`p-1 sm:p-3 md:p-4 rounded-lg sm:rounded-xl shadow-lg ${isDark ? 'bg-gradient-to-br from-[#262626] to-[#1A1A1A]' : 'bg-gradient-to-br from-white to-gray-50'} h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative overflow-hidden`}
+                className={`p-1 sm:p-3 md:p-4 rounded-lg sm:rounded-xl shadow-lg ${isDark ? 'bg-gradient-to-br from-[#262626]/30 to-[#1A1A1A]/30' : 'bg-gradient-to-br from-white/30 to-gray-50/30'} h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative overflow-hidden`}
                 style={{ transformOrigin: "center bottom" }}
                 initial={{ opacity: 0, y: 100, rotateX: -25 }}
                 animate={isMobile ? feature2Controls : {}}
@@ -338,7 +338,7 @@ export default function FeaturesSection({ translations }: FeaturesSectionProps) 
           <div className="basis-1/3 p-2 sm:p-4 overflow-visible flex">
             <div className="w-full h-full flex justify-center items-center">
               <motion.div 
-                className={`p-1 sm:p-3 md:p-4 rounded-lg sm:rounded-xl shadow-lg ${isDark ? 'bg-gradient-to-br from-[#262626] to-[#1A1A1A]' : 'bg-gradient-to-br from-white to-gray-50'} h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative overflow-hidden`}
+                className={`p-1 sm:p-3 md:p-4 rounded-lg sm:rounded-xl shadow-lg ${isDark ? 'bg-gradient-to-br from-[#262626]/30 to-[#1A1A1A]/30' : 'bg-gradient-to-br from-white/30 to-gray-50/30'} h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative overflow-hidden`}
                 style={{ transformOrigin: "center bottom" }}
                 initial={{ opacity: 0, y: 100, rotateX: -25 }}
                 animate={isMobile ? feature3Controls : {}}

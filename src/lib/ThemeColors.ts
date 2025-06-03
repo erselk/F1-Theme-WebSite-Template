@@ -1,13 +1,13 @@
 export const getThemeColors = (isDark: boolean) => ({
   textColorClass: isDark ? 'text-light-grey' : 'text-slate-700',
   headingColorClass: isDark ? 'text-white' : 'text-very-dark-grey',
-  accentColorClass: isDark ? 'text-electric-blue' : 'text-neon-red',
+  accentColorClass: isDark ? 'text-electric-blue' : 'text-[#fe0a00]',
   paragraphColorClass: isDark ? 'text-light-grey' : 'text-slate-700',
   
-  bgColorClass: isDark ? 'bg-graphite' : 'bg-white',
+  bgColorClass: isDark ? 'bg-[#cc41ab]' : 'bg-[#ff51d6]',
   
   categoryTextClass: 'text-white',
-  categoryBgClass: isDark ? 'bg-[#00D766]' : 'bg-[#00A14B]',
+  categoryBgClass: isDark ? 'bg-[#c80800]' : 'bg-[#fe0a00]',
 });
 
 export const getCategoryTranslation = (category: string | Record<string, string>, language: 'tr' | 'en'): string => {

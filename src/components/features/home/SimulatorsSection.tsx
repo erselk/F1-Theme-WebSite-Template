@@ -174,7 +174,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
   return (
     <section 
       ref={sectionRef}
-      className={`py-6 sm:py-10 ${isDark ? 'bg-[#262626]' : 'bg-gray-50'}`}
+      className={`py-6 sm:py-10 ${isDark ? 'bg-[#262626]/30' : 'bg-gray-50/30'}`}
     >
       <div className="max-w-5xl mx-auto px-0 sm:px-4 lg:px-8 w-[98%] sm:w-auto overflow-hidden">
         <div className="text-center mb-2 sm:mb-6 max-w-3xl mx-auto">
@@ -192,7 +192,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
           <div className="basis-1/3 p-2 sm:p-4 overflow-visible flex">
             <div className="w-full h-full flex justify-center items-center">
               <motion.div 
-                className={`overflow-hidden shadow-sm rounded-lg ${isDark ? 'bg-gradient-to-br from-[#262626] to-[#1A1A1A]' : 'bg-gradient-to-br from-white to-gray-50'} flex flex-col h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative`}
+                className={`overflow-hidden shadow-sm rounded-lg ${isDark ? 'bg-gradient-to-br from-[#262626]/30 to-[#1A1A1A]/30' : 'bg-gradient-to-br from-white/30 to-gray-50/30'} flex flex-col h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative`}
                 style={{ transformOrigin: "center center" }}
                 initial={{ opacity: 0, x: -100, scale: 0.8 }}
                 animate={isMobile ? simulator1Controls : {}}
@@ -345,7 +345,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
           <div className="basis-1/3 p-2 sm:p-4 overflow-visible flex">
             <div className="w-full h-full flex justify-center items-center">
               <motion.div 
-                className={`overflow-hidden shadow-sm rounded-lg ${isDark ? 'bg-gradient-to-br from-[#262626] to-[#1A1A1A]' : 'bg-gradient-to-br from-white to-gray-50'} flex flex-col h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative`}
+                className={`overflow-hidden shadow-sm rounded-lg ${isDark ? 'bg-gradient-to-br from-[#262626]/30 to-[#1A1A1A]/30' : 'bg-gradient-to-br from-white/30 to-gray-50/30'} flex flex-col h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative`}
                 style={{ transformOrigin: "center center" }}
                 initial={{ opacity: 0, x: -100, scale: 0.8 }}
                 animate={isMobile ? simulator2Controls : {}}
@@ -498,7 +498,7 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
           <div className="basis-1/3 p-2 sm:p-4 overflow-visible flex">
             <div className="w-full h-full flex justify-center items-center">
               <motion.div 
-                className={`overflow-hidden shadow-sm rounded-lg ${isDark ? 'bg-gradient-to-br from-[#262626] to-[#1A1A1A]' : 'bg-gradient-to-br from-white to-gray-50'} flex flex-col h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative`}
+                className={`overflow-hidden shadow-sm rounded-lg ${isDark ? 'bg-gradient-to-br from-[#262626]/30 to-[#1A1A1A]/30' : 'bg-gradient-to-br from-white/30 to-gray-50/30'} flex flex-col h-full w-full border-b-4 ${isDark ? 'border-[#FF0000]' : 'border-[#E10600]'} relative`}
                 style={{ transformOrigin: "center center" }}
                 initial={{ opacity: 0, x: -100, scale: 0.8 }}
                 animate={isMobile ? simulator3Controls : {}}

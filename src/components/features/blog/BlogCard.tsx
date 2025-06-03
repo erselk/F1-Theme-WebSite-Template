@@ -28,7 +28,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
   return (
     <div className="group" ref={setRef as React.RefCallback<HTMLDivElement>}>
       <Link href={`/blog/${blog.slug}`} className="block">
-        <div className="relative aspect-video overflow-hidden rounded-lg mb-2 sm:mb-3">
+        <div className={`relative aspect-video overflow-hidden rounded-lg mb-2 sm:mb-3 ${isDark ? 'bg-[#1E1E1E]' : 'bg-[#f9f9f9]'} shadow-md ${isDark ? 'shadow-black/20' : 'shadow-gray-400/15'}`}>
           {isVisible && (
             <Image 
               src={blog.thumbnailImage} 
@@ -42,7 +42,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
           )}
         </div>
         
-        <div className="space-y-1 sm:space-y-1.5">
+        <div className={`space-y-1 sm:space-y-1.5 p-3 sm:p-4 rounded-lg ${isDark ? 'bg-[#1E1E1E]' : 'bg-[#f9f9f9]'} shadow-md ${isDark ? 'shadow-black/20' : 'shadow-gray-400/15'}`}>
           <div className="flex items-center text-[10px] sm:text-xs text-medium-grey dark:text-silver">
             <span>{formatDate(blog.publishDate)}</span>
             <span className="mx-1 sm:mx-1.5">•</span>

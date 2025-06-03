@@ -17,7 +17,7 @@ export default function CTASection({ translations }: CTASectionProps) {
   const { isDark } = useThemeLanguage();
 
   return (
-    <section className={`py-6 sm:py-10 ${isDark ? 'bg-[#FF0000] text-white' : 'bg-[#E10600] text-white'} overflow-hidden relative`}>
+    <section className={`py-6 sm:py-10 ${isDark ? 'bg-[#FF0000]/30 text-white' : 'bg-[#E10600]/30 text-white'} overflow-hidden relative`}>
       {/* Animated background elements */}
       <motion.div 
         className="absolute top-0 left-0 w-16 h-16 rounded-full bg-white/10"

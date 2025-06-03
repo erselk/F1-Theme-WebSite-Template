@@ -420,7 +420,7 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
   return (
     <section 
       ref={sectionRef}
-      className={`py-6 sm:py-10 ${isDark ? 'bg-[#262626]' : 'bg-gray-50'} relative overflow-hidden`}
+      className={`py-6 sm:py-10 ${isDark ? 'bg-[#262626]/30' : 'bg-gray-50/30'} relative overflow-hidden`}
     >
       {/* Background animation - wave effect */}
       <div className="absolute inset-0 overflow-hidden">
@@ -428,13 +428,15 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
           <motion.path
             d="M0,0 L100,0 L100,100 L0,100 Z"
             fill={isDark ? '#1E1E1E' : '#f9f9f9'}
+            fillOpacity="0.3"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
+            animate={{ opacity: 0.3 }}
             transition={{ duration: 1 }}
           />
           <motion.path
             d="M0,50 C20,60 40,40 60,50 C80,60 100,40 100,50 L100,100 L0,100 Z"
             fill={isDark ? '#222222' : '#f5f5f5'}
+            fillOpacity="0.3"
             initial={{ y: 100 }}
             animate={{ 
               y: 0,
@@ -449,6 +451,7 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
           <motion.path
             d="M0,70 C25,65 50,75 75,65 C100,55 100,75 100,70 L100,100 L0,100 Z"
             fill={isDark ? '#1a1a1a' : '#f1f1f1'}
+            fillOpacity="0.3"
             initial={{ y: 100 }}
             animate={{ 
               y: 0,
@@ -682,7 +685,7 @@ export default function EventsSectionClient({ translations }: EventsSectionProps
                   transition={{ delay: 0.5, duration: 0.7 }}
                 >
                   <motion.div 
-                    className={`h-full rounded-full ${isDark ? 'bg-gradient-to-r from-[#FF0000] to-[#FF6B6B]' : 'bg-gradient-to-r from-[#E10600] to-[#FF4D4D]'}`}
+                    className={`h-full rounded-full ${isDark ? 'bg-gradient-to-r from-[#FF0000]/30 to-[#FF6B6B]/30' : 'bg-gradient-to-r from-[#E10600]/30 to-[#FF4D4D]/30'}`}
                     style={{ 
                       width: `${maxScroll > 0 ? (scrollPosition / maxScroll) * 100 : 0}%`,
                       boxShadow: isDark ? '0 0 10px #FF0000' : '0 0 10px rgba(225,6,0,0.3)'

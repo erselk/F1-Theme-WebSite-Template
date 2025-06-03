@@ -365,20 +365,22 @@ export default function BlogSection({ translations }: BlogSectionProps) {
   }, [blogs, hasCarousel, isScrolledToEnd]);
 
   return (
-    <section className={`py-6 sm:py-10 ${isDark ? 'bg-[#262626]' : 'bg-gray-50'} relative overflow-hidden`}>
+    <section className={`py-6 sm:py-10 ${isDark ? 'bg-[#262626]/30' : 'bg-gray-50/30'} relative overflow-hidden`}>
       {/* Arkaplan animasyonu - dalga efekti */}
       <div className="absolute inset-0 overflow-hidden">
         <svg className="absolute w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
           <motion.path
             d="M0,0 L100,0 L100,100 L0,100 Z"
             fill={isDark ? '#1E1E1E' : '#f9f9f9'}
+            fillOpacity="0.3"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
+            animate={{ opacity: 0.3 }}
             transition={{ duration: 1 }}
           />
           <motion.path
             d="M0,50 C20,60 40,40 60,50 C80,60 100,40 100,50 L100,100 L0,100 Z"
             fill={isDark ? '#222222' : '#f5f5f5'}
+            fillOpacity="0.3"
             initial={{ y: 100 }}
             animate={{ 
               y: 0,
@@ -393,6 +395,7 @@ export default function BlogSection({ translations }: BlogSectionProps) {
           <motion.path
             d="M0,70 C25,65 50,75 75,65 C100,55 100,75 100,70 L100,100 L0,100 Z"
             fill={isDark ? '#1a1a1a' : '#f1f1f1'}
+            fillOpacity="0.3"
             initial={{ y: 100 }}
             animate={{ 
               y: 0,

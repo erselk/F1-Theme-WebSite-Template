@@ -113,7 +113,7 @@ export default function TestimonialsSection({ translations }: TestimonialsSectio
   return (
     <section 
       ref={sectionRef}
-      className={`py-6 sm:py-10 relative overflow-hidden ${isDark ? 'bg-[#121212] text-[#E0E0E0]' : 'bg-gray-900 text-white'} h-auto min-h-[220px] sm:min-h-[280px] md:min-h-[320px] flex items-center`}
+      className={`py-6 sm:py-10 relative overflow-hidden ${isDark ? 'bg-[#121212]/30 text-[#E0E0E0]' : 'bg-gray-900/30 text-white'} h-auto min-h-[220px] sm:min-h-[280px] md:min-h-[320px] flex items-center`}
     >
       {/* Floating animated background elements */}
       <motion.div
