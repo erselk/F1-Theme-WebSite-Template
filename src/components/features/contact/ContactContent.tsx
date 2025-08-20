@@ -152,50 +152,68 @@ export default function ContactContent() {
   };
 
   // Define theme-specific classes
-  const cardBgClass = 'bg-white';
+  const cardBgClass = isDark 
+    ? 'bg-[#1a1a1a]' 
+    : 'bg-white';
   
   // İletişim kartları için renkler
-  const contactCardBgClass = 'bg-[#f9f9f9] hover:bg-[#f5f5f5]';
+  const contactCardBgClass = isDark 
+    ? 'bg-[#1E1E1E] hover:bg-[#262626]' 
+    : 'bg-[#f9f9f9] hover:bg-[#f5f5f5]';
   
   // Form kartı için renkler
-  const formCardBgClass = 'bg-[#f9f9f9]';
+  const formCardBgClass = isDark 
+    ? 'bg-[#1E1E1E]' 
+    : 'bg-[#f9f9f9]';
   
   // Etkinlikler kartı için renkler
-  const eventsCardBgClass = 'bg-[#f9f9f9]';
+  const eventsCardBgClass = isDark 
+    ? 'bg-[#1E1E1E]' 
+    : 'bg-[#f9f9f9]';
   
   // Teknik destek kartı için renkler
-  const supportCardBgClass = 'bg-[#f9f9f9]';
+  const supportCardBgClass = isDark 
+    ? 'bg-[#1E1E1E]' 
+    : 'bg-[#f9f9f9]';
   
   // İçerik kartları için genel stil
-  const shadowClass = 'shadow-md shadow-gray-400/15';
-  const containerClass = 'border border-gray-200/70';
+  const shadowClass = isDark ? 'shadow-md shadow-black/20' : 'shadow-md shadow-gray-400/15';
+  const containerClass = isDark ? 'border border-carbon-grey/30' : 'border border-gray-200/70';
   
   // Farklı bileşenler için farklı renkler (HEX kodları ile)
   // İletişim kartları - kırmızı
-  const contactBorderClass = 'border-l-4 border-l-[#0046AD]';
-  const contactIconClass = 'text-[#0046AD]';
+  const contactBorderClass = isDark ? 'border-l-4 border-l-[#FF3E41]' : 'border-l-4 border-l-[#E10600]';
+  const contactIconClass = isDark ? 'text-[#FF3E41]' : 'text-[#E10600]';
   
   // Form - mavi
-  const formBorderClass = 'border-l-4 border-l-[#0046AD]';
-  const formIconClass = 'text-[#0046AD]';
+  const formBorderClass = isDark ? 'border-l-4 border-l-[#0075FF]' : 'border-l-4 border-l-[#0046AD]';
+  const formIconClass = isDark ? 'text-[#0075FF]' : 'text-[#0046AD]';
   
   // Etkinlikler - turuncu/amber (Standart Tailwind renkleri, zaten çalışıyor)
-  const eventsBorderClass = 'border-l-4 border-l-amber-600';
-  const eventsIconClass = 'text-amber-600';
+  const eventsBorderClass = isDark ? 'border-l-4 border-l-amber-500' : 'border-l-4 border-l-amber-600';
+  const eventsIconClass = isDark ? 'text-amber-500' : 'text-amber-600';
   
   // Teknik destek - yeşil
-  const supportBorderClass = 'border-l-4 border-l-green-600';
-  const supportIconClass = 'text-green-600';
+  const supportBorderClass = isDark ? 'border-l-4 border-l-[#10FF9F]' : 'border-l-4 border-l-green-600';
+  const supportIconClass = isDark ? 'text-[#10FF9F]' : 'text-green-600';
   
   // Input field styling - mavi odaklanma (HEX kodları ile)
-  const inputClass = `w-full p-2 sm:p-3 border rounded-md text-xs sm:text-sm outline-none border-gray-300 bg-white text-gray-900 focus:border-[#0046AD] focus:ring focus:ring-[#0046AD]/30`;
+  const inputClass = `w-full p-2 sm:p-3 border rounded-md text-xs sm:text-sm outline-none ${
+    isDark 
+      ? 'border-carbon-grey bg-dark-grey text-light-grey focus:border-[#0075FF] focus:ring focus:ring-[#0075FF]/30' 
+      : 'border-gray-300 bg-white text-gray-900 focus:border-[#0046AD] focus:ring focus:ring-[#0046AD]/30'
+  }`;
   
-  // Button styling
-  const buttonClass = `px-6 sm:px-8 py-2 sm:py-3 text-white rounded-md transition-colors text-xs sm:text-sm font-medium font-['Titillium_Web'] bg-[#0046AD] hover:bg-[#0046AD]/90 text-white hover:text-white`;
+  // Button styling - (Gönder butonu zaten inline style ile HEX kullanıyor, bu class başka bir yerde kullanılmıyorsa kaldırılabilir)
+  const buttonClass = `px-6 sm:px-8 py-2 sm:py-3 text-white rounded-md transition-colors text-xs sm:text-sm font-medium font-['Titillium_Web'] ${
+    isDark 
+      ? 'bg-[#0075FF] hover:bg-[#0075FF]/90 text-white hover:text-white' // electric-blue
+      : 'bg-[#0046AD] hover:bg-[#0046AD]/90 text-white hover:text-white' // race-blue
+  }`;
   
   // Metin renkleri
-  const headingTextClass = 'text-dark-grey';
-  const subTextClass = 'text-medium-grey';
+  const headingTextClass = isDark ? 'text-[#E0E0E0]' : 'text-dark-grey';
+  const subTextClass = isDark ? 'text-[#B0B0B0]' : 'text-medium-grey';
   
   // Contact Form Component - extracted to reuse and reposition on mobile
   const ContactFormComponent = () => (

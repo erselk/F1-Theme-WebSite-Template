@@ -21,17 +21,19 @@ type EventsSectionProps = {
 
 // Yükleme durumunda gösterilecek basit bir bileşen
 function EventsSectionLoading() {
+  const { isDark } = useThemeLanguage();
+  
   return (
-    <section className="py-6 sm:py-10 border-4 border-white border-t-0 relative overflow-hidden">
+    <section className={`py-6 sm:py-10 ${isDark ? 'bg-[#262626]/30' : 'bg-gray-50/30'} relative overflow-hidden`}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 flex flex-col items-center justify-center">
         <div className="text-center mb-2 sm:mb-6 max-w-3xl mx-auto animate-pulse">
-          <div className="h-8 w-64 mx-auto rounded bg-white/30"></div>
-          <div className="mt-2 h-4 w-80 mx-auto rounded bg-white/30"></div>
+          <div className={`h-8 w-64 mx-auto rounded ${isDark ? 'bg-gray-700/30' : 'bg-gray-300/30'}`}></div>
+          <div className={`mt-2 h-4 w-80 mx-auto rounded ${isDark ? 'bg-gray-800/30' : 'bg-gray-200/30'}`}></div>
         </div>
         
         <div className="flex gap-6 mt-8 w-full overflow-hidden">
           {[1, 2, 3].map(i => (
-            <div key={i} className="flex-shrink-0 w-[280px] h-[380px] rounded-xl animate-pulse bg-white/30 border border-white"></div>
+            <div key={i} className="flex-shrink-0 w-[280px] h-[380px] rounded-xl animate-pulse bg-gradient-to-b from-gray-300/30 to-gray-200/30 dark:from-gray-700/30 dark:to-gray-800/30"></div>
           ))}
         </div>
       </div>

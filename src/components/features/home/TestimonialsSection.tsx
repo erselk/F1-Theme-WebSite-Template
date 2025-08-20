@@ -18,7 +18,7 @@ type TestimonialsSectionProps = {
 };
 
 export default function TestimonialsSection({ translations }: TestimonialsSectionProps) {
-  const { language } = useThemeLanguage();
+  const { isDark, language } = useThemeLanguage();
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: false, margin: "-100px 0px" });
   const controls = useAnimation();
@@ -64,6 +64,23 @@ export default function TestimonialsSection({ translations }: TestimonialsSectio
     }
   };
 
+  const glowVariants = {
+    initial: { scale: 1 },
+    animate: {
+      scale: [1, 1.05, 1],
+      boxShadow: [
+        "0 0 0px rgba(255, 0, 0, 0.5)",
+        "0 0 20px rgba(255, 0, 0, 0.8)",
+        "0 0 0px rgba(255, 0, 0, 0.5)"
+      ],
+      transition: {
+        duration: 2.5,
+        repeat: Infinity,
+        repeatType: "reverse"
+      }
+    }
+  };
+
   // Mobile testimonial texts with translations (shorter versions)
   const mobileTestimonials = [
     {
@@ -96,7 +113,7 @@ export default function TestimonialsSection({ translations }: TestimonialsSectio
   return (
     <section 
       ref={sectionRef}
-      className="py-6 sm:py-10 border-4 border-white border-t-0 relative overflow-hidden h-auto min-h-[220px] sm:min-h-[280px] md:min-h-[320px] flex items-center"
+      className={`py-6 sm:py-10 relative overflow-hidden ${isDark ? 'bg-[#121212]/30 text-[#E0E0E0]' : 'bg-gray-900/30 text-white'} h-auto min-h-[220px] sm:min-h-[280px] md:min-h-[320px] flex items-center`}
     >
       {/* Floating animated background elements */}
       <motion.div
@@ -121,7 +138,7 @@ export default function TestimonialsSection({ translations }: TestimonialsSectio
             transition={{ duration: 0.8 }}
             className="mb-3 sm:mb-5 md:mb-6 text-center"
           >
-            <h2 className="text-sm sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight font-['Titillium_Web'] text-white">
+            <h2 className="text-sm sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight font-['Titillium_Web']">
               {translations.testimonialsTitle || "Müşterilerimiz Ne Diyor?"}
             </h2>
             
@@ -129,7 +146,7 @@ export default function TestimonialsSection({ translations }: TestimonialsSectio
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 1 }}
-              className="mt-1 sm:mt-2 text-[8px] sm:text-xs md:text-sm lg:text-base text-white font-['Inter']"
+              className={`mt-1 sm:mt-2 text-[8px] sm:text-xs md:text-sm lg:text-base ${isDark ? 'text-[#B0B0B0]' : 'text-gray-300'} font-['Inter']`}
             >
               {translations.testimonialsSubtitle || "PadokClub deneyimini yaşayanların görüşleri"}
             </motion.p>
@@ -150,10 +167,15 @@ export default function TestimonialsSection({ translations }: TestimonialsSectio
                   scale: 1.03, 
                   transition: { duration: 0.3 }
                 }}
-                className="p-2 sm:p-4 md:p-6 rounded-lg border-2 border-white transition-all duration-300 min-h-[120px] sm:min-h-0"
+                className={`p-2 sm:p-4 md:p-6 rounded-lg ${isDark ? 'bg-[#1E1E1E]' : 'bg-gray-800'} transition-all duration-300 min-h-[120px] sm:min-h-0`}
               >
                 <div className="flex items-center mb-1 sm:mb-2 md:mb-4">
-                  <div className="h-5 w-5 sm:h-8 sm:w-8 md:h-10 md:w-10 rounded-full flex-shrink-0 border-2 border-white flex items-center justify-center mr-2 sm:mr-3">
+                  <motion.div 
+                    variants={glowVariants}
+                    initial="initial"
+                    animate="animate"
+                    className={`h-5 w-5 sm:h-8 sm:w-8 md:h-10 md:w-10 rounded-full flex-shrink-0 ${isDark ? 'bg-[#FF0000]' : 'bg-red-600'} flex items-center justify-center mr-2 sm:mr-3`}
+                  >
                     <motion.span 
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
@@ -162,13 +184,13 @@ export default function TestimonialsSection({ translations }: TestimonialsSectio
                     >
                       {testimonial.initial}
                     </motion.span>
-                  </div>
+                  </motion.div>
                   <div className="min-w-0">
                     <motion.h3 
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
-                      className="text-xs sm:text-sm md:text-base lg:text-lg font-medium truncate text-white"
+                      className="text-xs sm:text-sm md:text-base lg:text-lg font-medium truncate"
                     >
                       {testimonial.name}
                     </motion.h3>
@@ -176,7 +198,7 @@ export default function TestimonialsSection({ translations }: TestimonialsSectio
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
-                      className="text-[8px] sm:text-xs md:text-sm text-white truncate"
+                      className={`text-[8px] sm:text-xs md:text-sm ${isDark ? 'text-[#B0B0B0]' : 'text-gray-400'} truncate`}
                     >
                       {testimonial.role}
                     </motion.p>
@@ -186,7 +208,7 @@ export default function TestimonialsSection({ translations }: TestimonialsSectio
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.7, delay: 0.6 + index * 0.1 }}
-                  className="text-white font-['Inter'] text-[8px] sm:text-xs md:text-sm lg:text-base line-clamp-none"
+                  className={`${isDark ? 'text-[#B0B0B0]' : 'text-gray-300'} font-['Inter'] text-[8px] sm:text-xs md:text-sm lg:text-base line-clamp-none`}
                 >
                   {testimonial.text}
                 </motion.p>

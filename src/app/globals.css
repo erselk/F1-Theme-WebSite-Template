@@ -22,11 +22,116 @@
   --primary-hover: #e00900;
   
   /* Light mode color variables */
-  --text-primary: #1c1c22;
-  --text-secondary: #333339;
-  --border-color: #e0e0e5;
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f5f7;
+  --light-text-primary: #1c1c22;
+  --light-text-secondary: #333339;
+  --light-border-color: #e0e0e5;
+  --light-bg-primary: #ffffff;
+  --light-bg-secondary: #f5f5f7;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    /* Light mode specific variables */
+    --text-primary: var(--light-text-primary);
+    --text-secondary: var(--light-text-secondary);
+    --border-color: var(--light-border-color);
+    --bg-primary: var(--light-bg-primary);
+    --bg-secondary: var(--light-bg-secondary);
+  }
+}
+
+.light {
+  /* Light theme specific styles */
+  --text-primary: var(--light-text-primary);
+  --text-secondary: var(--light-text-secondary);
+  --border-color: var(--light-border-color);
+  --bg-primary: var(--light-bg-primary);
+  --bg-secondary: var(--light-bg-secondary);
+  
+  /* Make sure text on dark backgrounds remains visible in light mode */
+  .text-white {
+    color: #fff !important;
+  }
+  
+  .dark\:text-white {
+    color: #fff !important;
+  }
+  
+  /* Ensure borders are visible in light mode */
+  .border-carbon-grey {
+    border-color: var(--carbon-grey) !important;
+  }
+  
+  .dark\:border-carbon-grey {
+    border-color: var(--carbon-grey) !important;
+  }
+  
+  /* Making sure buttons and backgrounds maintain visibility */
+  .bg-neon-red {
+    background-color: var(--neon-red) !important; 
+    opacity: 1 !important;
+  }
+  
+  .bg-electric-blue {
+    background-color: var(--electric-blue) !important;
+  }
+  
+  /* Fix ticket form specific elements */
+  .step-confirmation h3,
+  .ticket-title,
+  .total-amount,
+  .continue-button,
+  .submit-button {
+    color: #fff !important;
+  }
+  
+  /* Özel başlıkları için renk düzeltmesi */
+  .step-select-tickets h3,
+  .step-details h3 {
+    color: var(--dark-grey) !important;
+  }
+}
+
+.dark {
+  /* Dark Theme Colors */
+  --f1-red-bright: #FF2B2B;
+  --very-dark-grey: #0E0E0E;
+  --dark-grey: #1A1A1A;
+  --graphite: #2B2B2B;
+  --white: #FFFFFF;
+  --light-grey: #CCCCCC;
+  --silver: #D0D0D0;
+  --electric-blue: #00CCFF;
+  --neon-green: #00FF7F;
+  --carbon-grey: #444444;
+  --neon-red: #FF4D4D;
+  --shadow-color: rgba(0, 0, 0, 0.35);
+  
+  /* Base theme variables */
+  --background: linear-gradient(to right, #cc41ab, #c80800, #cc8a00);
+  --foreground: var(--light-grey);
+  --primary: #c80800;
+  --primary-hover: #b30700;
+  
+  /* Admin panel select düzeltmeleri */
+  select option {
+    background-color: var(--carbon-grey) !important;
+    color: var(--white) !important;
+  }
+}
+
+/* Admin panel menü stilleri - tema bağımsız genel stil */
+select {
+  appearance: auto;
+  -moz-appearance: none;
+  -webkit-appearance: menulist;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
 body {
@@ -114,29 +219,29 @@ body, p, li, a {
   transition: all 0.3s ease;
 }
 
-/* Custom scrollbar styles */
+/* Custom scrollbar styles for dark theme */
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f5f5f7;
+  background: #2B2B2B; /* graphite */
   border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #e0e0e5;
+  background: #444444; /* carbon-grey */
   border-radius: 4px;
   transition: background 0.2s ease;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #00AFFF;
+  background: #00CCFF; /* electric-blue */
 }
 
 /* Firefox scrollbar */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #e0e0e5 #f5f5f7;
+  scrollbar-color: #444444 #2B2B2B; /* thumb track */
 }
