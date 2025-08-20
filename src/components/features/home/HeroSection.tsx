@@ -33,8 +33,8 @@ export default function HeroSection({ translations }: HeroSectionProps) {
   // Animation has been setup flag
   const [animationSetup, setAnimationSetup] = useState(false);
   
-  // Home slides from the home folder (about1.jpg to about19.jpg)
-  const homeSlides = Array.from({ length: 19 }, (_, i) => `/images/about${i + 1}.webp`);
+  // Home slides from the home folder (head1.jpg to head10.jpg) (slayt uzatma bölümü)
+  const homeSlides = Array.from({ length: 10 }, (_, i) => `/images/head${i + 1}.jpg`);
   
   // Handle slide change when clicking on dots
   const handleSlideChange = useCallback((index: number) => {

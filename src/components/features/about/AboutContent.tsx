@@ -34,7 +34,7 @@ const AboutContent: React.FC = () => {
           </div>
           <div className="relative h-[200px] sm:h-[250px] md:h-[300px] w-full">
             <Image
-              src="/images/about1.jpg"
+              src="/images/head1.jpg"
               alt={language === 'tr' ? "PadokClub Hikayemiz" : "PadokClub Our Story"}
               fill
               className="object-cover rounded-lg shadow-md"
@@ -144,7 +144,7 @@ const AboutContent: React.FC = () => {
           <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4">
             <div className="relative h-[120px] sm:h-[150px] md:h-[200px]">
               <Image
-                src="/images/about3.jpg"
+                src="/images/head2.jpg"
                 alt={language === 'tr' ? "PadokClub Tesislerimiz" : "PadokClub Our Facilities"}
                 fill
                 className="object-cover rounded-lg shadow-md"
@@ -152,7 +152,7 @@ const AboutContent: React.FC = () => {
             </div>
             <div className="relative h-[120px] sm:h-[150px] md:h-[200px]">
               <Image
-                src="/images/about4.jpg"
+                src="/images/head3.jpg"
                 alt={language === 'tr' ? "PadokClub Simülatörlerimiz" : "PadokClub Our Simulators"}
                 fill
                 className="object-cover rounded-lg shadow-md"
@@ -171,7 +171,7 @@ const AboutContent: React.FC = () => {
           {[5, 6, 7, 8, 9, 10, 11, 12].map((num) => (
             <div key={num} className="relative h-[90px] sm:h-[120px] md:h-[150px] lg:h-[200px]">
               <Image
-                src={`/images/about${num}.jpg`}
+                src={`/images/head${num}.jpg`}
                 alt={language === 'tr' ? `PadokClub Galeri ${num}` : `PadokClub Gallery ${num}`}
                 fill
                 className="object-cover rounded-lg hover:opacity-90 transition-opacity shadow-md"

@@ -42,9 +42,9 @@ export default function SimulatorsSection({ translations }: SimulatorsSectionPro
 
   // Fixed simulator images that won't change
   const simulatorImages = {
-    f1: "/images/about5.jpg",
-    vr: "/images/about12.jpg",
-    computers: "/images/about8.jpg"
+    f1: "/images/f1.jpg",
+    vr: "/images/vr.jpg",
+    computers: "/images/pc.jpg"
   };
   
   // Mobile short descriptions
