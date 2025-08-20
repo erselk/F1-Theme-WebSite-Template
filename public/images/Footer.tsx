@@ -1,0 +1,521 @@
+'use client';
+
+import Link from 'next/link';
+import Image from 'next/image';
+import { useTranslation } from 'next-i18next';
+import { useThemeLanguage } from '@/lib/ThemeLanguageContext';
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
+import { throttle } from 'lodash';
+
+const Footer = () => {
+  const { t } = useTranslation('common');
+  const { language, isDark, mounted } = useThemeLanguage();
+  const currentYear = new Date().getFullYear();
+  
+  // Intersection observer için referans oluşturma
+  const [footerRef, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+  
+  // Performans için ek InView referansları
+  const [socialRef, socialInView] = useInView({
+    triggerOnce: true,
+    threshold: 0.2,
+  });
+  
+  const [mapRef, mapInView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
+  // Animation variants for different elements
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.3
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { type: 'spring', stiffness: 100 }
+    }
+  };
+
+  const socialItemVariants = {
+    hidden: { scale: 0, opacity: 0 },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      transition: { type: 'spring', stiffness: 200, damping: 10 }
+    },
+    hover: { 
+      scale: 1.2, 
+      rotate: [0, -10, 10, -10, 0],
+      transition: { duration: 0.3 }
+    }
+  };
+
+  const logoVariants = {
+    hidden: { opacity: 0, x: -50 },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      transition: { 
+        type: 'spring',
+        stiffness: 100,
+        duration: 0.8
+      }
+    }
+  };
+
+  // Rainbow effect for button
+  const [buttonHovered, setButtonHovered] = useState(false);
+  const [buttonHighlight, setButtonHighlight] = useState(0);
+
+  useEffect(() => {
+    let interval;
+    if (buttonHovered) {
+      interval = setInterval(() => {
+        setButtonHighlight(prev => (prev + 1) % 360);
+      }, 30);
+    }
+    return () => interval && clearInterval(interval);
+  }, [buttonHovered]);
+
+  // Floating effect animation
+  const floatingVariants = {
+    floating: {
+      y: [0, -10, 0],
+      transition: {
+        duration: 3,
+        repeat: Infinity,
+        repeatType: "reverse" as const
+      }
+    }
+  };
+
+  // Wave animation for the map border
+  const waveVariants = {
+    animate: {
+      boxShadow: [
+        `0 0 0px ${isDark ? '#FF3333' : '#E10600'}`,
+        `0 0 15px ${isDark ? '#FF3333' : '#E10600'}`,
+        `0 0 0px ${isDark ? '#FF3333' : '#E10600'}`
+      ],
+      transition: {
+        duration: 2,
+        repeat: Infinity,
+        repeatType: "reverse" as const
+      }
+    }
+  };
+
+  // Links fade-in animation
+  const linksContainerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05,
+        delayChildren: 0.5
+      }
+    }
+  };
+
+  const linkItemVariants = {
+    hidden: { x: -20, opacity: 0 },
+    visible: {
+      x: 0,
+      opacity: 1,
+      transition: { type: 'spring', stiffness: 100 }
+    },
+    hover: { 
+      x: 5, 
+      color: isDark ? '#FF3333' : '#E10600',
+      transition: { duration: 0.2 }
+    }
+  };
+
+  // Header animations for titles - more eye-catching with color pulsing and background effects
+  const headerVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { 
+        type: 'spring', 
+        stiffness: 300,
+        damping: 10,
+      }
+    },
+    animate: {
+      color: [
+        isDark ? '#FFFFFF' : '#FFFFFF',
+        isDark ? '#FF3333' : '#E10600',
+        isDark ? '#FFFFFF' : '#FFFFFF'
+      ],
+      textShadow: [
+        `0 0 0px ${isDark ? 'rgba(255, 51, 51, 0)' : 'rgba(225, 6, 0, 0)'}`,
+        `0 0 10px ${isDark ? 'rgba(255, 51, 51, 0.7)' : 'rgba(225, 6, 0, 0.7)'}`,
+        `0 0 0px ${isDark ? 'rgba(255, 51, 51, 0)' : 'rgba(225, 6, 0, 0)'}`
+
+      ],
+      scale: [1, 1.05, 1],
+      transition: {
+        duration: 2.5,
+        repeat: Infinity,
+        repeatType: "reverse" as const
+      }
+    }
+  };
+
+  // Gradient animation for the footer background
+  const [gradientPosition, setGradientPosition] = useState({ x: 0, y: 0 });
+
+  // Mouse hareketi için throttle uygulanmış fonksiyon
+  const handleMouseMove = throttle((e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setGradientPosition({ x, y });
+  }, 50);
+
+  const footerLinks = {
+    tr: [
+      { name: 'Ana Sayfa', href: '/', useLocale: undefined },
+      { name: 'Etkinlikler', href: '/events' },
+      { name: 'Hizmetlerimiz', href: '/services' },
+      { name: 'Hakkımızda', href: '/about' },
+      { name: 'İletişim', href: '/contact' },
+      { name: 'Blog', href: '/blog' },
+      { name: 'Gizlilik Politikası', href: '/privacy' },
+      { name: 'Kullanım Şartları', href: '/terms' },
+    ],
+    en: [
+      { name: 'Home', href: '/', useLocale: undefined },
+      { name: 'Events', href: '/events' },
+      { name: 'Services', href: '/services' },
+      { name: 'About', href: '/about' },
+      { name: 'Contact', href: '/contact' },
+      { name: 'Blog', href: '/blog' },
+      { name: 'Privacy Policy', href: '/privacy' },
+      { name: 'Terms of Service', href: '/terms' },
+    ]
+  };
+
+  const locationInfo = {
+    tr: {
+      title: 'Konum',
+      address: 'Merhaba, Merhaba Cd. No:123, 34000 Merhaba/Merhaba',
+      directions: 'Yol Tarifi Al',
+    },
+    en: {
+      title: 'LOCATION',
+      address: 'Merhaba, Merhaba St. No:123, 34000 Merhaba/Merhaba',
+      directions: 'Get Directions',
+    }
+  };
+
+  const socialLinks = [
+    { name: 'Instagram', url: 'https://instagram.com/DeF1Club', icon: (
+      <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clipRule="evenodd" />
+      </svg>
+    )},
+    { name: 'Facebook', url: 'https://facebook.com/DeF1Club', icon: (
+      <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
+      </svg>
+    )},
+    { name: 'X', url: 'https://x.com/DeF1Club', icon: (
+      <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M13.6823 10.6218L20.2391 3H18.6854L12.9921 9.61788L8.44486 3H3.2002L10.0765 13.0082L3.2002 21H4.75404L10.7663 14.0121L15.5549 21H20.7996L13.6823 10.6218ZM11.5541 13.0887L10.8574 12.0511L5.31391 4.16788H7.70053L12.1742 10.5782L12.8709 11.6158L18.6854 19.8321H16.2988L11.5541 13.0887Z" />
+      </svg>
+    )},
+    { name: 'YouTube', url: 'https://youtube.com/@DeF1Club', icon: (
+      <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+      </svg>
+    )},
+    { name: 'WhatsApp', url: 'https://wa.me/905123456789', icon: (
+      <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.199-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
+      </svg>
+    )},
+    { name: 'TikTok', url: 'https://tiktok.com/@DeF1Club', icon: (
+      <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+      </svg>
+    )},
+    { name: 'LinkedIn', url: 'https://linkedin.com/company/DeF1Club', icon: (
+      <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+      </svg>
+    )},
+  ];
+
+  if (!mounted) {
+    return (
+      <footer className="bg-gray-900 text-white">
+        <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
+          <div className="animate-pulse h-40 w-full bg-gray-800 rounded"></div>
+        </div>
+      </footer>
+    );
+  }
+
+  // Book Now button component to reuse
+  const BookNowButton = () => (
+    <motion.div
+      whileHover={() => setButtonHovered(true)}
+      onHoverEnd={() => setButtonHovered(false)}
+    >
+      <Link 
+        href="/book" 
+        className={`text-sm px-4 py-2 rounded-md font-['Titillium Web'] font-semibold relative overflow-hidden group`}
+        style={{
+          background: buttonHovered 
+            ? `linear-gradient(${buttonHighlight}deg, ${isDark ? '#FF0000, #FF5555' : '#E10600, #FF3333'})` 
+            : isDark ? '#FF0000' : '#E10600',
+          color: 'white',
+          transition: 'all 0.3s ease',
+          boxShadow: buttonHovered ? `0 0 15px ${isDark ? '#FF0000' : '#E10600'}` : 'none'
+        }}
+      >
+        <motion.span
+          initial={{ width: '0%' }}
+          animate={{ width: buttonHovered ? '200%' : '0%' }}
+          transition={{ duration: 0.5 }}
+          className="absolute top-0 left-[-50%] h-full bg-white/30 transform rotate-45 z-0"
+        />
+        <span className="relative z-10">{language === 'tr' ? 'Rezervasyon Yap' : 'Book Now'}</span>
+      </Link>
+    </motion.div>
+  );
+
+  return (
+    <motion.footer 
+      ref={footerRef}
+      initial="hidden"
+      animate={inView ? "visible" : "hidden"}
+      variants={containerVariants}
+      className={`${isDark ? 'bg-[#1E1E1E]' : 'bg-gray-900'} text-white relative overflow-hidden`}
+      onMouseMove={handleMouseMove}
+    >
+      {/* Mevcut içerik devam ediyor... */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none z-0"
+        style={{
+          background: `radial-gradient(circle at ${gradientPosition.x}% ${gradientPosition.y}%, ${
+            isDark ? '#FF3333' : '#E10600'
+          } 0%, transparent 40%)`
+        }}
+      />
+      <div className="mx-auto max-w-7xl px-4 pt-12 pb-8 relative z-10">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <motion.div ref={socialRef} variants={itemVariants}>
+            <motion.div className="mb-6" variants={logoVariants}>
+              <Link href="/" locale={undefined} className="inline-block">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Image
+                    className="h-16 w-auto"
+                    src="/images/logodark.png"
+                    alt="DeF1Club"
+                    width={160}
+                    height={64}
+                  />
+                </motion.div>
+              </Link>
+            </motion.div>
+            <motion.div 
+              className="flex space-x-4 mt-4"
+              variants={linksContainerVariants}
+              animate={socialInView ? "visible" : "hidden"}
+            >
+              {socialLinks.map((social) => (
+                <motion.a
+                  key={social.name}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                 
+                  whileHover="hover"
+                >
+                  <span className="sr-only">{social.name}</span>
+                  {social.icon}
+                </motion.a>
+              ))}
+            </motion.div>
+          </motion.div>
+          
+          <motion.div variants={itemVariants}>
+            <motion.h3 
+              className="text-sm font-semibold font-['Titillium Web'] uppercase tracking-wide mb-4"
+              variants={headerVariants}
+              animate="animate"
+            >
+              {language === 'tr' ? 'Bağlantılar' : 'LINKS'}
+            </motion.h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <motion.ul 
+                className="space-y-2"
+                variants={linksContainerVariants}
+              >
+                {footerLinks[language as 'tr' | 'en'].slice(0, 4).map((link) => (
+                  <motion.li key={link.name} variants={linkItemVariants} whileHover="hover">
+                    <Link 
+                      href={link.href}
+                      locale={link.useLocale}
+                      className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-300'} transition-all duration-300 inline-block`}
+                    >
+                      {link.name}
+                    </Link>
+                  </motion.li>
+                ))}
+              </motion.ul>
+              
+              <motion.ul 
+                className="space-y-2"
+                variants={linksContainerVariants}
+              >
+                {footerLinks[language as 'tr' | 'en'].slice(4).map((link) => (
+                  <motion.li key={link.name} variants={linkItemVariants} whileHover="hover">
+                    <Link 
+                      href={link.href}
+                      locale={link.useLocale}
+                      className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-300'} transition-all duration-300 inline-block`}
+                    >
+                      {link.name}
+                    </Link>
+                  </motion.li>
+                ))}
+              </motion.ul>
+            </div>
+          </motion.div>
+          
+          <motion.div variants={itemVariants}>
+            <motion.h3 
+              className="text-sm font-semibold font-['Titillium Web'] uppercase tracking-wide mb-4"
+              variants={headerVariants}
+              animate="animate"
+            >
+              {locationInfo[language as 'tr' | 'en'].title}
+            </motion.h3>
+            <motion.address 
+              className="not-italic text-sm text-gray-300 mb-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.7 }}
+            >
+              {locationInfo[language as 'tr' | 'en'].address}
+            </motion.address>
+            <motion.a 
+              href="https://maps.app.goo.gl/1234567890" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`inline-flex items-center text-sm ${
+                isDark ? 'text-[#FF3333] hover:text-[#FF6666]' : 'text-[#E10600] hover:text-[#E13330]'
+              } font-['Inter']`}
+              whileHover={{ scale: 1.05, x: 5 }}
+              variants={floatingVariants}
+              animate="floating"
+            >
+              <motion.svg 
+                className="w-4 h-4 mr-2" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                animate={{ rotate: [0, 15, 0, -15, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </motion.svg>
+              {locationInfo[language as 'tr' | 'en'].directions}
+            </motion.a>
+          </motion.div>
+          
+          <motion.div 
+            className="w-full h-48 md:h-40 lg:h-52 rounded-lg overflow-hidden relative flex flex-col"
+            variants={itemVariants}
+          >
+            <motion.div 
+              className="absolute inset-0 rounded-lg overflow-hidden z-10 h-full"
+              variants={waveVariants}
+              animate="animate"
+            >
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=" 
+                width="100%" 
+                height="100%" 
+                style={{border: 0}} 
+                allowFullScreen 
+                loading="lazy"
+                fetchPriority="low"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="DeF1Club Location"
+              />
+            </motion.div>
+            
+            {/* Book Now button for mobile only (below map) */}
+            <div className="mt-4 flex justify-center md:hidden">
+              <BookNowButton />
+            </div>
+          </motion.div>
+        </div>
+        
+        <motion.div 
+          className="mt-12 pt-8 border-t border-gray-800"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7, duration: 0.5 }}
+        >
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+            <motion.p 
+              className="text-xs text-gray-400 font-['Inter']"
+              whileHover={{ scale: 1.03 }}
+            >
+              &copy; {currentYear} DeF1Club. {language === 'tr' ? 'Tüm Hakları Saklıdır.' : 'All Rights Reserved.'}
+            </motion.p>
+            
+            {/* Book Now button for desktop (hidden on mobile) */}
+            <div className="hidden md:block">
+              <BookNowButton />
+            </div>
+          </div>
+        </motion.div>
+      </div>
+      
+      <motion.div 
+        className="absolute bottom-0 left-0 w-full h-1" 
+        style={{ 
+          background: isDark ? 'linear-gradient(90deg, #FF0000, #FF8888, #FF0000)' : 'linear-gradient(90deg, #E10600, #FF5555, #E10600)',
+        }}
+        animate={{ 
+          backgroundPosition: ['0% 0%', '100% 0%', '0% 0%'],
+        }}
+        transition={{ 
+          duration: 7, 
+          repeat: Infinity,
+          ease: "linear" 
+        }}
+      />
+    </motion.footer>
+  );
+};
+
+export default Footer;

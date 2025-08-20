@@ -113,7 +113,7 @@ const translations = {
   },
   en: {
     // Hero section translations
-    heroTitle: "Welcome to the Real Paddock Experience.",
+    heroTitle: "Welcome to the Real DeF1 Experience.",
     heroSubtitle: "F1 simulations, VR worlds, stage performances and more at Istanbul's next-generation experience center.",
     heroCta: "Discover Now",
     
