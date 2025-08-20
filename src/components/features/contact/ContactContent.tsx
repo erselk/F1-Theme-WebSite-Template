@@ -152,29 +152,9 @@ export default function ContactContent() {
   };
 
   // Define theme-specific classes
-  const cardBgClass = isDark 
-    ? 'bg-[#1a1a1a]' 
-    : 'bg-white';
-  
-  // İletişim kartları için renkler
-  const contactCardBgClass = isDark 
-    ? 'bg-[#1E1E1E] hover:bg-[#262626]' 
-    : 'bg-[#f9f9f9] hover:bg-[#f5f5f5]';
-  
-  // Form kartı için renkler
-  const formCardBgClass = isDark 
-    ? 'bg-[#1E1E1E]' 
-    : 'bg-[#f9f9f9]';
-  
-  // Etkinlikler kartı için renkler
-  const eventsCardBgClass = isDark 
-    ? 'bg-[#1E1E1E]' 
-    : 'bg-[#f9f9f9]';
-  
-  // Teknik destek kartı için renkler
-  const supportCardBgClass = isDark 
-    ? 'bg-[#1E1E1E]' 
-    : 'bg-[#f9f9f9]';
+  const cardBgClass = isDark ? 'bg-graphite' : 'bg-light-grey';
+  const headingTextClass = isDark ? 'text-white' : 'text-dark-grey';
+  const subTextClass = isDark ? 'text-silver' : 'text-medium-grey';
   
   // İçerik kartları için genel stil
   const shadowClass = isDark ? 'shadow-md shadow-black/20' : 'shadow-md shadow-gray-400/15';
@@ -201,7 +181,7 @@ export default function ContactContent() {
   const inputClass = `w-full p-2 sm:p-3 border rounded-md text-xs sm:text-sm outline-none ${
     isDark 
       ? 'border-carbon-grey bg-dark-grey text-light-grey focus:border-[#0075FF] focus:ring focus:ring-[#0075FF]/30' 
-      : 'border-gray-300 bg-white text-gray-900 focus:border-[#0046AD] focus:ring focus:ring-[#0046AD]/30'
+      : 'border-gray-300 bg-white text-dark-grey focus:border-[#0046AD] focus:ring focus:ring-[#0046AD]/30'
   }`;
   
   // Button styling - (Gönder butonu zaten inline style ile HEX kullanıyor, bu class başka bir yerde kullanılmıyorsa kaldırılabilir)
@@ -211,13 +191,9 @@ export default function ContactContent() {
       : 'bg-[#0046AD] hover:bg-[#0046AD]/90 text-white hover:text-white' // race-blue
   }`;
   
-  // Metin renkleri
-  const headingTextClass = isDark ? 'text-[#E0E0E0]' : 'text-dark-grey';
-  const subTextClass = isDark ? 'text-[#B0B0B0]' : 'text-medium-grey';
-  
   // Contact Form Component - extracted to reuse and reposition on mobile
   const ContactFormComponent = () => (
-    <div className={`${formCardBgClass} p-6 sm:p-8 lg:p-10 rounded-lg ${shadowClass} ${containerClass} ${formBorderClass}`}>
+    <div className={`${cardBgClass} p-6 sm:p-8 lg:p-10 rounded-lg ${shadowClass} ${containerClass} ${formBorderClass}`}>
       <div className="flex items-center mb-4 sm:mb-6">
         <MessageSquare className={`w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 ${formIconClass}`} />
         <h2 className={`text-base sm:text-xl font-bold ${headingTextClass} font-['Titillium_Web']`}>{t.contactForm.title}</h2>
@@ -278,11 +254,17 @@ export default function ContactContent() {
           <div className="text-center">
             <button
               type="submit"
-              className={`px-6 sm:px-8 py-2 sm:py-3 text-white rounded-md transition-colors text-xs sm:text-sm font-medium font-['Titillium_Web'] ${
-                isDark 
-                  ? 'bg-[#0075FF] hover:bg-[#0075FF]/90' 
-                  : 'bg-[#0046AD] hover:bg-[#0046AD]/90'
-              }`}
+              style={{
+                backgroundColor: isDark ? '#0075FF' : '#0046AD',
+                color: 'white',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                fontFamily: 'Titillium Web, sans-serif',
+                border: 'none',
+                cursor: 'pointer',
+              }}
             >
               {t.contactForm.send}
             </button>
@@ -294,7 +276,7 @@ export default function ContactContent() {
 
   // Events & Partnerships Section Component
   const EventsComponent = () => (
-    <div className={`${eventsCardBgClass} p-6 sm:p-8 lg:p-10 rounded-lg ${shadowClass} ${containerClass} ${eventsBorderClass}`}>
+    <div className={`${cardBgClass} p-6 sm:p-8 lg:p-10 rounded-lg ${shadowClass} ${containerClass} ${eventsBorderClass}`}>
       <div className="flex items-center mb-4 sm:mb-6">
         <Users className={`w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 ${eventsIconClass}`} />
         <h2 className={`text-base sm:text-xl font-bold ${headingTextClass} font-['Titillium_Web']`}>{t.sections.events}</h2>
@@ -306,7 +288,7 @@ export default function ContactContent() {
 
   // Technical Support Section Component
   const SupportComponent = () => (
-    <div className={`${supportCardBgClass} p-6 sm:p-8 lg:p-10 rounded-lg ${shadowClass} ${containerClass} ${supportBorderClass}`}>
+    <div className={`${cardBgClass} p-6 sm:p-8 lg:p-10 rounded-lg ${shadowClass} ${containerClass} ${supportBorderClass}`}>
       <div className="flex items-center mb-4 sm:mb-6">
         <Wrench className={`w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 ${supportIconClass}`} />
         <h2 className={`text-base sm:text-xl font-bold ${headingTextClass} font-['Titillium_Web']`}>{t.sections.support}</h2>
@@ -321,27 +303,27 @@ export default function ContactContent() {
       {/* Contact Cards - scaled down on mobile */}
       <div className="mb-8 sm:mb-12">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
-          <div className={`${contactCardBgClass} p-3 sm:p-4 rounded-lg ${shadowClass} ${containerClass} ${contactBorderClass} transition-colors duration-200`}>
+          <div className={`${cardBgClass} p-3 sm:p-4 rounded-lg ${shadowClass} ${containerClass} ${contactBorderClass}`}>
             <div className="flex justify-center h-4 sm:h-6 mb-1 sm:mb-2">
               <Phone className={`w-4 h-4 sm:w-6 sm:h-6 ${contactIconClass}`} />
             </div>
             <div className="text-center">
               <h3 className={`text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 ${headingTextClass}`}>{t.contactInfo.phone}</h3>
-              <a href="tel:+90XXXXXXXXXX" className={`text-[10px] sm:text-xs ${subTextClass} hover:${contactIconClass}`}>+90 (XXX) XXX XX XX</a>
+              <a href="tel:+90XXXXXXXXXX" className={`text-[10px] sm:text-xs hover:${contactIconClass}`}>+90 (XXX) XXX XX XX</a>
             </div>
           </div>
           
-          <div className={`${contactCardBgClass} p-3 sm:p-4 rounded-lg ${shadowClass} ${containerClass} ${contactBorderClass} transition-colors duration-200`}>
+          <div className={`${cardBgClass} p-3 sm:p-4 rounded-lg ${shadowClass} ${containerClass} ${contactBorderClass}`}>
             <div className="flex justify-center h-4 sm:h-6 mb-1 sm:mb-2">
               <Mail className={`w-4 h-4 sm:w-6 sm:h-6 ${contactIconClass}`} />
             </div>
             <div className="text-center">
               <h3 className={`text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 ${headingTextClass}`}>{t.contactInfo.email}</h3>
-              <a href="mailto:info@padokclub.com" className={`text-[10px] sm:text-xs ${subTextClass} ${contactIconClass} hover:underline`}>info@padokclub.com</a>
+              <a href="mailto:info@padokclub.com" className={`text-[10px] sm:text-xs ${contactIconClass} hover:underline`}>info@padokclub.com</a>
             </div>
           </div>
           
-          <div className={`${contactCardBgClass} p-3 sm:p-4 rounded-lg ${shadowClass} ${containerClass} ${contactBorderClass} text-white`}>
+          <div className={`${cardBgClass} p-3 sm:p-4 rounded-lg ${shadowClass} ${containerClass} ${contactBorderClass}`}>
             <div className="flex justify-center h-4 sm:h-6 mb-1 sm:mb-2">
               <Instagram className={`w-4 h-4 sm:w-6 sm:h-6 ${contactIconClass}`} />
             </div>

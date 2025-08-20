@@ -16,10 +16,10 @@
   --shadow-color: rgba(0, 0, 0, 0.15);
   
   /* Base theme variables */
-  --background: linear-gradient(to right, #ff51d6, #fe0a00, #ffad00);
+  --background: var(--white);
   --foreground: var(--dark-grey);
-  --primary: #fe0a00;
-  --primary-hover: #e00900;
+  --primary: var(--f1-red);
+  --primary-hover: #E01A1A;
   
   /* Light mode color variables */
   --light-text-primary: #1c1c22;
@@ -108,10 +108,10 @@
   --shadow-color: rgba(0, 0, 0, 0.35);
   
   /* Base theme variables */
-  --background: linear-gradient(to right, #cc41ab, #c80800, #cc8a00);
+  --background: var(--dark-grey);
   --foreground: var(--light-grey);
-  --primary: #c80800;
-  --primary-hover: #b30700;
+  --primary: var(--f1-red-bright);
+  --primary-hover: var(--neon-red);
   
   /* Admin panel select düzeltmeleri */
   select option {
