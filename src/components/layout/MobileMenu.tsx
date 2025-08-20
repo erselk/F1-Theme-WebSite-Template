@@ -54,11 +54,11 @@ const MobileMenu = ({
       >
         <div className="flex items-center justify-between">
           <Link href="/" locale={undefined} className="-m-1 p-1">
-            <span className="sr-only">PadokClub</span>
+            <span className="sr-only">DeF1Club</span>
             <Image
               className="h-14 w-auto"
               src={isDark ? '/images/logodark.png' : '/images/logolight.png'}
-              alt="PadokClub"
+              alt="DeF1Club"
               width={150}
               height={42}
             />

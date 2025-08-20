@@ -3,8 +3,8 @@
   publish = ".next"
 
 [build.environment]
-  NEXT_PUBLIC_SITE_URL = "https://padokclub.netlify.app"
-  NEXT_PUBLIC_API_BASE_URL = "https://padokclub.netlify.app"
+  NEXT_PUBLIC_SITE_URL = "https://DeF1Club.netlify.app"
+  NEXT_PUBLIC_API_BASE_URL = "https://DeF1Club.netlify.app"
   NODE_VERSION = "20"
   NPM_FLAGS = "--prefer-offline --no-audit"
   NETLIFY_USE_YARN = "false"

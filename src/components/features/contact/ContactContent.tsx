@@ -282,7 +282,7 @@ export default function ContactContent() {
         <h2 className={`text-base sm:text-xl font-bold ${headingTextClass} font-['Titillium_Web']`}>{t.sections.events}</h2>
       </div>
       <p className={`mb-4 sm:mb-6 text-xs sm:text-sm ${subTextClass}`}>{t.sections.eventsDetail}</p>
-      <a href="mailto:etkinlik@padokclub.com" className={`${eventsIconClass} hover:underline font-medium text-sm sm:text-base`}>etkinlik@padokclub.com</a>
+      <a href="mailto:etkinlik@DeF1Club.com" className={`${eventsIconClass} hover:underline font-medium text-sm sm:text-base`}>etkinlik@DeF1Club.com</a>
     </div>
   );
 
@@ -294,7 +294,7 @@ export default function ContactContent() {
         <h2 className={`text-base sm:text-xl font-bold ${headingTextClass} font-['Titillium_Web']`}>{t.sections.support}</h2>
       </div>
       <p className={`mb-4 sm:mb-6 text-xs sm:text-sm ${subTextClass}`}>{t.sections.supportDetail}</p>
-      <a href="mailto:destek@padokclub.com" className={`${supportIconClass} hover:underline font-medium text-sm sm:text-base`}>destek@padokclub.com</a>
+      <a href="mailto:destek@DeF1Club.com" className={`${supportIconClass} hover:underline font-medium text-sm sm:text-base`}>destek@DeF1Club.com</a>
     </div>
   );
 
@@ -319,7 +319,7 @@ export default function ContactContent() {
             </div>
             <div className="text-center">
               <h3 className={`text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 ${headingTextClass}`}>{t.contactInfo.email}</h3>
-              <a href="mailto:info@padokclub.com" className={`text-[10px] sm:text-xs ${contactIconClass} hover:underline`}>info@padokclub.com</a>
+              <a href="mailto:info@DeF1Club.com" className={`text-[10px] sm:text-xs ${contactIconClass} hover:underline`}>info@DeF1Club.com</a>
             </div>
           </div>
           
@@ -329,7 +329,7 @@ export default function ContactContent() {
             </div>
             <div className="text-center">
               <h3 className={`text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 ${headingTextClass}`}>{t.contactInfo.instagram}</h3>
-              <a href="https://instagram.com/padokclub" target="_blank" rel="noopener noreferrer" className={`text-[10px] sm:text-xs ${contactIconClass} hover:underline`}>@padokclub</a>
+              <a href="https://instagram.com/DeF1Club" target="_blank" rel="noopener noreferrer" className={`text-[10px] sm:text-xs ${contactIconClass} hover:underline`}>@DeF1Club</a>
             </div>
           </div>
 

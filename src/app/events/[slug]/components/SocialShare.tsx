@@ -17,8 +17,8 @@ export function SocialShare({ url, title, locale }: SocialShareProps) {
 
   // Event invitation messages in both languages
   const shareMessages = {
-    tr: `Padok Club'daki ${title} etkinliğine davetlisiniz! Detaylı bilgi için:`,
-    en: `You are invited to the ${title} event at Padok Club! For more details:`
+    tr: `DeF1 Club'daki ${title} etkinliğine davetlisiniz! Detaylı bilgi için:`,
+    en: `You are invited to the ${title} event at DeF1 Club! For more details:`
   };
 
   const encodedMessage = encodeURIComponent(shareMessages[locale]);

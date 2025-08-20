@@ -11,13 +11,13 @@ export default function TermsPage() {
       title: "Kullanım Koşulları",
       lastUpdated: "Son Güncelleme: 27 Nisan 2025",
       intro: {
-        p1: "PadokClub tarafından işletilen PadokClub web sitesini ve hizmetlerini ('biz', 'bize' veya 'bizim') kullanmadan önce lütfen bu Kullanım Koşullarını ('Koşullar', 'Kullanım Koşulları') dikkatlice okuyun.",
+        p1: "DeF1Club tarafından işletilen DeF1Club web sitesini ve hizmetlerini ('biz', 'bize' veya 'bizim') kullanmadan önce lütfen bu Kullanım Koşullarını ('Koşullar', 'Kullanım Koşulları') dikkatlice okuyun.",
         p2: "Hizmetlerimize erişiminiz ve bunları kullanımınız, bu Koşulları kabul etmenize ve bunlara uymanıza bağlıdır. Bu Koşullar, Hizmete erişen veya Hizmeti kullanan tüm ziyaretçiler, kullanıcılar ve diğerleri için geçerlidir.",
         p3: "Hizmete erişerek veya kullanarak bu Koşullarla bağlı olmayı kabul edersiniz. Koşulların herhangi bir bölümüne katılmıyorsanız, Hizmete erişemezsiniz."
       },
       section1: {
         title: "1. Hizmet Kullanımı",
-        intro: "PadokClub, F1 simülasyon deneyimi ve ilgili hizmetler sunmaktadır. Hizmetlerimizi kullanarak şunları kabul edersiniz:",
+        intro: "DeF1Club, F1 simülasyon deneyimi ve ilgili hizmetler sunmaktadır. Hizmetlerimizi kullanarak şunları kabul edersiniz:",
         items: [
           "Hesap oluştururken veya hizmetlerimizi rezerve ederken doğru ve eksiksiz bilgi vermek",
           "Hesap bilgilerinizin güvenliğini korumak",
@@ -49,7 +49,7 @@ export default function TermsPage() {
       },
       section4: {
         title: "4. Fikri Mülkiyet",
-        p1: "Hizmet ve orijinal içeriği (Kullanıcı İçeriği hariç), özellikleri ve işlevleri PadokClub ve lisans verenlerinin münhasır mülkiyetindedir ve öyle kalacaktır. Hizmet, hem Türkiye hem de yabancı ülkelerin telif hakkı, ticari marka ve diğer yasaları tarafından korunmaktadır. Ticari markalarımız ve ticari görünümümüz, PadokClub'ın önceden yazılı izni olmaksızın herhangi bir ürün veya hizmetle bağlantılı olarak kullanılamaz."
+        p1: "Hizmet ve orijinal içeriği (Kullanıcı İçeriği hariç), özellikleri ve işlevleri DeF1Club ve lisans verenlerinin münhasır mülkiyetindedir ve öyle kalacaktır. Hizmet, hem Türkiye hem de yabancı ülkelerin telif hakkı, ticari marka ve diğer yasaları tarafından korunmaktadır. Ticari markalarımız ve ticari görünümümüz, DeF1Club'ın önceden yazılı izni olmaksızın herhangi bir ürün veya hizmetle bağlantılı olarak kullanılamaz."
       },
       section5: {
         title: "5. Ödeme Koşulları",
@@ -64,7 +64,7 @@ export default function TermsPage() {
       },
       section6: {
         title: "6. Sorumluluk Sınırlaması",
-        intro: "PadokClub veya yöneticileri, çalışanları, ortakları, acenteleri, tedarikçileri veya bağlı kuruluşları, şunlardan kaynaklanan kâr, veri, kullanım, iyi niyet veya diğer maddi olmayan kayıplar dahil ancak bunlarla sınırlı olmamak üzere hiçbir dolaylı, tesadüfi, özel, sonuç olarak ortaya çıkan veya cezalandırıcı zararlardan sorumlu olmayacaktır:",
+        intro: "DeF1Club veya yöneticileri, çalışanları, ortakları, acenteleri, tedarikçileri veya bağlı kuruluşları, şunlardan kaynaklanan kâr, veri, kullanım, iyi niyet veya diğer maddi olmayan kayıplar dahil ancak bunlarla sınırlı olmamak üzere hiçbir dolaylı, tesadüfi, özel, sonuç olarak ortaya çıkan veya cezalandırıcı zararlardan sorumlu olmayacaktır:",
         items: [
           "Hizmete erişiminiz veya kullanımınız veya Hizmete erişememeniz veya kullanamıyor olmanız",
           "Hizmet üzerindeki herhangi bir üçüncü tarafın davranışı veya içeriği",
@@ -75,7 +75,7 @@ export default function TermsPage() {
       section7: {
         title: "7. Feragatname",
         p1: "Hizmeti kullanmanız tamamen kendi sorumluluğunuzdadır. Hizmet 'OLDUĞU GİBİ' ve 'MEVCUT OLDUĞU GİBİ' temeline dayanarak sunulur. Hizmet, açık veya zımni, ticari elverişlilik, belirli bir amaca uygunluk, ihlal etmeme veya performans seyri dahil ancak bunlarla sınırlı olmamak üzere hiçbir garanti olmaksızın sunulur.",
-        p2: "PadokClub, bağlı kuruluşları, yan kuruluşları ve lisans verenleri, a) Hizmetin kesintisiz, güvenli veya belirli bir zamanda veya yerde kullanılabilir olacağını; b) herhangi bir hata veya kusurun düzeltileceğini; c) Hizmetin virüs veya diğer zararlı bileşenlerden arındırılmış olduğunu; veya d) Hizmeti kullanmanın sonuçlarının gereksinimlerinizi karşılayacağını garanti etmez."
+        p2: "DeF1Club, bağlı kuruluşları, yan kuruluşları ve lisans verenleri, a) Hizmetin kesintisiz, güvenli veya belirli bir zamanda veya yerde kullanılabilir olacağını; b) herhangi bir hata veya kusurun düzeltileceğini; c) Hizmetin virüs veya diğer zararlı bileşenlerden arındırılmış olduğunu; veya d) Hizmeti kullanmanın sonuçlarının gereksinimlerinizi karşılayacağını garanti etmez."
       },
       section8: {
         title: "8. Geçerli Yasa",
@@ -95,7 +95,7 @@ export default function TermsPage() {
       section11: {
         title: "11. Bize Ulaşın",
         p1: "Bu Koşullar hakkında herhangi bir sorunuz varsa, lütfen bizimle iletişime geçin:",
-        contact: "E-posta: terms@padokclub.com<br />Telefon: +90 212 555 1234<br />Adres: PadokClub, İstanbul, Türkiye"
+        contact: "E-posta: terms@DeF1Club.com<br />Telefon: +90 212 555 1234<br />Adres: DeF1Club, İstanbul, Türkiye"
       },
       footer: "Tüm Hakları Saklıdır."
     },
@@ -103,13 +103,13 @@ export default function TermsPage() {
       title: "Terms of Service",
       lastUpdated: "Last Updated: April 27, 2025",
       intro: {
-        p1: "Please read these Terms of Service (\"Terms\", \"Terms of Service\") carefully before using the PadokClub website and services operated by PadokClub (\"us\", \"we\", \"our\").",
+        p1: "Please read these Terms of Service (\"Terms\", \"Terms of Service\") carefully before using the DeF1Club website and services operated by DeF1Club (\"us\", \"we\", \"our\").",
         p2: "Your access to and use of the Service is conditioned on your acceptance of and compliance with these Terms. These Terms apply to all visitors, users, and others who access or use the Service.",
         p3: "By accessing or using the Service you agree to be bound by these Terms. If you disagree with any part of the terms, you may not access the Service."
       },
       section1: {
         title: "1. Use of Service",
-        intro: "PadokClub provides an F1 simulation experience and related services. By using our services, you agree:",
+        intro: "DeF1Club provides an F1 simulation experience and related services. By using our services, you agree:",
         items: [
           "To provide accurate and complete information when creating an account or booking our services",
           "To maintain the security of your account information",
@@ -141,7 +141,7 @@ export default function TermsPage() {
       },
       section4: {
         title: "4. Intellectual Property",
-        p1: "The Service and its original content (excluding User Content), features, and functionality are and will remain the exclusive property of PadokClub and its licensors. The Service is protected by copyright, trademark, and other laws of both Turkey and foreign countries. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of PadokClub."
+        p1: "The Service and its original content (excluding User Content), features, and functionality are and will remain the exclusive property of DeF1Club and its licensors. The Service is protected by copyright, trademark, and other laws of both Turkey and foreign countries. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of DeF1Club."
       },
       section5: {
         title: "5. Payment Terms",
@@ -156,7 +156,7 @@ export default function TermsPage() {
       },
       section6: {
         title: "6. Limitation of Liability",
-        intro: "In no event shall PadokClub, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from:",
+        intro: "In no event shall DeF1Club, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from:",
         items: [
           "Your access to or use of or inability to access or use the Service",
           "Any conduct or content of any third party on the Service",
@@ -167,7 +167,7 @@ export default function TermsPage() {
       section7: {
         title: "7. Disclaimer",
         p1: "Your use of the Service is at your sole risk. The Service is provided on an \"AS IS\" and \"AS AVAILABLE\" basis. The Service is provided without warranties of any kind, whether express or implied, including, but not limited to, implied warranties of merchantability, fitness for a particular purpose, non-infringement, or course of performance.",
-        p2: "PadokClub, its subsidiaries, affiliates, and licensors do not warrant that a) the Service will function uninterrupted, secure, or available at any particular time or location; b) any errors or defects will be corrected; c) the Service is free of viruses or other harmful components; or d) the results of using the Service will meet your requirements."
+        p2: "DeF1Club, its subsidiaries, affiliates, and licensors do not warrant that a) the Service will function uninterrupted, secure, or available at any particular time or location; b) any errors or defects will be corrected; c) the Service is free of viruses or other harmful components; or d) the results of using the Service will meet your requirements."
       },
       section8: {
         title: "8. Governing Law",
@@ -187,7 +187,7 @@ export default function TermsPage() {
       section11: {
         title: "11. Contact Us",
         p1: "If you have any questions about these Terms, please contact us at:",
-        contact: "Email: terms@padokclub.com<br />Phone: +90 212 555 1234<br />Address: PadokClub, Istanbul, Turkey"
+        contact: "Email: terms@DeF1Club.com<br />Phone: +90 212 555 1234<br />Address: DeF1Club, Istanbul, Turkey"
       },
       footer: "All Rights Reserved."
     }
@@ -331,7 +331,7 @@ export default function TermsPage() {
 
         <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            © {new Date().getFullYear()} PadokClub. {t.footer}
+            © {new Date().getFullYear()} DeF1Club. {t.footer}
           </p>
         </div>
       </div>

@@ -1,25 +1,25 @@
 {
-  "introText": "Padok Club is a multi-level technology, entertainment, and social hub that combines physical and digital experiences, supporting interdisciplinary interaction. Each level is thematically structured and equipped with the most current equipment in its field. Below, you can find detailed descriptions of the services we offer:",
+  "introText": "DeF1 Club is a multi-level technology, entertainment, and social hub that combines physical and digital experiences, supporting interdisciplinary interaction. Each level is thematically structured and equipped with the most current equipment in its field. Below, you can find detailed descriptions of the services we offer:",
   
   "f1": {
     "title": "F1 Racing Simulation",
     "description": "Simulation experience crafted at the intersection of realism, speed, and technology.",
     "detail": "High-precision steering sets and ultra-wide field of view.",
-    "longDescription": "The F1 Racing Simulation area, located at the heart of Padok, is positioned at the intersection of automotive technology, simulation engineering, and e-sports disciplines. It is equipped with high-precision steering sets used in professional racing simulators, hydraulically supported special seats, and multi-screen systems that offer an ultra-wide field of view. These systems provide users with a mechanical response learning and experience opportunity through force feedback and vibration systems that perfectly mimic physical driving dynamics. Thanks to developed software, details such as real track conditions, tire wear, aerodynamic effects, and weather conditions are integrated into the simulation."
+    "longDescription": "The F1 Racing Simulation area, located at the heart of DeF1, is positioned at the intersection of automotive technology, simulation engineering, and e-sports disciplines. It is equipped with high-precision steering sets used in professional racing simulators, hydraulically supported special seats, and multi-screen systems that offer an ultra-wide field of view. These systems provide users with a mechanical response learning and experience opportunity through force feedback and vibration systems that perfectly mimic physical driving dynamics. Thanks to developed software, details such as real track conditions, tire wear, aerodynamic effects, and weather conditions are integrated into the simulation."
   },
   
   "stage": {
     "title": "Stage & Performance Area",
     "description": "An interactive space where art, technology, and community meet.",
     "detail": "DJ performances, acoustic concerts, and interactive performances.",
-    "longDescription": "Padok's event floor is a multifunctional performance area designed with acoustic engineering and stage technologies in mind. It is structured to accommodate many different types of events, such as DJ performances, acoustic concerts, stand-up shows, open mic nights, and interactive performances. The system includes elements that stand out in stage design, such as high-resolution LED light panels, automatically synchronized light systems, multi-channel digital mixer infrastructure, and noise control panels."
+    "longDescription": "DeF1's event floor is a multifunctional performance area designed with acoustic engineering and stage technologies in mind. It is structured to accommodate many different types of events, such as DJ performances, acoustic concerts, stand-up shows, open mic nights, and interactive performances. The system includes elements that stand out in stage design, such as high-resolution LED light panels, automatically synchronized light systems, multi-channel digital mixer infrastructure, and noise control panels."
   },
   
   "cafe": {
     "title": "Cafe & Board Games Area",
     "description": "An intimate and inclusive socializing environment nourished by social game theory.",
     "detail": "Comfortable seating groups and rich collection of board games.",
-    "longDescription": "Padok's social interaction floor is not just a cafe; it is also an experience area built on game-based learning, cooperation development, and social intelligence interaction. It has the flexibility to accommodate all types of users with comfortable seating groups, table arrangements, and quiet corners. The drinks and snacks served in the cafe section are planned to be usable during both individual work and group activities."
+    "longDescription": "DeF1's social interaction floor is not just a cafe; it is also an experience area built on game-based learning, cooperation development, and social intelligence interaction. It has the flexibility to accommodate all types of users with comfortable seating groups, table arrangements, and quiet corners. The drinks and snacks served in the cafe section are planned to be usable during both individual work and group activities."
   },
   
   "vr": {

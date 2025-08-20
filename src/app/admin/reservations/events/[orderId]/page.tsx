@@ -149,9 +149,9 @@ export default function OrderDetailPage() {
     const normalSize = 10;
     const smallSize = 8;
     
-    // Renk tanımları - Padok Club brand renkleri
-    const padokBlue = [35, 94, 233];
-    const padokGreen = [39, 174, 96];
+    // Renk tanımları - DeF1 Club brand renkleri
+    const DeF1Blue = [35, 94, 233];
+    const DeF1Green = [39, 174, 96];
     const white = [255, 255, 255];
     const lightGray = [240, 240, 240];
     const mediumGray = [100, 100, 100];
@@ -163,13 +163,13 @@ export default function OrderDetailPage() {
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
     
     // Üst başlık alanı (mavi kısım)
-    doc.setFillColor(padokBlue[0], padokBlue[1], padokBlue[2]);
+    doc.setFillColor(DeF1Blue[0], DeF1Blue[1], DeF1Blue[2]);
     doc.rect(0, 0, pageWidth, 40, 'F');
     
     // Logo/Başlık - Bold görünüm için daha kalın font
     doc.setFontSize(titleSize);
     doc.setTextColor(255, 255, 255);
-    doc.text('PADOK CLUB', margin, 25);
+    doc.text('DeF1 CLUB', margin, 25);
     
     // Sipariş no ve tarih bilgisi
     doc.setTextColor(255, 255, 255);
@@ -214,7 +214,7 @@ export default function OrderDetailPage() {
     doc.text(turkishToLatin(eventName), margin + innerPadding, yPos + 20);
     
     // Tamamlandı durumu - yeşil badge
-    doc.setFillColor(padokGreen[0], padokGreen[1], padokGreen[2]);
+    doc.setFillColor(DeF1Green[0], DeF1Green[1], DeF1Green[2]);
     const statusText = language === 'tr' ? turkishToLatin('Tamamlandı') : 'Completed';
     const statusWidth = doc.getTextWidth(statusText) + 10;
     doc.roundedRect(pageWidth - margin - innerPadding - statusWidth, yPos + 12, statusWidth, 8, 4, 4, 'F');
@@ -236,7 +236,7 @@ export default function OrderDetailPage() {
     const tableWidth = pageWidth - (margin * 2);
     
     // Tablo başlık arkaplanı
-    doc.setFillColor(padokBlue[0], padokBlue[1], padokBlue[2]);
+    doc.setFillColor(DeF1Blue[0], DeF1Blue[1], DeF1Blue[2]);
     doc.rect(margin, yPos, tableWidth, 10, 'F');
     
     // Tablo kolonları
@@ -333,19 +333,19 @@ export default function OrderDetailPage() {
     doc.setFontSize(subheaderSize);
     doc.text(language === 'tr' ? turkishToLatin('Toplam:') : 'Total:', summaryX, yPos);
     
-    doc.setTextColor(padokGreen[0], padokGreen[1], padokGreen[2]);
+    doc.setTextColor(DeF1Green[0], DeF1Green[1], DeF1Green[2]);
     doc.text(formatPriceForPDF(displayTotal), pageWidth - margin, yPos, { align: 'right' });
     
     // Footer
     const footerY = pageHeight - margin;
     doc.setTextColor(120, 120, 120);
     doc.setFontSize(smallSize);
-    doc.text(`Padok Club | ${turkishToLatin(formatDate(new Date().toISOString()))}`, pageWidth / 2, footerY, { align: 'center' });
+    doc.text(`DeF1 Club | ${turkishToLatin(formatDate(new Date().toISOString()))}`, pageWidth / 2, footerY, { align: 'center' });
     
     // Add QR Code or barcode placeholder (gelecekteki geliştirme için)
     
     // Save PDF
-    const fileName = `padok-club-order-${orderId.substring(0, 8)}.pdf`;
+    const fileName = `DeF1-club-order-${orderId.substring(0, 8)}.pdf`;
     doc.save(fileName);
   };
 

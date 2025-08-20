@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     const iyzipay = getIyzipay();
 
     // Create a unique payment conversation ID
-    const conversationId = `padok_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const conversationId = `DeF1_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     
     // Calculate the total price
     const totalPrice = ticketInfo.quantity * ticketInfo.price;

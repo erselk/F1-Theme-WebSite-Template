@@ -127,7 +127,7 @@ const Header = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8">
           <div className="flex">
             <Link href="/" className="-m-1.5 p-1.5">
-              <span className="sr-only">PadokClub</span>
+              <span className="sr-only">DeF1Club</span>
             </Link>
           </div>
           {/* Loading state for the rest of the header */}
@@ -162,11 +162,11 @@ const Header = () => {
           whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
         >
           <Link href="/" className="-m-0 p-0">
-            <span className="sr-only">PadokClub</span>
+            <span className="sr-only">DeF1Club</span>
             <Image
               className={`${scrolled ? 'h-10' : 'h-16'} w-auto transition-all duration-300`}
               src={isDark ? '/images/logodark.png' : '/images/logolight.png'}
-              alt="PadokClub"
+              alt="DeF1Club"
               width={150} // Reduced from 240
               height={45} // Reduced from 65
               priority
@@ -332,11 +332,11 @@ const Header = () => {
             >
               <div className="flex items-center justify-between">
                 <Link href="/" locale={undefined} className="-m-1 p-1">
-                  <span className="sr-only">PadokClub</span>
+                  <span className="sr-only">DeF1Club</span>
                   <Image
                     className="h-14 w-auto"
                     src={isDark ? '/images/logodark.png' : '/images/logolight.png'}
-                    alt="PadokClub"
+                    alt="DeF1Club"
                     width={200}
                     height={56}
                   />

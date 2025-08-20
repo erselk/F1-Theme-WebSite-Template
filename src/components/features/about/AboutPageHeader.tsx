@@ -13,8 +13,8 @@ const AboutPageHeader: React.FC = () => {
       </h1>
       <p className="text-base sm:text-lg md:text-xl text-medium-grey dark:text-silver max-w-3xl mx-auto">
         {language === 'tr' 
-          ? 'PadokClub, teknoloji, eğlence ve sosyal yaşamı bir araya getiren benzersiz bir deneyim merkezi' 
-          : 'PadokClub, a unique experience center that brings together technology, entertainment, and social life'}
+          ? 'DeF1Club, teknoloji, eğlence ve sosyal yaşamı bir araya getiren benzersiz bir deneyim merkezi' 
+          : 'DeF1Club, a unique experience center that brings together technology, entertainment, and social life'}
       </p>
     </div>
   );

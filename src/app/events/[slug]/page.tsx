@@ -44,15 +44,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!event) {
     return {
-      title: 'Event Not Found | Padok Club',
+      title: 'Event Not Found | DeF1 Club',
     };
   }
 
   return {
-    title: `${event.title.en} | Padok Club`,
+    title: `${event.title.en} | DeF1 Club`,
     description: event.description.en,
     openGraph: {
-      title: `${event.title.en} | Padok Club`,
+      title: `${event.title.en} | DeF1 Club`,
       description: event.description.en,
       images: [{ url: event.bannerImage, width: 1200, height: 630, alt: event.title.en }],
       type: 'website',
@@ -78,7 +78,7 @@ export default async function EventDetailPage({ params }: Props) {
   const eventStatus = getEventStatus(event.date);
   
   // Sayfa URL'si
-  const pageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://padokclub.com'}/events/${slugValue}`;
+  const pageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://DeF1Club.com'}/events/${slugValue}`;
 
   // We'll pass the data to a client component for theme handling
   return (

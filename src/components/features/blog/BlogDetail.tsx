@@ -139,7 +139,7 @@ const BlogDetail: React.FC<BlogDetailProps> = ({ blog }) => {
             </span>
             <div className="flex space-x-3">
               {/* X */}
-              <a href={`https://x.com/intent/tweet?text=${encodeURIComponent(blog.title[language])}&url=${encodeURIComponent(`https://padokclub.com/blog/${blog.slug}`)}`} 
+              <a href={`https://x.com/intent/tweet?text=${encodeURIComponent(blog.title[language])}&url=${encodeURIComponent(`https://DeF1Club.com/blog/${blog.slug}`)}`} 
                  target="_blank" 
                  rel="noopener noreferrer"
                  className={`p-2 rounded-full ${isDark ? 'bg-graphite hover:bg-black' : 'bg-very-light-grey hover:bg-white text-black'} transition-colors`}
@@ -149,7 +149,7 @@ const BlogDetail: React.FC<BlogDetailProps> = ({ blog }) => {
                 </svg>
               </a>
               {/* Facebook */}
-              <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://padokclub.com/blog/${blog.slug}`)}`} 
+              <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://DeF1Club.com/blog/${blog.slug}`)}`} 
                  target="_blank" 
                  rel="noopener noreferrer"
                  className={`p-2 rounded-full ${isDark ? 'bg-graphite hover:bg-graphite/80' : 'bg-very-light-grey hover:bg-light-grey'} transition-colors`}
@@ -159,7 +159,7 @@ const BlogDetail: React.FC<BlogDetailProps> = ({ blog }) => {
                 </svg>
               </a>
               {/* LinkedIn */}
-              <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://padokclub.com/blog/${blog.slug}`)}`} 
+              <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://DeF1Club.com/blog/${blog.slug}`)}`} 
                  target="_blank" 
                  rel="noopener noreferrer"
                  className={`p-2 rounded-full ${isDark ? 'bg-graphite hover:bg-graphite/80' : 'bg-very-light-grey hover:bg-light-grey'} transition-colors`}
@@ -171,7 +171,7 @@ const BlogDetail: React.FC<BlogDetailProps> = ({ blog }) => {
                 </svg>
               </a>
               {/* WhatsApp */}
-              <a href={`https://wa.me/?text=${encodeURIComponent(`${blog.title[language]} - https://padokclub.com/blog/${blog.slug}`)}`} 
+              <a href={`https://wa.me/?text=${encodeURIComponent(`${blog.title[language]} - https://DeF1Club.com/blog/${blog.slug}`)}`} 
                  target="_blank" 
                  rel="noopener noreferrer"
                  className={`p-2 rounded-full ${isDark ? 'bg-graphite hover:bg-graphite/80' : 'bg-very-light-grey hover:bg-light-grey'} transition-colors`}

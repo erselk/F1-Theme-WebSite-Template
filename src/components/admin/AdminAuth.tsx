@@ -58,7 +58,7 @@ export default function AdminAuth({ children }: AdminAuthProps) {
       <div className={`w-full max-w-md p-8 space-y-6 rounded-lg shadow-lg ${isDark ? 'bg-graphite' : 'bg-white'}`}>
         <div className="space-y-2 text-center">
           <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-dark-grey'}`}>
-            PadokClub Admin Panel
+            DeF1Club Admin Panel
           </h1>
           <p className={`text-sm ${isDark ? 'text-silver' : 'text-medium-grey'}`}>
             Devam etmek için şifre giriniz

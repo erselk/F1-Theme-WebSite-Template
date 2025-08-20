@@ -3,7 +3,7 @@ import { EventList } from '@/components/features/events/EventList';
 import { EventPageHeader } from '@/components/features/events/EventPageHeader';
 
 export const metadata: Metadata = {
-  title: 'Events | Padok Club',
+  title: 'Events | DeF1 Club',
   description: 'Upcoming events and activities for motorsport enthusiasts',
 };
 

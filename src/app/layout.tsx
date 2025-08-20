@@ -36,9 +36,9 @@ const barlowCondensed = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: "PadokClub - F1 Simülatör Deneyimi",
-  description: "F1 deneyimini profesyonel simülatörlerle yaşayın - Etkinlikler ve rezervasyonlar için PadokClub",
-  keywords: "F1, simülatör, yarış, rezervasyon, etkinlik, padok",
+  title: "DeF1Club - F1 Simülatör Deneyimi",
+  description: "F1 deneyimini profesyonel simülatörlerle yaşayın - Etkinlikler ve rezervasyonlar için DeF1Club",
+  keywords: "F1, simülatör, yarış, rezervasyon, etkinlik, DeF1",
 };
 
 export default function RootLayout({

@@ -170,7 +170,7 @@ export default function AdminLayout({
                   isDark ? 'text-white' : 'text-dark-grey'
                 }`}
               >
-                PadokClub Admin
+                DeF1Club Admin
               </Link>
               {isMobile && (
                 <button 
@@ -313,7 +313,7 @@ export default function AdminLayout({
                 </svg>
               </button>
               <span className="ml-3 text-base font-semibold font-['Titillium Web'] truncate text-silver">
-                PadokClub Admin
+                DeF1Club Admin
               </span>
             </div>
           )}

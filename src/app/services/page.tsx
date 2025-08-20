@@ -3,8 +3,8 @@ import ServicesPageHeader from "@/components/features/services/ServicesPageHeade
 import ServicesContent from "@/components/features/services/ServicesContent";
 
 export const metadata: Metadata = {
-  title: "Hizmetlerimiz - PadokClub",
-  description: "PadokClub'da sunulan tüm hizmetler ve deneyimler hakkında bilgi edinin.",
+  title: "Hizmetlerimiz - DeF1Club",
+  description: "DeF1Club'da sunulan tüm hizmetler ve deneyimler hakkında bilgi edinin.",
 };
 
 export default function ServicesPage() {

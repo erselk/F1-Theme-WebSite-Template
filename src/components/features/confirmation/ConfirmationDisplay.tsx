@@ -59,9 +59,9 @@ export default function ConfirmationDisplay({ paymentResultData, error }: Confir
       contactUs: 'Sorularınız için bize ulaşabilirsiniz.',
       note: 'Not',
       arriveEarly: 'Lütfen rezervasyon/etkinlik saatinizden 10 dakika önce merkezimizde bulunmayı unutmayınız.',
-      pdfTitleBooking: 'PADOK CLUB REZERVASYON',
+      pdfTitleBooking: 'DeF1 CLUB REZERVASYON',
       ticketTitleBooking: 'REZERVASYON BİLETİ',
-      pdfTitleEvent: 'PADOK ETKİNLİK BİLETİ',
+      pdfTitleEvent: 'DeF1 ETKİNLİK BİLETİ',
       printAndBring: 'Lütfen bu bileti yazdırın veya dijital olarak gösterin.',
       addressTitle: 'ADRES',
       address: 'Çamlıca Mah. Anadolu Blv. No:27, Üsküdar, İstanbul',
@@ -104,9 +104,9 @@ export default function ConfirmationDisplay({ paymentResultData, error }: Confir
       contactUs: 'You can contact us for any questions about your reservation.',
       note: 'Note',
       arriveEarly: 'Please remember to be at our center 10 minutes before your reservation/event time.',
-      pdfTitleBooking: 'PADOK CLUB RESERVATION',
+      pdfTitleBooking: 'DeF1 CLUB RESERVATION',
       ticketTitleBooking: 'RESERVATION TICKET',
-      pdfTitleEvent: 'PADOK EVENT TICKET',
+      pdfTitleEvent: 'DeF1 EVENT TICKET',
       printAndBring: 'Please print this ticket or show it digitally.',
       addressTitle: 'ADDRESS',
       address: 'Camlica Mah. Anadolu Blv. No:27, Uskudar, Istanbul',
@@ -164,7 +164,7 @@ export default function ConfirmationDisplay({ paymentResultData, error }: Confir
     if (!paymentResultData) return;
     setCalendarAdded(false);
     const commonEventDetails: Omit<IcsEventAttributes, 'start' | 'end' | 'title' | 'description'> = {
-      location: strings.address, status: 'CONFIRMED', busyStatus: 'BUSY', organizer: { name: 'Padok Club', email: 'info@padokclub.com' },
+      location: strings.address, status: 'CONFIRMED', busyStatus: 'BUSY', organizer: { name: 'DeF1 Club', email: 'info@DeF1Club.com' },
     };
     let icsEvent: IcsEventAttributes;
 
@@ -181,7 +181,7 @@ export default function ConfirmationDisplay({ paymentResultData, error }: Confir
       let startDateTime = new Date(`${eventDate}T${startTimeStr}:00`);
       let endDateTime = endTimeStr ? new Date(`${eventDate}T${endTimeStr}:00`) : new Date(startDateTime.getTime() + 60 * 60 * 1000);
       
-      const venueForCalendar = getLocalizedValue(details.venueName, 'Padok Club');
+      const venueForCalendar = getLocalizedValue(details.venueName, 'DeF1 Club');
       icsEvent = {
         ...commonEventDetails,
         title: `${strings.reservationDetails}: ${venueForCalendar}`,
@@ -226,7 +226,7 @@ export default function ConfirmationDisplay({ paymentResultData, error }: Confir
       }
       if (val) {
         const blob = new Blob([val], { type: 'text/calendar;charset=utf-8' });
-        const fileName = `padokclub-${paymentResultData.type}-${paymentResultData.orderId}.ics`;
+        const fileName = `DeF1Club-${paymentResultData.type}-${paymentResultData.orderId}.ics`;
         saveAs(blob, fileName);
         setCalendarAdded(true);
         setTimeout(() => setCalendarAdded(false), 3000);
@@ -240,7 +240,7 @@ export default function ConfirmationDisplay({ paymentResultData, error }: Confir
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', putOnlyUsedFonts: true, hotfixes: ["px_scaling"] });
     addCustomFonts(doc); doc.setLanguage("tr");
     const pageWidth = doc.internal.pageSize.getWidth(); const margin = 15; let yPos = margin + 10;
-    const baseUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : 'https://padokclub.com';
+    const baseUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : 'https://DeF1Club.com';
 
     if (paymentResultData.type === 'booking' && paymentResultData.bookingDetails) {
       const details = paymentResultData.bookingDetails;
@@ -297,7 +297,7 @@ export default function ConfirmationDisplay({ paymentResultData, error }: Confir
       addEventDetailRow(strings.eventName, getLocalizedValue(data.eventName));
       addEventDetailRow(strings.eventDate, formatDateForDisplay(data.eventDate, true));
       addEventDetailRow(strings.eventTime, formatEventTimeForDisplay(data.eventDate));
-      addEventDetailRow(strings.eventLocation, getLocalizedValue(data.eventLocation, 'Padok Club'));
+      addEventDetailRow(strings.eventLocation, getLocalizedValue(data.eventLocation, 'DeF1 Club'));
       addEventDetailRow(strings.orderId, data.orderId || 'N/A');
       addEventDetailRow(strings.customerName, data.fullName || 'N/A');
       addEventDetailRow(strings.totalAmount, formatPrice(data.amount / 100)); 
@@ -320,7 +320,7 @@ export default function ConfirmationDisplay({ paymentResultData, error }: Confir
     doc.setFont('Roboto', 'normal'); doc.text(safeText(strings.address), margin, yPos, { maxWidth: pageWidth - margin * 2 }); yPos += 10;
     doc.setFontSize(10); doc.text(safeText(strings.printAndBring), pageWidth / 2, yPos, { align: 'center' }); yPos += 7;
     doc.text(safeText(strings.seeYou), pageWidth / 2, yPos, { align: 'center' });
-    const fileName = `padokclub-${paymentResultData?.type || 'ticket'}-${paymentResultData?.orderId || 'onay'}.pdf`;
+    const fileName = `DeF1Club-${paymentResultData?.type || 'ticket'}-${paymentResultData?.orderId || 'onay'}.pdf`;
     doc.save(fileName);
     setGeneratingPdf(false);
   };

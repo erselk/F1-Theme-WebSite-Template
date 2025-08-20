@@ -11,11 +11,11 @@ export default function ContactPageHeader() {
   const translations = {
     tr: {
       title: "İletişim",
-      description: "Bizimle iletişime geçin, Padok deneyimini birlikte şekillendirelim."
+      description: "Bizimle iletişime geçin, DeF1 deneyimini birlikte şekillendirelim."
     },
     en: {
       title: "Contact Us",
-      description: "Get in touch with us and let's shape the Padok experience together."
+      description: "Get in touch with us and let's shape the DeF1 experience together."
     }
   };
   

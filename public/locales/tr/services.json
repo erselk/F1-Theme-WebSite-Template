@@ -1,25 +1,25 @@
 {
-  "introText": "Padok Club, fiziksel ve dijital deneyimleri birleştiren, disiplinler arası etkileşimi destekleyen çok katlı bir teknoloji, eğlence ve sosyalleşme merkezidir. Her kat, kendi içerisinde tematik olarak yapılandırılmış ve alanında en güncel donanımlar ile donatılmıştır. Aşağıda, sunduğumuz hizmetlerin detaylı açıklamalarını bulabilirsiniz:",
+  "introText": "DeF1 Club, fiziksel ve dijital deneyimleri birleştiren, disiplinler arası etkileşimi destekleyen çok katlı bir teknoloji, eğlence ve sosyalleşme merkezidir. Her kat, kendi içerisinde tematik olarak yapılandırılmış ve alanında en güncel donanımlar ile donatılmıştır. Aşağıda, sunduğumuz hizmetlerin detaylı açıklamalarını bulabilirsiniz:",
   
   "f1": {
     "title": "F1 Yarış Simülasyonu",
     "description": "Gerçekçilik, hız ve teknoloji üçgeninde kurgulanmış simülasyon deneyimi.",
     "detail": "Yüksek hassasiyetli direksiyon setleri ve ultra geniş görüş açısı.",
-    "longDescription": "Padok'un merkezinde yer alan F1 Yarış Simülasyon alanı, otomotiv teknolojisi, simülasyon mühendisliği ve e-spor disiplinlerinin kesişiminde konumlanır. Profesyonel yarış simülatörlerinde kullanılan yüksek hassasiyetli direksiyon setleri, hidrolik destekli özel koltuklar ve ultra geniş görüş açısı sunan çoklu ekran sistemleriyle donatılmıştır. Bu sistemler, fiziksel sürüş dinamiklerini birebir taklit eden kuvvet geri bildirimi (force feedback) ve titreşim sistemleriyle kullanıcıya mekanik tepki üzerinden öğrenme ve deneyimleme imkânı sunar. Geliştirilen yazılımlar sayesinde gerçek pist koşulları, lastik aşınmaları, aerodinamik etkiler ve hava koşulları gibi detaylar simülasyona entegre edilmiştir."
+    "longDescription": "DeF1'un merkezinde yer alan F1 Yarış Simülasyon alanı, otomotiv teknolojisi, simülasyon mühendisliği ve e-spor disiplinlerinin kesişiminde konumlanır. Profesyonel yarış simülatörlerinde kullanılan yüksek hassasiyetli direksiyon setleri, hidrolik destekli özel koltuklar ve ultra geniş görüş açısı sunan çoklu ekran sistemleriyle donatılmıştır. Bu sistemler, fiziksel sürüş dinamiklerini birebir taklit eden kuvvet geri bildirimi (force feedback) ve titreşim sistemleriyle kullanıcıya mekanik tepki üzerinden öğrenme ve deneyimleme imkânı sunar. Geliştirilen yazılımlar sayesinde gerçek pist koşulları, lastik aşınmaları, aerodinamik etkiler ve hava koşulları gibi detaylar simülasyona entegre edilmiştir."
   },
   
   "stage": {
     "title": "Sahne ve Performans Alanı",
     "description": "Sanatın, teknolojinin ve topluluğun buluştuğu etkileşimli alan.",
     "detail": "DJ performansları, akustik konserler ve interaktif performanslar.",
-    "longDescription": "Padok'un etkinlik katı, akustik mühendislik ve sahne teknolojileri dikkate alınarak tasarlanmış çok işlevli bir performans alanıdır. DJ performansları, akustik konserler, stand-up şovları, açık mikrofon geceleri ve interaktif performanslar gibi birçok farklı etkinlik türünü barındıracak şekilde yapılandırılmıştır. Sistem, yüksek çözünürlüklü LED ışık panelleri, otomatik senkronize ışık sistemleri, çok kanallı dijital mikser altyapısı ve gürültü kontrol panelleri gibi sahne tasarımında ön plana çıkan unsurları içerir."
+    "longDescription": "DeF1'un etkinlik katı, akustik mühendislik ve sahne teknolojileri dikkate alınarak tasarlanmış çok işlevli bir performans alanıdır. DJ performansları, akustik konserler, stand-up şovları, açık mikrofon geceleri ve interaktif performanslar gibi birçok farklı etkinlik türünü barındıracak şekilde yapılandırılmıştır. Sistem, yüksek çözünürlüklü LED ışık panelleri, otomatik senkronize ışık sistemleri, çok kanallı dijital mikser altyapısı ve gürültü kontrol panelleri gibi sahne tasarımında ön plana çıkan unsurları içerir."
   },
   
   "cafe": {
     "title": "Kafe & Kutu Oyunları Alanı",
     "description": "Sosyal oyun teorisiyle beslenen samimi ve kapsayıcı bir sosyalleşme ortamı.",
     "detail": "Rahat oturma grupları ve zengin kutu oyunları koleksiyonu.",
-    "longDescription": "Padok'un sosyal etkileşim katı, yalnızca bir kafe değil; aynı zamanda oyun temelli öğrenme, iş birliği geliştirme ve sosyal zekâ etkileşimi üzerine kurulmuş bir deneyim alanıdır. Rahat oturma grupları, masa düzenleri ve sessiz köşelerle her türden kullanıcıyı ağırlayabilecek esnekliğe sahiptir. Kafe bölümünde servis edilen içecekler ve atıştırmalıklar, hem bireysel çalışma hem de grup aktiviteleri sırasında kullanılabilir şekilde planlanmıştır."
+    "longDescription": "DeF1'un sosyal etkileşim katı, yalnızca bir kafe değil; aynı zamanda oyun temelli öğrenme, iş birliği geliştirme ve sosyal zekâ etkileşimi üzerine kurulmuş bir deneyim alanıdır. Rahat oturma grupları, masa düzenleri ve sessiz köşelerle her türden kullanıcıyı ağırlayabilecek esnekliğe sahiptir. Kafe bölümünde servis edilen içecekler ve atıştırmalıklar, hem bireysel çalışma hem de grup aktiviteleri sırasında kullanılabilir şekilde planlanmıştır."
   },
   
   "vr": {

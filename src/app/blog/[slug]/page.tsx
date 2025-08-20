@@ -23,7 +23,7 @@ export default function BlogPostPage() {
   // Sayfa başlığını güncelle
   useEffect(() => {
     if (data?.blog) {
-      document.title = `${data.blog.title.en} | PadokClub Blog`;
+      document.title = `${data.blog.title.en} | DeF1Club Blog`;
     }
   }, [data?.blog]);
   

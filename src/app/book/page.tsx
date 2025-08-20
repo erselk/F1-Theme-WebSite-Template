@@ -2,8 +2,8 @@ import { Metadata } from "next";
 import BookingContent from "@/components/features/book/BookingContent";
 
 export const metadata: Metadata = {
-  title: "Rezervasyon - PadokClub",
-  description: "PadokClub'da etkinlikleriniz için yer ayırtın ve rezervasyon yapın.",
+  title: "Rezervasyon - DeF1Club",
+  description: "DeF1Club'da etkinlikleriniz için yer ayırtın ve rezervasyon yapın.",
 };
 
 export default function BookingPage() {

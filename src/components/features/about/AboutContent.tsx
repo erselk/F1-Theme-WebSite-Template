@@ -18,8 +18,8 @@ const AboutContent: React.FC = () => {
           <div>
             <p className="text-sm sm:text-base md:text-lg mb-2 sm:mb-3 md:mb-4 text-medium-grey dark:text-silver">
               {language === 'tr' ? 
-                'Padok, teknoloji, eğlence ve sosyal yaşamı bir araya getiren çok katlı bir deneyim merkezi olarak 18 Mayıs 2025\'te kapılarını açtı.' : 
-                'Padok opened its doors on May 18, 2025 as a multi-floor experience center that brings together technology, entertainment, and social life.'}
+                'DeF1, teknoloji, eğlence ve sosyal yaşamı bir araya getiren çok katlı bir deneyim merkezi olarak 18 Mayıs 2025\'te kapılarını açtı.' : 
+                'DeF1 opened its doors on May 18, 2025 as a multi-floor experience center that brings together technology, entertainment, and social life.'}
             </p>
             <p className="text-sm sm:text-base md:text-lg mb-2 sm:mb-3 md:mb-4 text-medium-grey dark:text-silver">
               {language === 'tr' ? 
@@ -28,14 +28,14 @@ const AboutContent: React.FC = () => {
             </p>
             <p className="text-sm sm:text-base md:text-lg text-medium-grey dark:text-silver">
               {language === 'tr' ? 
-                'Bugün, bu güçlü temeller üzerine kurulan Padok Club, çok daha geniş bir vizyonla yola devam ediyor: Yalnızca bir oyun alanı değil, aynı zamanda sosyal etkileşim, müzik, eğlence ve profesyonel deneyimlerin buluşma noktası.' : 
-                'Today, Padok Club, built on these strong foundations, continues with a much broader vision: Not just a gaming space, but also a meeting point for social interaction, music, entertainment, and professional experiences.'}
+                'Bugün, bu güçlü temeller üzerine kurulan DeF1 Club, çok daha geniş bir vizyonla yola devam ediyor: Yalnızca bir oyun alanı değil, aynı zamanda sosyal etkileşim, müzik, eğlence ve profesyonel deneyimlerin buluşma noktası.' : 
+                'Today, DeF1 Club, built on these strong foundations, continues with a much broader vision: Not just a gaming space, but also a meeting point for social interaction, music, entertainment, and professional experiences.'}
             </p>
           </div>
           <div className="relative h-[200px] sm:h-[250px] md:h-[300px] w-full">
             <Image
               src="/images/head1.jpg"
-              alt={language === 'tr' ? "PadokClub Hikayemiz" : "PadokClub Our Story"}
+              alt={language === 'tr' ? "DeF1Club Hikayemiz" : "DeF1Club Our Story"}
               fill
               className="object-cover rounded-lg shadow-md"
             />
@@ -92,8 +92,8 @@ const AboutContent: React.FC = () => {
             </h3>
             <p className="text-xs sm:text-sm md:text-base text-medium-grey dark:text-silver">
               {language === 'tr' ? 
-                'Padok\'un odak noktası. Profesyonel direksiyon setleri, dev ekranlar ve yarış koltuklarıyla gerçek bir Formula atmosferi burada yaşanıyor.' : 
-                'The focal point of Padok. Experience a real Formula atmosphere with professional steering sets, giant screens, and racing seats.'}
+                'DeF1\'un odak noktası. Profesyonel direksiyon setleri, dev ekranlar ve yarış koltuklarıyla gerçek bir Formula atmosferi burada yaşanıyor.' : 
+                'The focal point of DeF1. Experience a real Formula atmosphere with professional steering sets, giant screens, and racing seats.'}
             </p>
           </div>
           
@@ -137,15 +137,15 @@ const AboutContent: React.FC = () => {
             </p>
             <p className="text-sm sm:text-base md:text-lg text-medium-grey dark:text-silver">
               {language === 'tr' ? 
-                'Padok, geçmişin birikimiyle geleceğe yön veriyor. Eğlence, teknoloji ve topluluğun buluştuğu bu yenilikçi merkez, her yaştan ziyaretçisine unutulmaz anlar vadediyor. Gel, keşfet, Padok\'ta yerini al!' : 
-                'Padok guides the future with the accumulation of the past. This innovative center, where entertainment, technology, and community meet, promises unforgettable moments to visitors of all ages. Come, explore, and take your place at Padok!'}
+                'DeF1, geçmişin birikimiyle geleceğe yön veriyor. Eğlence, teknoloji ve topluluğun buluştuğu bu yenilikçi merkez, her yaştan ziyaretçisine unutulmaz anlar vadediyor. Gel, keşfet, DeF1\'ta yerini al!' : 
+                'DeF1 guides the future with the accumulation of the past. This innovative center, where entertainment, technology, and community meet, promises unforgettable moments to visitors of all ages. Come, explore, and take your place at DeF1!'}
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4">
             <div className="relative h-[120px] sm:h-[150px] md:h-[200px]">
               <Image
                 src="/images/head2.jpg"
-                alt={language === 'tr' ? "PadokClub Tesislerimiz" : "PadokClub Our Facilities"}
+                alt={language === 'tr' ? "DeF1Club Tesislerimiz" : "DeF1Club Our Facilities"}
                 fill
                 className="object-cover rounded-lg shadow-md"
               />
@@ -153,7 +153,7 @@ const AboutContent: React.FC = () => {
             <div className="relative h-[120px] sm:h-[150px] md:h-[200px]">
               <Image
                 src="/images/head3.jpg"
-                alt={language === 'tr' ? "PadokClub Simülatörlerimiz" : "PadokClub Our Simulators"}
+                alt={language === 'tr' ? "DeF1Club Simülatörlerimiz" : "DeF1Club Our Simulators"}
                 fill
                 className="object-cover rounded-lg shadow-md"
               />
@@ -172,7 +172,7 @@ const AboutContent: React.FC = () => {
             <div key={num} className="relative h-[90px] sm:h-[120px] md:h-[150px] lg:h-[200px]">
               <Image
                 src={`/images/head${num}.jpg`}
-                alt={language === 'tr' ? `PadokClub Galeri ${num}` : `PadokClub Gallery ${num}`}
+                alt={language === 'tr' ? `DeF1Club Galeri ${num}` : `DeF1Club Gallery ${num}`}
                 fill
                 className="object-cover rounded-lg hover:opacity-90 transition-opacity shadow-md"
               />
@@ -204,7 +204,7 @@ const AboutContent: React.FC = () => {
                 {language === 'tr' ? 'Telefon: +90 212 123 45 67' : 'Phone: +90 212 123 45 67'}
               </p>
               <p className="text-xs sm:text-sm md:text-base text-medium-grey dark:text-silver">
-                {language === 'tr' ? 'Email: info@padokclub.com' : 'Email: info@padokclub.com'}
+                {language === 'tr' ? 'Email: info@DeF1Club.com' : 'Email: info@DeF1Club.com'}
               </p>
             </div>
             <div>

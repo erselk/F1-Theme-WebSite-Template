@@ -3,8 +3,8 @@ import ContactPageHeader from "@/components/features/contact/ContactPageHeader";
 import ContactContent from "@/components/features/contact/ContactContent";
 
 export const metadata: Metadata = {
-  title: "İletişim - PadokClub",
-  description: "PadokClub ile iletişime geçin, adres bilgileri, ziyaret saatleri ve iletişim kanalları.",
+  title: "İletişim - DeF1Club",
+  description: "DeF1Club ile iletişime geçin, adres bilgileri, ziyaret saatleri ve iletişim kanalları.",
 };
 
 export default function ContactPage() {

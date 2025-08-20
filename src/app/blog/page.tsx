@@ -10,7 +10,7 @@ const BlogContent = dynamic(() => import('@/components/features/blog/BlogContent
 });
 
 export const metadata: Metadata = {
-  title: 'Blog | PadokClub',
+  title: 'Blog | DeF1Club',
   description: 'Motorsport ve F1 ile ilgili son haberler, içerikler ve makaleler',
 };
 

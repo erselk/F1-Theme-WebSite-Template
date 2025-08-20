@@ -213,7 +213,7 @@ export default function HeroSection({ translations }: HeroSectionProps) {
           >
             <Image
               src={homeSlides[currentSlide]}
-              alt={`Padok Club Slide ${currentSlide + 1}`}
+              alt={`DeF1 Club Slide ${currentSlide + 1}`}
               fill
               className="object-cover brightness-75"
               priority={currentSlide === 0}

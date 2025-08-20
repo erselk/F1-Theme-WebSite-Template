@@ -148,7 +148,7 @@ export default function TestimonialsSection({ translations }: TestimonialsSectio
               transition={{ delay: 0.4, duration: 1 }}
               className={`mt-1 sm:mt-2 text-[8px] sm:text-xs md:text-sm lg:text-base ${isDark ? 'text-[#B0B0B0]' : 'text-gray-300'} font-['Inter']`}
             >
-              {translations.testimonialsSubtitle || "PadokClub deneyimini yaşayanların görüşleri"}
+              {translations.testimonialsSubtitle || "DeF1Club deneyimini yaşayanların görüşleri"}
             </motion.p>
           </motion.div>
           

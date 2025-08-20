@@ -3,8 +3,8 @@ import AboutPageHeader from "@/components/features/about/AboutPageHeader";
 import AboutContent from "@/components/features/about/AboutContent";
 
 export const metadata: Metadata = {
-  title: "Hakkımızda - PadokClub",
-  description: "PadokClub hakkında bilgi edinin. Biz kimiz, misyonumuz ve vizyonumuz.",
+  title: "Hakkımızda - DeF1Club",
+  description: "DeF1Club hakkında bilgi edinin. Biz kimiz, misyonumuz ve vizyonumuz.",
 };
 
 export default function AboutPage() {

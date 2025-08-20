@@ -427,7 +427,7 @@ export const useReservationFormLogic = ({
       totalAmount: price,
       currency: "TRY",
       customerName: `${formData.name} ${formData.surname}`,
-      customerEmail: `anonymous-${Date.now().toString(36)}@padok.com`, // More robust anonymous email
+      customerEmail: `anonymous-${Date.now().toString(36)}@DeF1.com`, // More robust anonymous email
       customerPhone: formData.phone,
       bookingDetails: {
         venueId: formData.venue,

@@ -52,8 +52,8 @@ const ServicesPageHeader: React.FC = () => {
           }`}
         >
           {language === 'tr' 
-            ? 'Padok Club, fiziksel ve dijital deneyimleri birleştiren, disiplinler arası etkileşimi destekleyen çok katlı bir teknoloji, eğlence ve sosyalleşme merkezidir.'
-            : 'Padok Club is a multi-level technology, entertainment, and social hub that combines physical and digital experiences while supporting interdisciplinary interactions.'}
+            ? 'DeF1 Club, fiziksel ve dijital deneyimleri birleştiren, disiplinler arası etkileşimi destekleyen çok katlı bir teknoloji, eğlence ve sosyalleşme merkezidir.'
+            : 'DeF1 Club is a multi-level technology, entertainment, and social hub that combines physical and digital experiences while supporting interdisciplinary interactions.'}
         </motion.p>
       </motion.div>
     </div>

@@ -11,7 +11,7 @@ export default function PrivacyPage() {
       title: "Gizlilik Politikası",
       lastUpdated: "Son Güncelleme: 27 Nisan 2025",
       intro: {
-        p1: "Bu Gizlilik Politikası, PadokClub'ın ('biz', 'bize' veya 'bizim') web sitemizi ziyaret ettiğinizde, hizmetlerimizi kullandığınızda veya bizimle herhangi bir şekilde etkileşimde bulunduğunuzda kişisel bilgilerinizi nasıl topladığını, kullandığını ve açıkladığını açıklar.",
+        p1: "Bu Gizlilik Politikası, DeF1Club'ın ('biz', 'bize' veya 'bizim') web sitemizi ziyaret ettiğinizde, hizmetlerimizi kullandığınızda veya bizimle herhangi bir şekilde etkileşimde bulunduğunuzda kişisel bilgilerinizi nasıl topladığını, kullandığını ve açıkladığını açıklar.",
         p2: "Hizmetlerimize erişerek veya kullanarak bu Gizlilik Politikasını kabul etmiş olursunuz. Politikalarımız ve uygulamalarımızı kabul etmiyorsanız, lütfen hizmetlerimizi kullanmayın."
       },
       section1: {
@@ -94,7 +94,7 @@ export default function PrivacyPage() {
       section10: {
         title: "10. Bize Ulaşın",
         p1: "Bu gizlilik politikası veya veri uygulamalarımız hakkında herhangi bir sorunuz varsa, lütfen bizimle iletişime geçin:",
-        contact: "E-posta: privacy@padokclub.com<br />Telefon: +90 212 555 1234<br />Adres: PadokClub, İstanbul, Türkiye"
+        contact: "E-posta: privacy@DeF1Club.com<br />Telefon: +90 212 555 1234<br />Adres: DeF1Club, İstanbul, Türkiye"
       },
       footer: "Tüm Hakları Saklıdır."
     },
@@ -102,7 +102,7 @@ export default function PrivacyPage() {
       title: "Privacy Policy",
       lastUpdated: "Last Updated: April 27, 2025",
       intro: {
-        p1: "This Privacy Policy describes how PadokClub ('we,' 'us,' or 'our') collects, uses, and discloses your personal information when you visit our website, use our services, or interact with us in any way.",
+        p1: "This Privacy Policy describes how DeF1Club ('we,' 'us,' or 'our') collects, uses, and discloses your personal information when you visit our website, use our services, or interact with us in any way.",
         p2: "By accessing or using our services, you agree to this Privacy Policy. If you do not agree with our policies and practices, please do not use our services."
       },
       section1: {
@@ -185,7 +185,7 @@ export default function PrivacyPage() {
       section10: {
         title: "10. Contact Us",
         p1: "If you have any questions about this privacy policy or our data practices, please contact us at:",
-        contact: "Email: privacy@padokclub.com<br />Phone: +90 212 555 1234<br />Address: PadokClub, Istanbul, Turkey"
+        contact: "Email: privacy@DeF1Club.com<br />Phone: +90 212 555 1234<br />Address: DeF1Club, Istanbul, Turkey"
       },
       footer: "All Rights Reserved."
     }
@@ -316,7 +316,7 @@ export default function PrivacyPage() {
 
         <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            © {new Date().getFullYear()} PadokClub. {t.footer}
+            © {new Date().getFullYear()} DeF1Club. {t.footer}
           </p>
         </div>
       </div>

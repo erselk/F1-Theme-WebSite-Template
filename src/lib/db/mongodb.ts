@@ -3,7 +3,7 @@
 import mongoose from 'mongoose';
 import { MongoClient as MongoClientOriginal } from 'mongodb';
 
-const MONGODB_URI: string = process.env.MONGODB_URI || 'mongodb://localhost/padokclub';
+const MONGODB_URI: string = process.env.MONGODB_URI || 'mongodb://localhost/DeF1Club';
 
 let cached = global.mongoose;
 

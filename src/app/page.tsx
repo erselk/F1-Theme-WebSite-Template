@@ -43,7 +43,7 @@ import CTASection from "@/components/features/home/CTASection";
 const translations = {
   tr: {
     // Hero bölümü çevirileri
-    heroTitle: "Gerçek Padok Deneyimine Hoş Geldin.",
+    heroTitle: "Gerçek DeF1 Deneyimine Hoş Geldin.",
     heroSubtitle: "F1 simülasyonları, VR dünyaları, sahne performansları ve daha fazlasıyla İstanbul'un yeni nesil deneyim merkezi.",
     heroCta: "Hemen Keşfet",
     
@@ -83,7 +83,7 @@ const translations = {
     
     // Yorumlar bölümü çevirileri
     testimonialsTitle: "Müşterilerimiz Ne Diyor?",
-    testimonialsSubtitle: "PadokClub deneyimini yaşayanların görüşleri",
+    testimonialsSubtitle: "DeF1Club deneyimini yaşayanların görüşleri",
     testimonials: [
       {
         initial: "MA",
@@ -101,7 +101,7 @@ const translations = {
         initial: "KC",
         name: "Kerem C.",
         role: "Motor Sporları Fanatiği",
-        text: "\"F1 tutkunuyum ve PadokClub'ın sunduğu deneyim beklentilerimin ötesindeydi. Hareket sistemleri olağanüstü!\""
+        text: "\"F1 tutkunuyum ve DeF1Club'ın sunduğu deneyim beklentilerimin ötesindeydi. Hareket sistemleri olağanüstü!\""
       }
     ],
     
@@ -153,7 +153,7 @@ const translations = {
     
     // Testimonials section translations
     testimonialsTitle: "What Our Customers Say",
-    testimonialsSubtitle: "Reviews from those who experienced PadokClub",
+    testimonialsSubtitle: "Reviews from those who experienced DeF1Club",
     testimonials: [
       {
         initial: "MA",
@@ -171,7 +171,7 @@ const translations = {
         initial: "KC",
         name: "Kerem C.",
         role: "Motorsports Fan",
-        text: "\"I'm an F1 enthusiast and the experience PadokClub offers was beyond my expectations. The motion systems are extraordinary!\""
+        text: "\"I'm an F1 enthusiast and the experience DeF1Club offers was beyond my expectations. The motion systems are extraordinary!\""
       }
     ],
     
