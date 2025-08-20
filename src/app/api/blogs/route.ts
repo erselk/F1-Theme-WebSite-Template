@@ -4,9 +4,10 @@ import Blog from '@/models/Blog';
 import { Types } from 'mongoose';
 import mongoose from 'mongoose';
 
-// Netlify Functions için özel yapılandırma
+// Vercel Serverless Functions için özel yapılandırma
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 30;
 export const revalidate = 0;
 
 // CORS ön işleme

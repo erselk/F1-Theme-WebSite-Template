@@ -1,0 +1,28 @@
+{
+  "buildCommand": "pnpm build",
+  "outputDirectory": ".next",
+  "installCommand": "pnpm install --no-frozen-lockfile",
+  "framework": "nextjs",
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "MONGODB_URI": "@mongodb_uri",
+    "DATABASE_URL": "@database_url",
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "MONGODB_URI": "@mongodb_uri",
+      "DATABASE_URL": "@database_url"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    }
+  ]
+}

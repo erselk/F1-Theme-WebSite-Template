@@ -3,8 +3,11 @@ import { connectToDatabase } from '@/lib/db/mongodb';
 import Event from '@/models/Event';
 import { getEventStatus } from '@/types';
 
-// Cache kontrollerini ayarla - önbelleğe almayı engelle
-export const dynamic = 'force-dynamic'; // Statik önbelleğe almayı devre dışı bırak
+// Vercel Serverless Functions için özel yapılandırma
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const maxDuration = 30;
+// Statik önbelleğe almayı devre dışı bırak
 export const revalidate = 0; // Her istekte yeniden doğrulama yap
 
 export async function GET() {

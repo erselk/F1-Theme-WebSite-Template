@@ -15,8 +15,8 @@ const nextConfig: NextConfig = {
   // middleware.ts dosyasında dil yönlendirmesi yapılmalı
   trailingSlash: false,
   
-  // Netlify için output yapılandırması - standalone yerine normal export kullan
-  // output: 'standalone',
+  // Vercel için output yapılandırması
+  output: 'standalone',
   
   // ESLint hata kontrollerini build ve dev sırasında devre dışı bırak
   eslint: {
@@ -61,10 +61,10 @@ const nextConfig: NextConfig = {
     return config;
   },
 
-  // Use experimental.serverComponentsExternalPackages instead of experimental.serverExternalPackages
+  // Vercel için experimental ayarları
   experimental: {
-    // Remove the conflicting serverComponentsExternalPackages configuration
-    // serverComponentsExternalPackages: ['mongodb'],
+    serverComponentsExternalPackages: ['mongodb', 'mongoose'],
+    esmExternals: 'loose'
   }
 };
 

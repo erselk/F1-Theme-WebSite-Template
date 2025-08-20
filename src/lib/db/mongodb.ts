@@ -3,7 +3,7 @@
 import mongoose from 'mongoose';
 import { MongoClient as MongoClientOriginal } from 'mongodb';
 
-const MONGODB_URI: string = process.env.MONGODB_URI || 'mongodb://localhost/DeF1Club';
+const MONGODB_URI: string = process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb://localhost/DeF1Club';
 
 let cached = global.mongoose;
 
@@ -19,6 +19,9 @@ export async function connectToDatabase() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
     };
 
     try {
@@ -68,6 +71,9 @@ export async function connectMongo() {
   if (!cachedClient.promise) {
     try {
       const client = new MongoClientOriginal(MONGODB_URI, {
+        maxPoolSize: 10,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
         monitorCommands: false,
         serverApi: {
           version: '1',
