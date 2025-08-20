@@ -339,10 +339,10 @@ export default function ContactContent() {
             </div>
             <div className="text-center">
               <h3 className={`text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 ${headingTextClass}`}>{t.contactInfo.address}</h3>
-              <p className="text-[10px] sm:text-xs">Levent Mah, Levent Cad No:51</p>
-              <p className="text-[10px] sm:text-xs mb-1 sm:mb-2">34330 Beşiktaş / İstanbul</p>
+              <p className="text-[10px] sm:text-xs">Merhaba Mah, Merhaba Cad No:123</p>
+              <p className="text-[10px] sm:text-xs mb-1 sm:mb-2">34000 Merhaba / Merhaba</p>
               <Link 
-                href="https://maps.app.goo.gl/epxeP5PZGRGeCkC88" 
+                href="https://maps.app.goo.gl/1234567890" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className={`mt-0.5 sm:mt-1 inline-flex items-center text-[10px] sm:text-xs py-0.5 sm:py-1 px-1.5 sm:px-2 rounded ${contactIconClass} hover:underline`}

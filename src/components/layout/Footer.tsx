@@ -217,12 +217,12 @@ const Footer = () => {
   const locationInfo = {
     tr: {
       title: 'Konum',
-      address: 'Levent, Levent Cd. NO:51, 34330 Beşiktaş/İstanbul',
+      address: 'Merhaba, Merhaba Cd. No:123, 34000 Merhaba/Merhaba',
       directions: 'Yol Tarifi Al',
     },
     en: {
       title: 'LOCATION',
-      address: 'Levent, Levent St. NO:51, 34330 Besiktas/Istanbul',
+      address: 'Merhaba, Merhaba St. No:123, 34000 Merhaba/Merhaba',
       directions: 'Get Directions',
     }
   };
@@ -424,7 +424,7 @@ const Footer = () => {
               {locationInfo[language as 'tr' | 'en'].address}
             </motion.address>
             <motion.a 
-              href="https://maps.app.goo.gl/epxeP5PZGRGeCkC88" 
+              href="https://maps.app.goo.gl/1234567890" 
               target="_blank"
               rel="noopener noreferrer"
               className={`inline-flex items-center text-sm ${
@@ -459,7 +459,7 @@ const Footer = () => {
               animate="animate"
             >
               <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3007.502893564132!2d29.0206296!3d41.0798576!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14cab7a49fe953f3%3A0x6bfe4560f584590e!2sOMEN%20CLUB%20TSYD!5e0!3m2!1str!2str!4v1745068634657!5m2!1str!2str" 
+                src="https://www.google.com/maps/embed?pb=" 
                 width="100%" 
                 height="100%" 
                 style={{border: 0}} 
